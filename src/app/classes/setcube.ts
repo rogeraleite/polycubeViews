@@ -1,17 +1,20 @@
 import { PolyCube } from './polycube.interface';
 import { DataManager } from './datamanager';
 import * as THREE from 'three';
+import { CSS3DRenderer, CSS3DObject } from '../../../node_modules/three-renderer-css3d';
 import { VIEW_STATES } from './viewStates';
 
 export class SetCube implements PolyCube {
     private dm: DataManager;
-    private scene: THREE.Scene;
+    private webGLScene: THREE.Scene;
+    private cssScene: THREE.Scene;
     private color: string;
     private sCubeGroup: THREE.Group;
 
-    init(dm: DataManager, scene: THREE.Scene): void {
+    init(dm: DataManager, webGLScene: THREE.Scene, cssScene: THREE.Scene): void {
         this.dm = dm;
-        this.scene = scene;
+        this.webGLScene = webGLScene;
+        if(cssScene) this.cssScene = cssScene;
         this.sCubeGroup = new THREE.Group();
         this.assembleData();
         this.render();
@@ -35,13 +38,13 @@ export class SetCube implements PolyCube {
         this.sCubeGroup.position.set(3,0,0);
         this.sCubeGroup.add(box);
 
-        this.scene.add(this.sCubeGroup);
+        this.webGLScene.add(this.sCubeGroup);
     }
 
     
     update(currentViewState: VIEW_STATES): void {
         if(currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
-            this.scene.add(this.sCubeGroup);
+            this.webGLScene.add(this.sCubeGroup);
         }
     }
 
