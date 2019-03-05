@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import * as THREE from 'three';
+import { CSS3DRenderer } from '../../node_modules/three-renderer-css3d';
 import { OrbitControls } from '../../node_modules/three-orbitcontrols-ts/dist/index';
 import * as D3 from 'd3';
 import { PolyCube } from './classes/polycube.interface';
@@ -11,7 +12,6 @@ import { DataManager } from './classes/datamanager';
 import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
 import * as TWEEN from '@tweenjs/tween.js';
-import { Vector2 } from 'three';
 
 @Component({
   selector: 'app-root',
@@ -39,7 +39,7 @@ export class AppComponent {
   light: THREE.Light;
   controls: OrbitControls;  
   webGLRenderer: THREE.WebGLRenderer;
-  //let css3DRenderer: THREE.CSS3DRenderer;
+  css3DRenderer: any;
 
   // Cubes
   gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
@@ -56,39 +56,33 @@ export class AppComponent {
 initScene = () => {
     this.scene = new THREE.Scene();
     //this.camera = new Camera();
-    
     let canvas: HTMLElement  = document.getElementById('polycube-canvas');
     this.webGLRenderer = new THREE.WebGLRenderer({ canvas:  canvas as HTMLCanvasElement, alpha: true });
     // set size
     this.webGLRenderer.setSize(window.innerWidth, window.innerHeight);
     this.webGLRenderer.setClearColor(0xffffff, 0);
-
+   
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-    this.controls = new OrbitControls(this.camera, this.webGLRenderer.domElement);
+    this.camera.position.set(0,0, -10);
+
+    this.controls = new OrbitControls(this.camera);
 
     this.controls.enableZoom = true;
     this.controls.enablePan = true;
-    
+    this.controls.update();
+
     let axis = new THREE.AxesHelper(10);
     this.scene.add(axis);
 
     this.light = new THREE.DirectionalLight(0xffffff, 1.0);
     this.light.position.set(100, 100, 100);
     this.scene.add(this.light);
-    
-    // this.camera.perspectiveCamera.position.x = 5;
-    // this.camera.perspectiveCamera.position.y = 5;
-    // this.camera.perspectiveCamera.position.z = 5;
-    
-    // this.camera.perspectiveCamera.lookAt(this.scene.position);
 
     this.camera.position.x = 5;
     this.camera.position.y = 5;
     this.camera.position.z = 5;
     
     this.camera.lookAt(this.scene.position);
-
-    
 
     this.animate();
 }
@@ -97,7 +91,6 @@ initScene = () => {
  * 
  */
 initCubes = () => {
-    console.log('initializing PolyCube');
     let dm = new DataManager(null);
 
     this.gCube = new GeoCube();
@@ -134,12 +127,13 @@ removeAllCubeViews = (): void => {
    this.scene.remove(this.scene.getObjectByName('NET_CUBE'));
 }
 
-// FIXME: camera.lookAt not interpolated correctly
 positionCamera = (): void => {
-   let tweenPos = new TWEEN.Tween(this.camera.position);
-   let tweenLookAt = new TWEEN.Tween(this.camera.lookAt);
    let targetVector = new THREE.Vector3();
+   let camLookAt = new THREE.Vector3(0, 0, -1);
    let cubePos: THREE.Vector3;
+
+   let tweenPos = new TWEEN.Tween(this.camera.position);
+   let tweenLookAt = new TWEEN.Tween(camLookAt.applyQuaternion(this.camera.quaternion));
 
    switch(this.currentViewState) {
       case 'GEO_CUBE': 
@@ -160,9 +154,12 @@ positionCamera = (): void => {
    targetVector.set(cubePos.x, this.camera.position.y, this.camera.position.z);
    tweenPos.to(targetVector, 250); 
    tweenLookAt.to(cubePos, 250);   
-
-   tweenPos.start();
-   tweenLookAt.start();
+   // FIXME: lookAt still buggy -> find how to fix or consider first person action cam
+   tweenPos.start().onComplete(() => { 
+      tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
+         this.camera.lookAt(target);
+      })
+   });
 };
 
 updateCubesView = (): void => {
@@ -171,7 +168,6 @@ updateCubesView = (): void => {
    this.sCube.update(this.currentViewState);
    this.nCube.update(this.currentViewState);
    this.positionCamera();
-
 };
 
 

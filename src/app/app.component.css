@@ -1,0 +1,11 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#polycube-canvas {
+    top: 0em;
+    left: 0em;
+    height: 100%;
+    width: 100%;
+}
