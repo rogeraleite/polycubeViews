@@ -10,7 +10,8 @@ import { Camera } from './classes/camera';
 import { DataManager } from './classes/datamanager';
 import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
-
+import * as TWEEN from '@tweenjs/tween.js';
+import { Vector2 } from 'three';
 
 @Component({
   selector: 'app-root',
@@ -133,11 +134,44 @@ removeAllCubeViews = (): void => {
    this.scene.remove(this.scene.getObjectByName('NET_CUBE'));
 }
 
+// FIXME: camera.lookAt not interpolated correctly
+positionCamera = (): void => {
+   let tweenPos = new TWEEN.Tween(this.camera.position);
+   let tweenLookAt = new TWEEN.Tween(this.camera.lookAt);
+   let targetVector = new THREE.Vector3();
+   let cubePos: THREE.Vector3;
+
+   switch(this.currentViewState) {
+      case 'GEO_CUBE': 
+         cubePos = this.gCube.getCubePosition();
+         break;
+      case 'SET_CUBE': 
+         cubePos = this.sCube.getCubePosition();
+         break;
+      case 'NET_CUBE': 
+         cubePos = this.nCube.getCubePosition();
+         break;
+      case 'POLY_CUBE':
+         cubePos = this.sCube.getCubePosition();
+         break;
+      default: break;
+   }
+
+   targetVector.set(cubePos.x, this.camera.position.y, this.camera.position.z);
+   tweenPos.to(targetVector, 250); 
+   tweenLookAt.to(cubePos, 250);   
+
+   tweenPos.start();
+   tweenLookAt.start();
+};
+
 updateCubesView = (): void => {
    this.removeAllCubeViews();
    this.gCube.update(this.currentViewState);
    this.sCube.update(this.currentViewState);
    this.nCube.update(this.currentViewState);
+   this.positionCamera();
+
 };
 
 
@@ -151,6 +185,7 @@ parseData = (data: any) => {
  */
 animate = () => {
     requestAnimationFrame(this.animate);
+    TWEEN.update();
     this.render();
 }
 

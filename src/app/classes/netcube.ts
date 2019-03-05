@@ -31,10 +31,9 @@ export class NetCube implements PolyCube {
     
         // create a box and add it to the scene
         let box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
-        box.position.x = 10;
-        box.rotation.y = 0.5;
-
+        
         this.nCubeGroup.name = 'NET_CUBE';
+        this.nCubeGroup.position.set(6,0,0);
         this.nCubeGroup.add(box);
 
         this.scene.add(this.nCubeGroup);
@@ -45,6 +44,12 @@ export class NetCube implements PolyCube {
         if(currentViewState.valueOf() === VIEW_STATES.NET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.scene.add(this.nCubeGroup);
         }
+    }
+
+    getCubePosition(): THREE.Vector3 {
+        let positionInWorld = new THREE.Vector3();
+        this.nCubeGroup.getWorldPosition(positionInWorld);
+        return positionInWorld;
     }
 
 

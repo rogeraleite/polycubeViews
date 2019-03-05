@@ -10,6 +10,8 @@ export class GeoCube implements PolyCube {
     private color: string;
     private gCubeGroup: THREE.Group;
 
+    
+
     init(dm: DataManager, scene: THREE.Scene): void {
         this.dm = dm;
         this.scene = scene;
@@ -32,9 +34,9 @@ export class GeoCube implements PolyCube {
     
         // create a box and add it to the scene
         let box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
-        box.position.x = 0.5;
-        box.rotation.y = 0.5;
+   
         this.gCubeGroup.name = 'GEO_CUBE';
+        this.gCubeGroup.position.set(0,0,0);
         this.gCubeGroup.add(box);
 
         this.scene.add(this.gCubeGroup);
@@ -44,6 +46,12 @@ export class GeoCube implements PolyCube {
         if(currentViewState.valueOf() === VIEW_STATES.GEO_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.scene.add(this.gCubeGroup);
         }
+    }
+
+    getCubePosition(): THREE.Vector3 {
+        let positionInWorld = new THREE.Vector3();
+        this.gCubeGroup.getWorldPosition(positionInWorld);
+        return positionInWorld;
     }
 
     onClick($event: any): void {

@@ -30,10 +30,9 @@ export class SetCube implements PolyCube {
     
         // create a box and add it to the scene
         let box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
-        box.position.x = 5;
-        box.rotation.y = 0.5;
 
         this.sCubeGroup.name = 'SET_CUBE';
+        this.sCubeGroup.position.set(3,0,0);
         this.sCubeGroup.add(box);
 
         this.scene.add(this.sCubeGroup);
@@ -44,6 +43,12 @@ export class SetCube implements PolyCube {
         if(currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.scene.add(this.sCubeGroup);
         }
+    }
+
+    getCubePosition(): THREE.Vector3 {
+        let positionInWorld = new THREE.Vector3();
+        this.sCubeGroup.getWorldPosition(positionInWorld);
+        return positionInWorld;
     }
 
     onClick($event: any): void {
