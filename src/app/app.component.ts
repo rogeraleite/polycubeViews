@@ -134,12 +134,13 @@ removeAllCubeViews = (): void => {
    this.scene.remove(this.scene.getObjectByName('NET_CUBE'));
 }
 
-// FIXME: camera.lookAt not interpolated correctly
 positionCamera = (): void => {
-   let tweenPos = new TWEEN.Tween(this.camera.position);
-   let tweenLookAt = new TWEEN.Tween(this.camera.lookAt);
    let targetVector = new THREE.Vector3();
+   let camLookAt = new THREE.Vector3(0, 0, -1);
    let cubePos: THREE.Vector3;
+
+   let tweenPos = new TWEEN.Tween(this.camera.position);
+   let tweenLookAt = new TWEEN.Tween(camLookAt.applyQuaternion(this.camera.quaternion));
 
    switch(this.currentViewState) {
       case 'GEO_CUBE': 
@@ -160,9 +161,11 @@ positionCamera = (): void => {
    targetVector.set(cubePos.x, this.camera.position.y, this.camera.position.z);
    tweenPos.to(targetVector, 250); 
    tweenLookAt.to(cubePos, 250);   
-
+   
    tweenPos.start();
-   tweenLookAt.start();
+   tweenLookAt.start().onUpdate((target: any) => {
+      this.camera.lookAt(target.x, target.y, target.z);
+   });
 };
 
 updateCubesView = (): void => {
