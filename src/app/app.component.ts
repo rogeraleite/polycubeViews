@@ -163,7 +163,7 @@ positionCamera = (): void => {
    tweenLookAt.to(cubePos, 250);   
    
    tweenPos.start();
-   tweenLookAt.start().onUpdate((target: any) => {
+   tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
       this.camera.lookAt(target.x, target.y, target.z);
    });
 };
