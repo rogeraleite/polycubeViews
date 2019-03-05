@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from '../../node_modules/three-orbitcontrols-ts/dist/index';
-//import { OrbitControls } from '../../node_modules/three-orbitcontrols/OrbitControls';
 import * as D3 from 'd3';
-import { GeoCube } from "./classes/geocube";
-import { SetCube } from "./classes/setcube";
-import { NetCube } from "./classes/netcube";
+import { PolyCube } from './classes/polycube.interface';
+import { GeoCube } from './classes/geocube';
+import { SetCube } from './classes/setcube';
+import { NetCube } from './classes/netcube';
 import { Camera } from './classes/camera';
 import { DataManager } from './classes/datamanager';
 import { VIEW_STATES } from './classes/viewStates';
@@ -17,6 +17,7 @@ import { GUI } from './classes/gui';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css','./bootstrap.min.css']
 })
+
 export class AppComponent {
   title = 'polycubeViews';
 
@@ -40,8 +41,7 @@ export class AppComponent {
   //let css3DRenderer: THREE.CSS3DRenderer;
 
   // Cubes
-  gCube: GeoCube; sCube: SetCube; nCube: NetCube;
-
+  gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
 
   // set default view to display all cubes
   currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
@@ -88,7 +88,6 @@ initScene = () => {
     this.camera.lookAt(this.scene.position);
 
     
-    console.log(this.camera);
 
     this.animate();
 }
