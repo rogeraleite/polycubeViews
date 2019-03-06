@@ -21,7 +21,7 @@ export class SetCube implements PolyCube {
     }
     
     assembleData(): void {
-        this.color = this.dm.getData()[1];
+        this.color = this.dm.data[1];
         console.log(this.color);
     }
     render(): void {
