@@ -21,5 +21,13 @@
 .gui-buttons {
     position: absolute;
     top: 0em;
-    
+
+}
+
+canvas {
+  background: transparent;
+  /*canvas over html*/
+  pointer-events:none;
+  z-index: 9;
+
 }
