@@ -3,25 +3,16 @@
     padding: 0;
 }
 
-#webgl-canvas {
-    top: 0em;
-    left: 0em;
-    height: 100%;
+#webgl-canvas,
+#css-canvas {
     width: 100%;
+    height: 100%;
 }
 
-#css-canvas {
-    position: absolute;
-    top: 0em;
-    left: 0em;
-    width: 100%;
-    height: 100%;
-}
 
 .gui-buttons {
     position: absolute;
     top: 0em;
-
 }
 
 canvas {
@@ -31,3 +22,10 @@ canvas {
   z-index: 9;
 
 }
+/*=======*/
+    /*margin: 0 auto;*/
+    /*z-index: 1;*/
+    /*width: 355px;*/
+    /*height: 5em;*/
+/*}*/
+/*>>>>>>> a130d303e68eb70eed22cb70af11eec49586f100*/

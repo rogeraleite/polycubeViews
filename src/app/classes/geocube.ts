@@ -25,7 +25,7 @@ export class GeoCube implements PolyCube {
     }
 
     assembleData(): void {
-        this.color = this.dm.getData()[2];
+        this.color = this.dm.data[2];
         console.log(this.color);
     }
 

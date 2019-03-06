@@ -21,8 +21,7 @@ export class NetCube implements PolyCube {
     }
     
     assembleData(): void {
-        this.color = this.dm.getData()[0];
-        console.log(this.color);
+        this.color = this.dm.data[0];
     }
     
     render(): void {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import * as THREE from 'three';
 import { CSS3DRenderer, CSS3DObject } from '../../node_modules/three-renderer-css3d';
 import { OrbitControls } from '../../node_modules/three-orbitcontrols-ts/dist/index';
@@ -9,10 +9,11 @@ import { GeoCube } from './classes/geocube';
 import { SetCube } from './classes/setcube';
 import { NetCube } from './classes/netcube';
 import { Camera } from './classes/camera';
-import { DataManager } from './classes/datamanager';
+import { GoogleDriveProvider } from './services/google.drive.service';
 import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
 import * as TWEEN from '@tweenjs/tween.js';
+import { DataManager } from './classes/datamanager';
 
 @Component({
    selector: 'app-root',
@@ -21,6 +22,9 @@ import * as TWEEN from '@tweenjs/tween.js';
 })
 
 export class AppComponent {
+   @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
+   @ViewChild('webGLCanvas') webGLContainer: ElementRef;
+   @ViewChild('cssCanvas') cssContainer: ElementRef;
    title = 'polycubeViews';
 
    /**
@@ -42,14 +46,18 @@ export class AppComponent {
    controls: OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
-
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
-
+   
    // set default view to display all cubes
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
+   dataManager: DataManager;
+
+   // inject google
+   constructor(private google: GoogleDriveProvider) {}
 
    ngAfterViewInit() {
+      this.initDataset();
       this.initScene();
       this.initCubes();
       this.initGUI();
@@ -58,19 +66,22 @@ export class AppComponent {
    initScene = () => {
       this.webGLScene = new THREE.Scene();
       this.cssScene = new THREE.Scene();
-      //this.camera = new Camera();
-      let webGLCanvas: HTMLElement = document.getElementById('webgl-canvas');
-      let cssCanvas: HTMLElement = document.getElementById('css-canvas');
-      this.webGLRenderer = new THREE.WebGLRenderer({ canvas: webGLCanvas as HTMLCanvasElement, alpha: true });
+     
       // set size
-      this.webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-      this.webGLRenderer.setClearColor('#FFC0CB', 0.6);
+      const WIDTH = this.webGLContainer.nativeElement.offsetWidth;
+      const HEIGHT = this.webGLContainer.nativeElement.offsetHeight;
+
+      this.webGLRenderer = new THREE.WebGLRenderer({ canvas: this.webGLContainer.nativeElement as HTMLCanvasElement, alpha: true });
+      this.webGLRenderer.setSize(WIDTH, HEIGHT);
+      this.webGLRenderer.setClearColor(0xffffff, 0);
 
       this.css3DRenderer = new CSS3DRenderer();
-      this.css3DRenderer.setSize(window.innerWidth, window.innerHeight);
+      this.css3DRenderer.setSize(WIDTH, HEIGHT);
       this.css3DRenderer.setClearColor(0x00ff00, 1);
 
-      cssCanvas.appendChild(this.css3DRenderer.domElement);
+      this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
+      this.cssContainer.nativeElement.style.position = 'absolute';
+      this.cssContainer.nativeElement.style.top = '0em';
 
       this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
       this.camera.position.set(0, 0, -10);
@@ -112,18 +123,37 @@ export class AppComponent {
       this.animate();
    }
 
+   initDataset(): void {
+      let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
+      this.dataManager = new DataManager();
+      // perform request to get spreadsheet json 
+      // parse it when done and pass to datamanager
+      this.google.load(_id).then((success: any) => {
+         this.dataManager.data = success;
+      })
+   }
+
+   updateDataset(): void {
+      let id = this.spreadsheetId.nativeElement.value;
+      if(!id) {
+         console.error('No spredsheet id provided.'); 
+         return;
+      }
+      this.google.load(id).then((success: any) => {
+         this.dataManager.data = success;
+      });
+   }
+
    /**
     *
     */
    initCubes = () => {
-      let dm = new DataManager(null);
-
       this.gCube = new GeoCube();
-      this.gCube.init(dm, this.webGLScene, this.cssScene);
+      this.gCube.init(this.dataManager, this.webGLScene, this.cssScene);
       this.sCube = new SetCube();
-      this.sCube.init(dm, this.webGLScene, this.cssScene);
+      this.sCube.init(this.dataManager, this.webGLScene, this.cssScene);
       this.nCube = new NetCube();
-      this.nCube.init(dm, this.webGLScene, this.cssScene);
+      this.nCube.init(this.dataManager, this.webGLScene, this.cssScene);
    };
 
    initGUI = () => {
