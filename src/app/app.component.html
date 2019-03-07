@@ -7,19 +7,33 @@
     </head>
     <body>
         <div class="wrapper">
+
+
             <div class="gui-buttons">
+              <div class="row">
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
-                    <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
-                    <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
-                    <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
+                  <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
+                  <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
+                  <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
+                  <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
                 </div>
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
-                    <div class="input-group-append">
-                      <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
-                    </div>
-                </div>
+              </div>
+
+              <!--<form editable-form>-->
+                <!--<div class="form-group">-->
+                  <!--<label for="exampleInputEmail1">...</label>-->
+                  <!--<input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">-->
+                  <!--<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
+                <!--</div>-->
+                <!--<button type="submit" class="btn btn-primary">Submit</button>-->
+              <!--</form>-->
+
+                <!--<div class="input-group">-->
+                    <!--<input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>-->
+                    <!--<div class="input-group-append">-->
+                      <!--<button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>-->
+                    <!--</div>-->
+                <!--</div>-->
             </div>
             <canvas id="webgl-canvas" #webGLCanvas></canvas>
             <div id="css-canvas" #cssCanvas></div>

@@ -48,7 +48,7 @@ export class AppComponent {
    css3DRenderer: any;
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
-   
+
    // set default view to display all cubes
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
    dataManager: DataManager;
@@ -63,10 +63,20 @@ export class AppComponent {
       this.initGUI();
    }
 
+  initDataset(): void {
+    let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
+    this.dataManager = new DataManager();
+    // perform request to get spreadsheet json
+    // parse it when done and pass to datamanager
+    this.google.load(_id).then((success: any) => {
+      this.dataManager.data = success;
+    })
+  }
+
    initScene = () => {
       this.webGLScene = new THREE.Scene();
       this.cssScene = new THREE.Scene();
-     
+
       // set size
       const WIDTH = this.webGLContainer.nativeElement.offsetWidth;
       const HEIGHT = this.webGLContainer.nativeElement.offsetHeight;
@@ -104,39 +114,30 @@ export class AppComponent {
       this.camera.position.z = 5;
 
       this.camera.lookAt(this.webGLScene.position);
-      //HTML
-      let element = document.createElement('button');
-      element.innerHTML = 'Plain text inside a div.';
-      element.id = 'button';
-      element.style.background = "#0094ff";
-      element.style.fontSize = "2em";
-      element.style.color = "white";
-      element.style.padding = "2em";
+      // //HTML
+      // let element = document.createElement('button');
+      // element.innerHTML = 'Plain text inside a div.';
+      // element.id = 'button';
+      // element.style.background = "#0094ff";
+      // element.style.fontSize = "2em";
+      // element.style.color = "white";
+      // element.style.padding = "2em";
+      //
+      // //CSS Object
+      // let div = new CSS3DObject(element);
+      // div.position.x = 8;
+      // div.position.y = 9;
+      // div.position.z = 185;
+      // this.cssScene.add(div);
 
-      //CSS Object
-      let div = new CSS3DObject(element);
-      div.position.x = 8;
-      div.position.y = 9;
-      div.position.z = 185;
-      this.cssScene.add(div);
 
       this.animate();
-   }
-
-   initDataset(): void {
-      let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
-      this.dataManager = new DataManager();
-      // perform request to get spreadsheet json 
-      // parse it when done and pass to datamanager
-      this.google.load(_id).then((success: any) => {
-         this.dataManager.data = success;
-      })
    }
 
    updateDataset(): void {
       let id = this.spreadsheetId.nativeElement.value;
       if(!id) {
-         console.error('No spredsheet id provided.'); 
+         console.error('No spredsheet id provided.');
          return;
       }
       this.google.load(id).then((success: any) => {
@@ -148,13 +149,14 @@ export class AppComponent {
     *
     */
    initCubes = () => {
-      this.gCube = new GeoCube();
+
+     this.gCube = new GeoCube();
       this.gCube.init(this.dataManager, this.webGLScene, this.cssScene);
       this.sCube = new SetCube();
       this.sCube.init(this.dataManager, this.webGLScene, this.cssScene);
       this.nCube = new NetCube();
       this.nCube.init(this.dataManager, this.webGLScene, this.cssScene);
-   };
+   }
 
    initGUI = () => {
       // TODO: could possibly add events on click listeners

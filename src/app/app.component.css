@@ -1,31 +1,32 @@
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #webgl-canvas,
 #css-canvas {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
-
 .gui-buttons {
-    position: absolute;
-    top: 0em;
+  position: absolute;
+  top: 0em;
+  z-index: 999;
 }
 
 canvas {
   background: transparent;
   /*canvas over html*/
-  pointer-events:none;
+  /*pointer-events: none;*/
   z-index: 9;
 
 }
+
 /*=======*/
-    /*margin: 0 auto;*/
-    /*z-index: 1;*/
-    /*width: 355px;*/
-    /*height: 5em;*/
+/*margin: 0 auto;*/
+/*z-index: 1;*/
+/*width: 355px;*/
+/*height: 5em;*/
 /*}*/
 /*>>>>>>> a130d303e68eb70eed22cb70af11eec49586f100*/

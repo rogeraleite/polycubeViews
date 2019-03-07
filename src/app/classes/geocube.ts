@@ -13,7 +13,6 @@ export class GeoCube implements PolyCube {
     private gCubeGroupCSS: THREE.Group;
 
 
-
     init(dm: DataManager, webGLScene: THREE.Scene, cssScene?: THREE.Scene): void {
         this.dm = dm;
         this.webGLScene = webGLScene;
@@ -48,11 +47,13 @@ export class GeoCube implements PolyCube {
         const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
         this.gCubeGroup.add(box);
 
-
         const sphere = new THREE.SphereGeometry();
         const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( 0xff0000 ) );
         const box = new THREE.BoxHelper( object, 0xffff00 );
+        // box.setFromObject(this.gCubeGroup)
         this.gCubeGroup.add(box);
+
+        console.log(this.dm);
 
       // // HTML
       //   const element = document.createElement('button');
