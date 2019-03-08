@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import * as THREE from 'three-full';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
@@ -12,13 +12,14 @@ import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
 import { DataManager } from './classes/datamanager';
 import { CUBE_CONFIG } from './cube.config';
+
 @Component({
    selector: 'app-root',
    templateUrl: './app.component.html',
    styleUrls: ['./app.component.css', './bootstrap.min.css']
 })
 
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
    @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
    @ViewChild('webGLCanvas') webGLContainer: ElementRef;
    @ViewChild('cssCanvas') cssContainer: ElementRef;
@@ -119,7 +120,7 @@ export class AppComponent {
          this.initGUI();
       });
    }
-   
+
    updateDataset(): void {
       this.loadingDataset = true;
       let id = this.spreadsheetId.nativeElement.value;
@@ -252,7 +253,6 @@ export class AppComponent {
       this.updateCubesView();
    }
 
-
-
-
+   getMinDate(): Date { return this.dataManager.getMinDate(); }
+   getMaxDate(): Date { return this.dataManager.getMaxDate(); }
 }
