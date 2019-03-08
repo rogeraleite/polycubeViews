@@ -28,5 +28,12 @@
                 </div>
             </div>
         </div>
+        <app-timeslider 
+            *ngIf="dataManager" 
+            [minDate]="getMinDate()" 
+            [maxDate]="getMaxDate()" 
+            [width]="50" 
+            [height]="200"
+        ></app-timeslider>
     </div>
 </div>
