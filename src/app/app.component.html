@@ -1,36 +1,32 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>PolyCube</title>
-        <!--script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="./dist/main.js" type="module"></script-->
-    </head>
-    <body>
-        <div class="wrapper">
-            <div class="gui-buttons">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
-                    <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
-                    <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
-                    <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
+<div class="wrapper">
+    <div class="canvas-wrapper">
+        <div id="css-canvas" #cssCanvas></div>
+        <canvas id="webgl-canvas" #webGLCanvas></canvas>
+    </div>
+    <div *ngIf="errorOccurred" class="alert alert-danger error">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close" (click)="errorOccurred = false">&times;</a>
+        <strong>Error</strong> {{ errorMessage }}
+    </div>
+    <div class="gui-wrapper">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
+            <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
+            <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
+            <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
+        </div>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
+            <div class="input-group-append">
+                <div *ngIf="!loadingDataset">
+                    <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
                 </div>
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
-                    <div class="input-group-append">
-                        <div *ngIf="!loadingDataset">
-                            <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
-                        </div>
-                        <div *ngIf="loadingDataset">
-                            <button class="btn btn-secondary" type="button" disabled>
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                Loading...
-                            </button>
-                        </div>
-                    </div>
+                <div *ngIf="loadingDataset">
+                    <button class="btn btn-secondary" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </button>
                 </div>
             </div>
-            <canvas id="webgl-canvas" #webGLCanvas></canvas>
-            <div id="css-canvas" #cssCanvas></div>
         </div>
-    </body>
-</html>
+    </div>
+</div>

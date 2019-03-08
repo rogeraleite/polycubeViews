@@ -1,16 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
 body {
     margin: 0;
-}
-
-.wrapper {
-    margin: 0;
-    padding: 0;
-}
-
-.gui-buttons {
-    position: relative;
-    top: 2em;
-    margin: 0 auto;
-    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
 }
