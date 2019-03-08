@@ -70,7 +70,7 @@ export class AppComponent {
     // parse it when done and pass to datamanager
     this.google.load(_id).then((success: any) => {
       this.dataManager.data = success;
-    })
+    });
   }
 
    initScene = () => {
