@@ -64,6 +64,7 @@ export class NetCube implements PolyCube {
     
     render(): void {
         let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
+        this.cubeGroupGL.name = 'NET_CUBE';
         this.cubeGroupGL.add(boxHelper);
         this.cubeGroupGL.position.set((CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER)*2, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
@@ -74,6 +75,13 @@ export class NetCube implements PolyCube {
             this.webGLScene.add(this.cubeGroupGL);
         }
     }
+
+    
+    transitionSTC(): void {}
+    transitionJP(): void {}
+    transitionSI(): void {}
+    transitionANI(): void {}
+
 
     getCubePosition(): THREE.Vector3 {
         let positionInWorld = new THREE.Vector3();

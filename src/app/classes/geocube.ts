@@ -56,11 +56,7 @@ export class GeoCube implements PolyCube {
     }
 
     render(): void {
-        const material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(0x000000),
-            wireframe: true
-        });
-        // group holding all webGl objects
+          // group holding all webGl objects
         this.cubeGroupGL.name = 'GEO_CUBE';
         this.cubeGroupGL.position.set(0, 0, 0);
         this.webGLScene.add(this.cubeGroupGL); // add group to scene webgl scene
@@ -71,22 +67,6 @@ export class GeoCube implements PolyCube {
         // create a box and add it to the scene
         let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
         this.cubeGroupGL.add(boxHelper);
-
-      // // HTML
-      //   const element = document.createElement('button');
-      //   element.innerHTML = 'Plain text inside a div.';
-      //   element.id = 'button';
-      //   element.style.background = '#0094ff';
-      //   element.style.fontSize = '2em';
-      //   element.style.color = 'white';
-      //   element.style.padding = '2em';
-      //
-      // // CSS Object
-      //   const div = new CSS3DObject(element);
-      //   div.position.x = 8;
-      //   div.position.y = 9;
-      //   div.position.z = 15;
-      //   this.cssScene.add(div);
     }
 
     update(currentViewState: VIEW_STATES): void {
@@ -94,6 +74,11 @@ export class GeoCube implements PolyCube {
             this.webGLScene.add(this.cubeGroupGL);
         }
     }
+
+    transitionSTC(): void {}
+    transitionJP(): void {}
+    transitionSI(): void {}
+    transitionANI(): void {}
 
     getCubePosition(): THREE.Vector3 {
         const positionInWorld = new THREE.Vector3();
@@ -104,5 +89,9 @@ export class GeoCube implements PolyCube {
     onClick($event: any): void {
         console.log($event);
         console.log('geocube onclick');
+    }
+
+    onDblClick($event: any): void {
+
     }
 }

@@ -64,31 +64,10 @@ export class SetCube implements PolyCube {
     render(): void {
         // create a box and add it to the scene
         let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
+        this.cubeGroupGL.name = 'SET_CUBE';
         this.cubeGroupGL.add(boxHelper);
         this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
-
-        // const sphere = new THREE.SphereGeometry();
-        // const object = new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( 0xff0000 ) );
-        // const box = new THREE.BoxHelper( object, 0xffff00 );
-        // this.sCubeGroup.add(box);
-        // // this.webGLScene.add( box );
-
-      // // HTML
-      //   const element = document.createElement('button');
-      //   element.innerHTML = 'Plain text inside a div.';
-      //   element.id = 'button';
-      //   element.style.background = '#0094ff';
-      //   element.style.fontSize = '2em';
-      //   element.style.color = 'white';
-      //   element.style.padding = '2em';
-      //
-      // // CSS Object
-      //   const div = new CSS3DObject(element);
-      //   div.position.x = 8;
-      //   div.position.y = 9;
-      //   div.position.z = 15;
-      //   this.cssScene.add(div);
     }
 
 
@@ -98,6 +77,13 @@ export class SetCube implements PolyCube {
         }
     }
 
+    
+    transitionSTC(): void {}
+    transitionJP(): void {}
+    transitionSI(): void {}
+    transitionANI(): void {}
+
+
     getCubePosition(): THREE.Vector3 {
         const positionInWorld = new THREE.Vector3();
         this.cubeGroupGL.getWorldPosition(positionInWorld);
@@ -105,6 +91,10 @@ export class SetCube implements PolyCube {
     }
 
     onClick($event: any): void {
+
+    }
+
+    onDblClick($event: any): void {
 
     }
 }
