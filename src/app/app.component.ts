@@ -45,7 +45,7 @@ export class AppComponent {
    css3DRenderer: any;
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
-   
+
    // set default view to display all cubes
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
    dataManager: DataManager;
@@ -66,7 +66,6 @@ export class AppComponent {
    initScene = () => {
       this.webGLScene = new THREE.Scene();
       this.cssScene = new THREE.Scene();
-      // set size 
       const WIDTH = this.webGLContainer.nativeElement.offsetWidth;
       const HEIGHT = this.webGLContainer.nativeElement.offsetHeight;
 
@@ -120,7 +119,7 @@ export class AppComponent {
          this.initGUI();
       });
    }
-
+   
    updateDataset(): void {
       this.loadingDataset = true;
       let id = this.spreadsheetId.nativeElement.value;
