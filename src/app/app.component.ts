@@ -11,7 +11,7 @@ import { GoogleDriveProvider } from './services/google.drive.service';
 import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
 import { DataManager } from './classes/datamanager';
-
+import { CUBE_CONFIG } from './cube.config';
 @Component({
    selector: 'app-root',
    templateUrl: './app.component.html',
@@ -51,6 +51,8 @@ export class AppComponent {
    dataManager: DataManager;
 
    loadingDataset: boolean = false;
+   errorOccurred: boolean = false;
+   errorMessage: string;
 
    // inject google
    constructor(private google: GoogleDriveProvider) {}
@@ -74,13 +76,12 @@ export class AppComponent {
 
       this.css3DRenderer = new THREE.CSS3DRenderer();
       this.css3DRenderer.setSize(WIDTH, HEIGHT);
-      // this.css3DRenderer.setClearColor(0x00ff00, 1);
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
       this.cssContainer.nativeElement.style.position = 'absolute';
       this.cssContainer.nativeElement.style.top = '0em';
 
-      this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+      this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
       this.camera.position.set(0, 0, -10);
 
       this.controls = new THREE.OrbitControls(this.camera);
@@ -91,32 +92,17 @@ export class AppComponent {
 
       let axis = new THREE.AxesHelper(10);
       this.webGLScene.add(axis);
-
+   
       this.light = new THREE.DirectionalLight(0xffffff, 1.0);
       this.light.position.set(100, 100, 100);
       this.webGLScene.add(this.light);
 
-      this.camera.position.x = 5;
-      this.camera.position.y = 5;
-      this.camera.position.z = 5;
+      this.camera.position.x = 0;
+      this.camera.position.y = 0;
+      this.camera.position.z = 1000;
 
       this.camera.lookAt(this.webGLScene.position);
-      //HTML
-      let element = document.createElement('button');
-      element.innerHTML = 'Plain text inside a div.';
-      element.id = 'button';
-      element.style.background = "#0094ff";
-      element.style.fontSize = "2em";
-      element.style.color = "white";
-      element.style.padding = "2em";
-
-      //CSS Object
-      let div = new THREE.CSS3DObject(element);
-      div.position.x = 8;
-      div.position.y = 9;
-      div.position.z = 185;
-      this.cssScene.add(div);
-
+      
       this.animate();
    }
 
@@ -140,11 +126,15 @@ export class AppComponent {
       let id = this.spreadsheetId.nativeElement.value;
       if(!id) {
          console.error('No spredsheet id provided.'); 
+         this.loadingDataset = false;
+         this.errorOccurred = true;
+         this.errorMessage = 'No spreadsheet id provided.';
          return;
       }
       this.google.load(id).then((success: any) => {
          this.dataManager.data = success;
          this.loadingDataset = false;
+         console.log(success);
       });
    }
 
@@ -152,12 +142,9 @@ export class AppComponent {
     *
     */
    initCubes = () => {
-      this.gCube = new GeoCube();
-      this.gCube.init(this.dataManager, this.webGLScene, this.cssScene);
-      this.sCube = new SetCube();
-      this.sCube.init(this.dataManager, this.webGLScene, this.cssScene);
-      this.nCube = new NetCube();
-      this.nCube.init(this.dataManager, this.webGLScene, this.cssScene);
+      this.gCube = new GeoCube(this.dataManager, this.webGLScene, this.cssScene);
+      this.sCube = new SetCube(this.dataManager, this.webGLScene, this.cssScene);
+      this.nCube = new NetCube(this.dataManager, this.webGLScene, this.cssScene);
    };
 
    initGUI = () => {
@@ -210,7 +197,7 @@ export class AppComponent {
          default: break;
       }
 
-      targetVector.set(cubePos.x, this.camera.position.y, this.camera.position.z);
+      targetVector.set(cubePos.x + CUBE_CONFIG.WIDTH/2, this.camera.position.y, this.camera.position.z);
       tweenPos.to(targetVector, 250);
       tweenLookAt.to(cubePos, 250);
       // FIXME: lookAt still buggy -> find how to fix or consider first person action cam
