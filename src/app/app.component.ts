@@ -38,8 +38,7 @@ export class AppComponent implements AfterViewInit {
    gui: GUI;
    webGLScene: THREE.Scene;
    cssScene: THREE.Scene;
-   //camera: Camera;
-   camera: THREE.PerspectiveCamera;
+   camera: THREE.Camera; //PerspectiveCamera or OrthographicCamera;
    light: THREE.Light;
    controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
@@ -58,12 +57,24 @@ export class AppComponent implements AfterViewInit {
    // inject google
    constructor(private google: GoogleDriveProvider) {}
 
+   /**
+    * Lifecycle hook called when the DOM is initialized
+    */
    ngAfterViewInit() {
       setTimeout(() => {
          this.initDataset();
       })
    }
 
+   /**
+    * Initializes the THREEJS scene 
+    * - creating renderers
+    * - creating camera
+    * - creating scenes
+    * - creating controls
+    * - creating lighting
+    * - call the animation loop
+    */
    initScene = () => {
       this.webGLScene = new THREE.Scene();
       this.cssScene = new THREE.Scene();
@@ -81,8 +92,10 @@ export class AppComponent implements AfterViewInit {
       this.cssContainer.nativeElement.style.position = 'absolute';
       this.cssContainer.nativeElement.style.top = '0em';
 
-      this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
-      this.camera.position.set(0, 0, -10);
+      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
+      // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.camera.position.set(0, 0, 1000);
+      this.camera.lookAt(this.webGLScene.position);
 
       this.controls = new THREE.OrbitControls(this.camera);
 
@@ -97,15 +110,13 @@ export class AppComponent implements AfterViewInit {
       this.light.position.set(100, 100, 100);
       this.webGLScene.add(this.light);
 
-      this.camera.position.x = 0;
-      this.camera.position.y = 0;
-      this.camera.position.z = 1000;
-
-      this.camera.lookAt(this.webGLScene.position);
-      
       this.animate();
    }
 
+   /**
+    * Initializes the component with the default (Cushman) dataset
+    * Once data is loaded initializes the scene, cubes, and GUI
+    */
    initDataset(): void {
       this.loadingDataset = true;
       let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
@@ -121,6 +132,10 @@ export class AppComponent implements AfterViewInit {
       });
    }
 
+   /**
+    * Updates the data set with a new dataset
+    * We get the ID from the text input
+    */
    updateDataset(): void {
       this.loadingDataset = true;
       let id = this.spreadsheetId.nativeElement.value;
@@ -134,12 +149,13 @@ export class AppComponent implements AfterViewInit {
       this.google.load(id).then((success: any) => {
          this.dataManager.data = success;
          this.loadingDataset = false;
-         console.log(success);
       });
    }
 
    /**
-    *
+    * Initializes the cubes, assigns the data manager and passes the 
+    * webGL and css3D scenes so that the cubes can create their objects
+    * and append themselves to the scene
     */
    initCubes = () => {
       this.gCube = new GeoCube(this.dataManager, this.webGLScene, this.cssScene);
@@ -147,6 +163,20 @@ export class AppComponent implements AfterViewInit {
       this.nCube = new NetCube(this.dataManager, this.webGLScene, this.cssScene);
    };
 
+   /**
+    * This function is called when the dataset has been changed
+    * to notify the cubes that they should update the dataset
+    * and re-initialize themselves
+    */
+   updateCubes = () => {
+      this.gCube.updateData();
+      this.sCube.updateData();
+      this.nCube.updateData();
+   }
+
+   /**
+    * Initializes the GUI elements including button event listeners
+    */
    initGUI = () => {
       // TODO: could possibly add events on click listeners
       this.gui = new GUI();
@@ -167,12 +197,18 @@ export class AppComponent implements AfterViewInit {
       });
    }
 
+   /**
+    * Clears the current (webGL) scene from all cube groups
+    */
    removeAllCubeViews = (): void => {
       this.webGLScene.remove(this.webGLScene.getObjectByName('GEO_CUBE'));
       this.webGLScene.remove(this.webGLScene.getObjectByName('SET_CUBE'));
       this.webGLScene.remove(this.webGLScene.getObjectByName('NET_CUBE'));
    }
 
+   /**
+    * This function is used to position the camera 
+    */
    positionCamera = (): void => {
       let targetVector = new THREE.Vector3();
       let camLookAt = new THREE.Vector3(0, 0, -1);
@@ -204,10 +240,14 @@ export class AppComponent implements AfterViewInit {
       tweenPos.start().onComplete(() => {
          tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
             this.camera.lookAt(target);
+            this.controls.update();
          })
       });
    };
 
+   /**
+    * Updates which cubes are shown based on user selection
+    */
    updateCubesView = (): void => {
       this.removeAllCubeViews();
       this.gCube.update(this.currentViewState);
@@ -216,14 +256,8 @@ export class AppComponent implements AfterViewInit {
       this.positionCamera();
    };
 
-
-
-   parseData = (data: any) => {
-
-   };
-
    /**
-    *
+    * Starts the animation (rendering) loop
     */
    animate = () => {
       requestAnimationFrame(this.animate);
@@ -232,7 +266,8 @@ export class AppComponent implements AfterViewInit {
    }
 
    /**
-    *
+    * Function called each iteration of the rendering loop
+    * Renders the scene from the cameras PoV
     */
    render() {
       //this.webGLRenderer.render(this.scene, this.camera.perspectiveCamera);
@@ -240,7 +275,11 @@ export class AppComponent implements AfterViewInit {
       this.css3DRenderer.render(this.cssScene, this.camera);
    }
 
-   setCubeView(view: string) {
+   /**
+    * Updates the current view with the users section
+    * @param view - string: user selection stating which cube should be displayed
+    */
+   setCubeView(view: string): void {
       switch (view) {
          case 'GEO_CUBE': this.currentViewState = VIEW_STATES.GEO_CUBE; break;
          case 'SET_CUBE': this.currentViewState = VIEW_STATES.SET_CUBE; break;
@@ -253,6 +292,13 @@ export class AppComponent implements AfterViewInit {
       this.updateCubesView();
    }
 
+   /**
+    * 
+    */
    getMinDate(): Date { return this.dataManager.getMinDate(); }
+
+   /**
+    * 
+    */
    getMaxDate(): Date { return this.dataManager.getMaxDate(); }
 }
