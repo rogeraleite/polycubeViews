@@ -1,8 +1,6 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import * as THREE from 'three';
-import { CSS3DRenderer, CSS3DObject } from '../../node_modules/three-renderer-css3d';
-import { OrbitControls } from '../../node_modules/three-orbitcontrols-ts/dist/index';
-// FIXME: d3 integration
+import * as THREE from 'three-full';
+import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import { PolyCube } from './classes/polycube.interface';
 import { GeoCube } from './classes/geocube';
@@ -12,7 +10,6 @@ import { Camera } from './classes/camera';
 import { GoogleDriveProvider } from './services/google.drive.service';
 import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
-import * as TWEEN from '@tweenjs/tween.js';
 import { DataManager } from './classes/datamanager';
 
 @Component({
@@ -43,7 +40,7 @@ export class AppComponent {
    //camera: Camera;
    camera: THREE.PerspectiveCamera;
    light: THREE.Light;
-   controls: OrbitControls;
+   controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
    // Cubes
@@ -76,8 +73,6 @@ export class AppComponent {
    initScene = () => {
       this.webGLScene = new THREE.Scene();
       this.cssScene = new THREE.Scene();
-
-      // set size
       const WIDTH = this.webGLContainer.nativeElement.offsetWidth;
       const HEIGHT = this.webGLContainer.nativeElement.offsetHeight;
 
@@ -85,9 +80,9 @@ export class AppComponent {
       this.webGLRenderer.setSize(WIDTH, HEIGHT);
       this.webGLRenderer.setClearColor(0xffffff, 0);
 
-      this.css3DRenderer = new CSS3DRenderer();
+      this.css3DRenderer = new THREE.CSS3DRenderer();
       this.css3DRenderer.setSize(WIDTH, HEIGHT);
-      this.css3DRenderer.setClearColor(0x00ff00, 1);
+      // this.css3DRenderer.setClearColor(0x00ff00, 1);
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
       this.cssContainer.nativeElement.style.position = 'absolute';
@@ -96,7 +91,7 @@ export class AppComponent {
       this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
       this.camera.position.set(0, 0, -10);
 
-      this.controls = new OrbitControls(this.camera);
+      this.controls = new THREE.OrbitControls(this.camera);
 
       this.controls.enableZoom = true;
       this.controls.enablePan = true;
@@ -113,22 +108,22 @@ export class AppComponent {
       this.camera.position.y = 5;
       this.camera.position.z = 5;
 
-      this.camera.lookAt(this.webGLScene.position);
-      // //HTML
-      // let element = document.createElement('button');
-      // element.innerHTML = 'Plain text inside a div.';
-      // element.id = 'button';
-      // element.style.background = "#0094ff";
-      // element.style.fontSize = "2em";
-      // element.style.color = "white";
-      // element.style.padding = "2em";
-      //
-      // //CSS Object
-      // let div = new CSS3DObject(element);
-      // div.position.x = 8;
-      // div.position.y = 9;
-      // div.position.z = 185;
-      // this.cssScene.add(div);
+      this.camera.lookAt(this.webGLScene.position)
+
+      let element = document.createElement('button');
+      element.innerHTML = 'Plain text inside a div.';
+      element.id = 'button';
+      element.style.background = "#0094ff";
+      element.style.fontSize = "2em";
+      element.style.color = "white";
+      element.style.padding = "2em";
+
+      //CSS Object
+      let div = new THREE.CSS3DObject(element);
+      div.position.x = 8;
+      div.position.y = 9;
+      div.position.z = 185;
+      this.cssScene.add(div);
 
 
       this.animate();
