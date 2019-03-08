@@ -32,7 +32,7 @@ export class AppComponent {
   */
 
    /**
-    * init function 
+    * init function
     */
    gui: GUI;
    webGLScene: THREE.Scene;
@@ -108,7 +108,7 @@ export class AppComponent {
       element.style.fontSize = "2em";
       element.style.color = "white";
       element.style.padding = "2em";
-      
+
       //CSS Object
       let div = new THREE.CSS3DObject(element);
       div.position.x = 8;
@@ -141,7 +141,7 @@ export class AppComponent {
    }
 
    /**
-    * 
+    *
     */
    initCubes = () => {
       this.gCube = new GeoCube();
@@ -228,7 +228,7 @@ export class AppComponent {
    };
 
    /**
-    * 
+    *
     */
    animate = () => {
       requestAnimationFrame(this.animate);
@@ -237,7 +237,7 @@ export class AppComponent {
    }
 
    /**
-    * 
+    *
     */
    render() {
       //this.webGLRenderer.render(this.scene, this.camera.perspectiveCamera);

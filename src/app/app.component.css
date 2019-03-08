@@ -13,8 +13,19 @@
 .gui-buttons {
     position: absolute;
     top: 0em;
-    margin: 0 auto;
-    z-index: 1;
-    width: 355px;
-    height: 5em;
 }
+
+canvas {
+  background: transparent;
+  /*canvas over html*/
+  pointer-events:none;
+  z-index: 9;
+
+}
+/*=======*/
+    /*margin: 0 auto;*/
+    /*z-index: 1;*/
+    /*width: 355px;*/
+    /*height: 5em;*/
+/*}*/
+/*>>>>>>> a130d303e68eb70eed22cb70af11eec49586f100*/
