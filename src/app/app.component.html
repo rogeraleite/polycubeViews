@@ -17,7 +17,15 @@
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
                     <div class="input-group-append">
-                      <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
+                        <div *ngIf="!loadingDataset">
+                            <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
+                        </div>
+                        <div *ngIf="loadingDataset">
+                            <button class="btn btn-secondary" type="button" disabled>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Loading...
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

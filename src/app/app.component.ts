@@ -50,14 +50,15 @@ export class AppComponent {
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
    dataManager: DataManager;
 
+   loadingDataset: boolean = false;
+
    // inject google
    constructor(private google: GoogleDriveProvider) {}
 
    ngAfterViewInit() {
-      this.initDataset();
-      this.initScene();
-      this.initCubes();
-      this.initGUI();
+      setTimeout(() => {
+         this.initDataset();
+      })
    }
 
    initScene = () => {
@@ -120,16 +121,22 @@ export class AppComponent {
    }
 
    initDataset(): void {
+      this.loadingDataset = true;
       let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
       this.dataManager = new DataManager();
       // perform request to get spreadsheet json 
       // parse it when done and pass to datamanager
       this.google.load(_id).then((success: any) => {
          this.dataManager.data = success;
-      })
+         this.loadingDataset = false;
+         this.initScene();
+         this.initCubes();
+         this.initGUI();
+      });
    }
 
    updateDataset(): void {
+      this.loadingDataset = true;
       let id = this.spreadsheetId.nativeElement.value;
       if(!id) {
          console.error('No spredsheet id provided.'); 
@@ -137,6 +144,7 @@ export class AppComponent {
       }
       this.google.load(id).then((success: any) => {
          this.dataManager.data = success;
+         this.loadingDataset = false;
       });
    }
 
