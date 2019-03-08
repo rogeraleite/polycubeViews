@@ -77,6 +77,10 @@ export class SetCube implements PolyCube {
         }
     }
 
+    updateData(): void {
+        
+    }
+
     
     transitionSTC(): void {}
     transitionJP(): void {}

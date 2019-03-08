@@ -75,6 +75,10 @@ export class GeoCube implements PolyCube {
         }
     }
 
+    updateData(): void {
+        
+    }
+
     transitionSTC(): void {}
     transitionJP(): void {}
     transitionSI(): void {}

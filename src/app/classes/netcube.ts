@@ -76,6 +76,10 @@ export class NetCube implements PolyCube {
         }
     }
 
+    updateData(): void {
+        
+    }
+
     
     transitionSTC(): void {}
     transitionJP(): void {}

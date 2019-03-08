@@ -10,6 +10,7 @@ export interface PolyCube {
     assembleData: Function,
     render: Function,
     update: Function,
+    updateData: Function,
 
     // temporal encodings
     transitionSTC: Function,
