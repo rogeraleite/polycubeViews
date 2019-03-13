@@ -12,6 +12,7 @@ export class SetCube implements PolyCube {
     
     // Data
     private dm: DataManager;
+    private camera: THREE.Camera;
     private data: Array<any>;
     private setMap: Set<string>;
 
@@ -22,13 +23,13 @@ export class SetCube implements PolyCube {
 
 
 
-    constructor(dm: DataManager, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
+    constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
         if (cssScene) { this.cssScene = cssScene; }
         this.data = new Array<any>();
         this.setMap = new Set<string>();
-
+        this.camera = camera;   
         this.createObjects();
         this.assembleData();
         this.render();
@@ -101,4 +102,7 @@ export class SetCube implements PolyCube {
     onDblClick($event: any): void {
 
     }
+
+    hideBottomLayer(): void {}
+    showBottomLayer(): void {}
 }

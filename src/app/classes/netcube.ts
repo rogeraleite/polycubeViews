@@ -11,6 +11,7 @@ export class NetCube implements PolyCube {
     cubeGroupCSS: THREE.Group;
 
     private dm: DataManager;
+    private camera: THREE.Camera;
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
     private setMap: Set<string>;
@@ -23,12 +24,12 @@ export class NetCube implements PolyCube {
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
-    constructor(dm: DataManager, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
+    constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
         if(cssScene) this.cssScene = cssScene;
         this.setMap = new Set<string>();
-
+        this.camera = camera;
         this.createObjects();
         this.assembleData();
         this.render();
@@ -110,4 +111,7 @@ export class NetCube implements PolyCube {
     onDblClick($event: any): void {
 
     }
+
+    hideBottomLayer(): void {}
+    showBottomLayer(): void {}
 }
