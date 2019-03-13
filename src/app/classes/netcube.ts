@@ -83,7 +83,7 @@ export class NetCube implements PolyCube {
         }
         // console.log(nodes);
         // console.log(links);
-        console.log({nodes: nodes, links: links});
+        console.log(JSON.stringify({nodes: nodes, links: links}));
         
     }
     
