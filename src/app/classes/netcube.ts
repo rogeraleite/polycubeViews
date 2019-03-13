@@ -122,7 +122,6 @@ export class NetCube implements PolyCube {
 
     }
 
-<<<<<<< HEAD
     getNormalizedPositionById(id){
         let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions()
@@ -175,8 +174,6 @@ export class NetCube implements PolyCube {
         // )
         // console.log(nodes4);
     }
-=======
     hideBottomLayer(): void {}
     showBottomLayer(): void {}
->>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
 }

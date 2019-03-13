@@ -7,12 +7,9 @@ import { CushmanForcedDirected } from '../../data/cushman_nodes_position';
 export class DataManager {
     private _data: Array<any>;
     private _data_map: any;
-<<<<<<< HEAD
     private _cushman_pos: CushmanForcedDirected;
-=======
 
     private _numSlices: number
->>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     
     private timeLinearScale: D3.ScaleLinear<number, number>;
     
@@ -21,11 +18,8 @@ export class DataManager {
 
     constructor() {
         this._data_map = new Map();
-<<<<<<< HEAD
         this._cushman_pos = new CushmanForcedDirected();
-=======
         this._numSlices = 5;
->>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     }
 
     get data(): Array<any> {
@@ -42,21 +36,20 @@ export class DataManager {
                                  .range([-CUBE_CONFIG.WIDTH/2, CUBE_CONFIG.WIDTH/2]);
     }
 
-<<<<<<< HEAD
     getForcedDirectedCushmanPositionMap(): any {                
         return this._cushman_pos.nodesPosMap;
     }
 
     getDataPositionDimensions(): any{
         return this._cushman_pos.getDataPositionDimensions(); 
-=======
+    }
+    
     get numSlices(): number {
         return this._numSlices;
     }
 
     set numSlicers(slices: number) {
         this._numSlices = slices;
->>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     }
 
     getMinDate(): Date { return this.MIN_DATE; }
