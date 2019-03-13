@@ -20,6 +20,8 @@ export interface PolyCube {
 
     // util
     getCubePosition: Function,
+    hideBottomLayer: Function, 
+    showBottomLayer: Function, 
 
     // event handleers
     onClick: Function,

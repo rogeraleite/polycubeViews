@@ -6,42 +6,42 @@ import { CUBE_CONFIG } from '../cube.config';
 import * as D3 from 'd3';
 import * as moment from 'moment';
 
-export class SetCube implements PolyCube {
+export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
     cubeGroupCSS: THREE.Group;
-    
-    // Data
-    private dm: DataManager;
-    private camera: THREE.Camera;
-    private data: Array<any>;
-    private setMap: Set<string>;
 
+    private dm: DataManager;
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
+    private setMap: Set<string>;
+    // THREEJS Objects
+    private raycaster: THREE.Raycaster;
+    private mouse: THREE.Vector2;
+    private objects: Array<any>;
+    
+
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
-
-
-    constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
+    constructor(dm: DataManager, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
-        if (cssScene) { this.cssScene = cssScene; }
-        this.data = new Array<any>();
+        if(cssScene) this.cssScene = cssScene;
         this.setMap = new Set<string>();
-        this.camera = camera;   
+
         this.createObjects();
         this.assembleData();
         this.render();
     }
 
     createObjects(): void {
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
         this.cubeGroupGL = new THREE.Group();
-        this.cubeGroupCSS = new THREE.Group();
 
         this.colors = D3.scaleOrdinal(D3.schemePaired);
     }
-
+    
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
@@ -60,20 +60,43 @@ export class SetCube implements PolyCube {
 
             this.cubeGroupGL.add(sphere);
         }
-    }
 
+        // let new_temp_data = [];
+        // for(let i = 0; i < this.dm.data.length; i++) {
+        //     let d = this.dm.data[i];
+        //     let obj = {id: d.id, target: d.target_nodes.slice(0, 5)}
+        //     new_temp_data.push(obj);
+        // }
+        // console.log(new_temp_data);
+
+        let nodes = [];
+        let links = [];
+        for(let i = 0; i < this.dm.data.length; i++) {
+            let d = this.dm.data[i];
+            let node = {id: ""+d.id, group: 1}
+            nodes.push(node);
+
+            for(let a = 0; a < 3; a++) {
+                links.push({source: ""+d.id, target: ""+d.target_nodes[a], value:1})                
+            }
+
+        }
+        // console.log(nodes);
+        // console.log(links);
+        console.log(JSON.stringify({nodes: nodes, links: links}));
+        
+    }
+    
     render(): void {
-        // create a box and add it to the scene
         let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
-        this.cubeGroupGL.name = 'SET_CUBE';
+        this.cubeGroupGL.name = 'NET_CUBE';
         this.cubeGroupGL.add(boxHelper);
-        this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
+        this.cubeGroupGL.position.set((CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER)*2, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
     }
 
-
     update(currentViewState: VIEW_STATES): void {
-        if (currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
+        if(currentViewState.valueOf() === VIEW_STATES.NET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
         }
     }
@@ -90,19 +113,26 @@ export class SetCube implements PolyCube {
 
 
     getCubePosition(): THREE.Vector3 {
-        const positionInWorld = new THREE.Vector3();
+        let positionInWorld = new THREE.Vector3();
         this.cubeGroupGL.getWorldPosition(positionInWorld);
         return positionInWorld;
     }
 
-    onClick($event: any): void {
 
+    onClick($event: any): void {
+        $event.preventDefault();
+
+        this.mouse.x = ($event.clientX - window.innerWidth)*2 - 1;
+        this.mouse.y = ($event.clientY - window.innerHeight)*-2 + 1
+
+        let intersections = this.raycaster.intersectObjects(this.webGLScene.children);
+
+        for(let i = 0; i < intersections.length; i++) {
+
+        }
     }
 
     onDblClick($event: any): void {
 
     }
-
-    hideBottomLayer(): void {}
-    showBottomLayer(): void {}
 }

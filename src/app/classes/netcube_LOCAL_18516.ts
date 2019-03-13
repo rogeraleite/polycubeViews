@@ -12,7 +12,6 @@ export class NetCube implements PolyCube {
     cubeGroupCSS: THREE.Group;
 
     private dm: DataManager;
-    private camera: THREE.Camera;
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
     private setMap: Set<string>;
@@ -24,12 +23,12 @@ export class NetCube implements PolyCube {
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
-    constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
+    constructor(dm: DataManager, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
         if(cssScene) this.cssScene = cssScene;
         this.setMap = new Set<string>();
-        this.camera = camera;
+
         this.createObjects();
         this.assembleData();
         this.render();    
@@ -122,7 +121,6 @@ export class NetCube implements PolyCube {
 
     }
 
-<<<<<<< HEAD
     getNormalizedPositionById(id){
         let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions()
@@ -175,8 +173,4 @@ export class NetCube implements PolyCube {
         // )
         // console.log(nodes4);
     }
-=======
-    hideBottomLayer(): void {}
-    showBottomLayer(): void {}
->>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
 }

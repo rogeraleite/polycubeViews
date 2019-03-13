@@ -7,7 +7,12 @@ import { CushmanForcedDirected } from '../../data/cushman_nodes_position';
 export class DataManager {
     private _data: Array<any>;
     private _data_map: any;
+<<<<<<< HEAD
     private _cushman_pos: CushmanForcedDirected;
+=======
+
+    private _numSlices: number
+>>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     
     private timeLinearScale: D3.ScaleLinear<number, number>;
     
@@ -15,9 +20,12 @@ export class DataManager {
     private MAX_DATE: Date;
 
     constructor() {
-        this._data = new Array<any>('green', 'red', 'blue');
         this._data_map = new Map();
+<<<<<<< HEAD
         this._cushman_pos = new CushmanForcedDirected();
+=======
+        this._numSlices = 5;
+>>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     }
 
     get data(): Array<any> {
@@ -26,6 +34,7 @@ export class DataManager {
 
     set data(data: Array<any>) {
         this._data = data;
+        this._numSlices = 5;
         this.MIN_DATE = this.getTimeExtentAsDate()[0];
         this.MAX_DATE = this.getTimeExtentAsDate()[1];
         this.timeLinearScale = D3.scaleLinear()
@@ -33,12 +42,21 @@ export class DataManager {
                                  .range([-CUBE_CONFIG.WIDTH/2, CUBE_CONFIG.WIDTH/2]);
     }
 
+<<<<<<< HEAD
     getForcedDirectedCushmanPositionMap(): any {                
         return this._cushman_pos.nodesPosMap;
     }
 
     getDataPositionDimensions(): any{
         return this._cushman_pos.getDataPositionDimensions(); 
+=======
+    get numSlices(): number {
+        return this._numSlices;
+    }
+
+    set numSlicers(slices: number) {
+        this._numSlices = slices;
+>>>>>>> b810e56107f7aa4ec612e61a1a65153ba3022171
     }
 
     getMinDate(): Date { return this.MIN_DATE; }
@@ -52,6 +70,31 @@ export class DataManager {
         return D3.extent(this._data, (d: any) => {
             return d.date_time;
         });
+    }
+    
+    // deprecated
+    // getTimeslice(date: Date): number {
+    //     let dateDiff = moment(this.MAX_DATE).diff(this.MIN_DATE, 'days');
+        
+    //     console.log(dateDiff/this._numSlices);
+
+    //     return 0;
+    // }
+
+    timeRange(date: Date): any {
+        let timeScale = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]);
+
+        // NOTE: not guarenteed to return same amount of ticks as passed
+        // need to define tickValues function to enforce same amount of ticks 
+        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-charts
+        let xRange = timeScale.ticks(8);
+        
+        // TODO: Consider temporal granularity (currently in years) -> days?
+        let myQuantizeFunction = D3.scaleQuantize()
+                                   .domain([this.MIN_DATE, this.MAX_DATE])
+                                   .range(xRange.map((d) => { return d.getFullYear(); }));
+
+        return myQuantizeFunction(date);
     }
 
     private getTimeExtentAsUnix(): Array<Number> {
