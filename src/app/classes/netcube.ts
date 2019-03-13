@@ -76,7 +76,7 @@ export class NetCube implements PolyCube {
             let node = {id: ""+d.id, group: 1}
             nodes.push(node);
 
-            for(let a = 0; a < 5; a++) {
+            for(let a = 0; a < 3; a++) {
                 links.push({source: ""+d.id, target: ""+d.target_nodes[a], value:1})                
             }
 
