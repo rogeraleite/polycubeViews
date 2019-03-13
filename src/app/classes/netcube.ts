@@ -3,6 +3,7 @@ import { DataManager } from './datamanager';
 import * as THREE from 'three-full';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
+
 import * as D3 from 'd3';
 import * as moment from 'moment';
 
@@ -17,8 +18,7 @@ export class NetCube implements PolyCube {
     // THREEJS Objects
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
-    private objects: Array<any>;
-    
+    private objects: Array<any>;    
 
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
@@ -31,7 +31,9 @@ export class NetCube implements PolyCube {
 
         this.createObjects();
         this.assembleData();
-        this.render();
+        this.render();    
+        
+        this.parsingCushmanPositionData();
     }
 
     createObjects(): void {
@@ -44,6 +46,7 @@ export class NetCube implements PolyCube {
     
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
+
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
         let geometry = new THREE.SphereGeometry( 1, 32, 32 );
@@ -55,36 +58,18 @@ export class NetCube implements PolyCube {
             
             let sphere = new THREE.Mesh( geometry, material );
             sphere.position.y = this.timeLinearScale(dataItem.date_time);
-            sphere.position.x = Math.random()*CUBE_CONFIG.WIDTH;
-            sphere.position.z = Math.random()*CUBE_CONFIG.WIDTH;
+            // sphere.position.x = Math.random()*CUBE_CONFIG.WIDTH;
+            // sphere.position.z = Math.random()*CUBE_CONFIG.WIDTH;
+
+            let position = this.getNormalizedPositionById(dataItem.id);
+            sphere.position.x = position.x;
+            sphere.position.z = position.y;
 
             this.cubeGroupGL.add(sphere);
         }
 
-        // let new_temp_data = [];
-        // for(let i = 0; i < this.dm.data.length; i++) {
-        //     let d = this.dm.data[i];
-        //     let obj = {id: d.id, target: d.target_nodes.slice(0, 5)}
-        //     new_temp_data.push(obj);
-        // }
-        // console.log(new_temp_data);
-
-        let nodes = [];
-        let links = [];
-        for(let i = 0; i < this.dm.data.length; i++) {
-            let d = this.dm.data[i];
-            let node = {id: ""+d.id, group: 1}
-            nodes.push(node);
-
-            for(let a = 0; a < 3; a++) {
-                links.push({source: ""+d.id, target: ""+d.target_nodes[a], value:1})                
-            }
-
-        }
-        // console.log(nodes);
-        // console.log(links);
-        console.log(JSON.stringify({nodes: nodes, links: links}));
-        
+        console.log("netCube");
+        console.log(this.cubeGroupGL);
     }
     
     render(): void {
@@ -134,5 +119,58 @@ export class NetCube implements PolyCube {
 
     onDblClick($event: any): void {
 
+    }
+
+    getNormalizedPositionById(id){
+        let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
+        let pos_dim = this.dm.getDataPositionDimensions()
+
+        let normalized_x = pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
+        let normalized_y = pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
+
+        normalized_x = normalized_x + CUBE_CONFIG.WIDTH / 2;
+        normalized_y = normalized_y + CUBE_CONFIG.WIDTH / 2;
+
+        return {x: normalized_x, y: normalized_y};
+    }
+
+
+    //saving useful scripts for future usage
+    parsingCushmanPositionData(){
+        // let new_temp_data = [];
+        // for(let i = 0; i < this.dm.data.length; i++) {
+        //     let d = this.dm.data[i];
+        //     let obj = {id: d.id, target: d.target_nodes.slice(0, 5)}
+        //     new_temp_data.push(obj);
+        // }
+        // console.log(new_temp_data);
+
+        // let nodes = [];
+        // let links = [];
+        // for(let i = 0; i < this.dm.data.length; i++) {
+        //     let d = this.dm.data[i];
+        //     let node = {id: ""+d.id, group: 1}
+        //     nodes.push(node);
+
+        //     for(let a = 0; a < 3; a++) {
+        //         links.push({source: ""+d.id, target: ""+d.target_nodes[a], value:1})                
+        //     }
+
+        // }//end for
+        
+      
+        // let new_cushman_position = [];
+        // //console.log(cushman_positions);
+        // cushman_positions.forEach((d:any)=>{
+        //     new_cushman_position.push({id:d.textContent, x: d.__data__.x, y: d.__data__.y});
+        // });
+        // console.log(new_cushman_position);
+
+        // let nodes4 = [];
+        // $$( "circle" ).forEach(e=>{
+        //         nodes4.push({id:e.textContent, x:e.__data__.x, y:e.__data__.y})
+        //     }
+        // )
+        // console.log(nodes4);
     }
 }

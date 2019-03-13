@@ -1,10 +1,13 @@
 import * as D3 from 'd3';
 import * as moment from 'moment';
 import { CUBE_CONFIG } from '../cube.config';
+import { CushmanForcedDirected } from '../../data/cushman_nodes_position';
+
 
 export class DataManager {
     private _data: Array<any>;
     private _data_map: any;
+    private _cushman_pos: CushmanForcedDirected;
     
     private timeLinearScale: D3.ScaleLinear<number, number>;
     
@@ -14,6 +17,7 @@ export class DataManager {
     constructor() {
         this._data = new Array<any>('green', 'red', 'blue');
         this._data_map = new Map();
+        this._cushman_pos = new CushmanForcedDirected();
     }
 
     get data(): Array<any> {
@@ -27,6 +31,14 @@ export class DataManager {
         this.timeLinearScale = D3.scaleLinear()
                                  .domain([this.MIN_DATE, this.MAX_DATE])
                                  .range([-CUBE_CONFIG.WIDTH/2, CUBE_CONFIG.WIDTH/2]);
+    }
+
+    getForcedDirectedCushmanPositionMap(): any {                
+        return this._cushman_pos.nodesPosMap;
+    }
+
+    getDataPositionDimensions(): any{
+        return this._cushman_pos.getDataPositionDimensions(); 
     }
 
     getMinDate(): Date { return this.MIN_DATE; }
