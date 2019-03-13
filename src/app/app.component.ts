@@ -23,6 +23,8 @@ export class AppComponent implements AfterViewInit {
    @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
    @ViewChild('webGLCanvas') webGLContainer: ElementRef;
    @ViewChild('cssCanvas') cssContainer: ElementRef;
+
+   @ViewChild('tooltip') tooltip: ElementRef;
    title = 'polycubeViews';
 
    /**
@@ -98,14 +100,7 @@ export class AppComponent implements AfterViewInit {
       this.camera.lookAt(this.webGLScene.position);
 
       this.controls = new THREE.OrbitControls(this.camera);
-
-      this.controls.enableZoom = true;
-      this.controls.enablePan = true;
-      this.controls.update();
-
-      let axis = new THREE.AxesHelper(10);
-      this.webGLScene.add(axis);
-   
+      
       this.light = new THREE.DirectionalLight(0xffffff, 1.0);
       this.light.position.set(100, 100, 100);
       this.webGLScene.add(this.light);
@@ -129,6 +124,7 @@ export class AppComponent implements AfterViewInit {
          this.initScene();
          this.initCubes();
          this.initGUI();
+         this.addEventListeners();
       });
    }
 
@@ -158,9 +154,9 @@ export class AppComponent implements AfterViewInit {
     * and append themselves to the scene
     */
    initCubes = () => {
-      this.gCube = new GeoCube(this.dataManager, this.webGLScene, this.cssScene);
-      this.sCube = new SetCube(this.dataManager, this.webGLScene, this.cssScene);
-      this.nCube = new NetCube(this.dataManager, this.webGLScene, this.cssScene);
+      this.gCube = new GeoCube(this.dataManager, this.camera, this.webGLScene, this.cssScene);
+      this.sCube = new SetCube(this.dataManager, this.camera, this.webGLScene, this.cssScene);
+      this.nCube = new NetCube(this.dataManager, this.camera, this.webGLScene, this.cssScene);
    };
 
    /**
@@ -174,12 +170,21 @@ export class AppComponent implements AfterViewInit {
       this.nCube.updateData();
    }
 
+   addEventListeners = () => {
+      this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
+        
+
+         this.gCube.onClick($event, this.tooltip);
+      });
+   }
+
    /**
     * Initializes the GUI elements including button event listeners
     */
    initGUI = () => {
       // TODO: could possibly add events on click listeners
       this.gui = new GUI();
+      
       this.gui.geoBtn.addEventListener('click', () => {
          this.setCubeView(VIEW_STATES.GEO_CUBE);
       });
@@ -202,8 +207,14 @@ export class AppComponent implements AfterViewInit {
     */
    removeAllCubeViews = (): void => {
       this.webGLScene.remove(this.webGLScene.getObjectByName('GEO_CUBE'));
+      this.cssScene.remove(this.cssScene.getObjectByName('GEO_CUBE_CSS'));
+      this.gCube.hideBottomLayer();
       this.webGLScene.remove(this.webGLScene.getObjectByName('SET_CUBE'));
+      this.cssScene.remove(this.cssScene.getObjectByName('SET_CUBE_CSS'));
+      this.sCube.hideBottomLayer();
       this.webGLScene.remove(this.webGLScene.getObjectByName('NET_CUBE'));
+      this.cssScene.remove(this.cssScene.getObjectByName('NET_CUBE_CSS'));
+      this.nCube.hideBottomLayer();
    }
 
    /**
@@ -273,6 +284,7 @@ export class AppComponent implements AfterViewInit {
       //this.webGLRenderer.render(this.scene, this.camera.perspectiveCamera);
       this.webGLRenderer.render(this.webGLScene, this.camera);
       this.css3DRenderer.render(this.cssScene, this.camera);
+      this.controls.update();
    }
 
    /**
