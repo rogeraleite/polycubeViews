@@ -60,6 +60,31 @@ export class NetCube implements PolyCube {
 
             this.cubeGroupGL.add(sphere);
         }
+
+        // let new_temp_data = [];
+        // for(let i = 0; i < this.dm.data.length; i++) {
+        //     let d = this.dm.data[i];
+        //     let obj = {id: d.id, target: d.target_nodes.slice(0, 5)}
+        //     new_temp_data.push(obj);
+        // }
+        // console.log(new_temp_data);
+
+        let nodes = [];
+        let links = [];
+        for(let i = 0; i < this.dm.data.length; i++) {
+            let d = this.dm.data[i];
+            let node = {id: d.id, group: 1}
+            nodes.push(node);
+
+            for(let a = 0; a < 5; a++) {
+                links.push({source: d.id, target: d.target_nodes[a], value:1})                
+            }
+
+        }
+        // console.log(nodes);
+        // console.log(links);
+        console.log({nodes: nodes, links: links});
+        
     }
     
     render(): void {
