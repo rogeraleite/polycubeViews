@@ -1,6 +1,7 @@
 
 export class CushmanForcedDirected {
 
+    //defined positions based on: https://observablehq.com/@d3/disjoint-force-directed-graph
     private _position: any;
 
     private _position_map: any = [];
