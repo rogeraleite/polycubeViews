@@ -79,7 +79,8 @@ export class DataManager {
 
         // NOTE: not guarenteed to return same amount of ticks as passed
         // need to define tickValues function to enforce same amount of ticks 
-        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-charts
+        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-chartshttps://stackoverflow.com/questions/24541296/d3-js-time-scale-nicely-spaced-ticks-at-minute-intervals-when-data-is-in-second
+
         let xRange = timeScale.ticks(8);
         
         // TODO: Consider temporal granularity (currently in years) -> days?
