@@ -91,15 +91,14 @@ export class AppComponent implements AfterViewInit {
       this.css3DRenderer.setSize(WIDTH, HEIGHT);
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
-      this.cssContainer.nativeElement.style.position = 'absolute';
-      this.cssContainer.nativeElement.style.top = '0em';
-
-      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
-      // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+     
+      // this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
+      this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.camera.up.set(0, 1, 0)
       this.camera.position.set(0, 0, 1000);
       this.camera.lookAt(this.webGLScene.position);
 
-      this.controls = new THREE.OrbitControls(this.camera);
+      this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
       
       this.light = new THREE.DirectionalLight(0xffffff, 1.0);
       this.light.position.set(100, 100, 100);
@@ -172,7 +171,7 @@ export class AppComponent implements AfterViewInit {
 
    addEventListeners = () => {
       this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
-        
+         $event.preventDefault();
 
          this.gCube.onClick($event, this.tooltip);
       });
