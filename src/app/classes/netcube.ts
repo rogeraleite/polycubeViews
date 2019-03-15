@@ -33,8 +33,6 @@ export class NetCube implements PolyCube {
         this.createObjects();
         this.assembleData();
         this.render();    
-        
-        this.parsingCushmanPositionData();
     }
 
     createObjects(): void {
