@@ -4,11 +4,8 @@ import * as THREE from 'three-full';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
 import * as D3 from 'd3';
-import * as moment from 'moment';
 import * as mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
-import { select } from 'd3';
-import { Vector2 } from 'three';
 import { ElementRef } from '@angular/core';
 
 export class GeoCube implements PolyCube {
@@ -82,8 +79,6 @@ export class GeoCube implements PolyCube {
             this.cssScene.add(label);
         }
 
-        console.log(this.slices);
-
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
     
@@ -96,7 +91,6 @@ export class GeoCube implements PolyCube {
         boxHelper.name = 'BOX_HELPER';
         this.cubeGroupGL.add(boxHelper);
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
-        // this.cubeGroupGL.add( placeholderBox );
     }
 
     assembleData(): void {
@@ -135,17 +129,9 @@ export class GeoCube implements PolyCube {
 
                 sphere.data = dataItem;
                 sphere.type = 'DATA_POINT';
-
-                this.cubeGroupGL.add(sphere);
+                correspondingSlice.add(sphere);
             }
         });
-    }
-
-    private convertLatLng(lat: number, lng: number, width: number, height: number): { x: number, y: number } {
-        return {
-            x: lat - width / 2,
-            y: height / 2 - lng
-        };
     }
 
     private createMap(): void {
@@ -243,30 +229,6 @@ export class GeoCube implements PolyCube {
             this.cubeGroupGL.add(line);
             return;
         }
-        // if (intersections.length > 0) {
-
-        //     let selectedObject = intersections[0].object;
-        //     selectedObject.material.color.setHex(0xffff00);
-        //     selectedObject.scale.set(2, 2, 2);
-        //     tooltip.nativeElement.style.opacity = '.9';
-        //     tooltip.nativeElement.style.top = `${$event.pageY}px`;
-        //     tooltip.nativeElement.style.left = `${$event.pageX}px`;
-        //     tooltip.nativeElement.innerHTML = selectedObject.data.description;
-        //     let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 10 });
-        //     let lineGeometry = new THREE.Geometry();
-            
-        //     lineGeometry.vertices.push(selectedObject.position);  // x y z 
-        //     lineGeometry.vertices.push(new THREE.Vector3(selectedObject.position.x, -CUBE_CONFIG.WIDTH/2, selectedObject.position.z)); 
-
-        //     let line = new THREE.Line(lineGeometry, lineMaterial);
-        //     line.name = 'GUIDE_LINE';
-        //     this.cubeGroupGL.add(line);
-        // } else {
-        //     tooltip.nativeElement.style.opacity = '0';
-        //     tooltip.nativeElement.style.top = '0px';
-        //     tooltip.nativeElement.style.left = '0px';
-        //     tooltip.nativeElement.innerHTML = '';
-        // }
     }
 
     onDblClick($event: any): void {
