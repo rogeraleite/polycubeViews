@@ -226,25 +226,25 @@ export class AppComponent implements AfterViewInit {
       this.gui.stcBtn.addEventListener('click', () => {
          this.gCube.transitionSTC();
          // this.sCube.transitionSTC();
-         // this.nCube.transitionSTC();
+         this.nCube.transitionSTC();
       });
 
       this.gui.jpBtn.addEventListener('click', () => {
          this.gCube.transitionJP();
          // this.sCube.transitionJP();
-         // this.nCube.transitionJP();
+         this.nCube.transitionJP();
       });
 
       this.gui.siBtn.addEventListener('click', () => {
          this.gCube.transitionSI();
          // this.sCube.transitionSI();
-         // this.nCube.transitionSI();
+         this.nCube.transitionSI();
       });
 
       this.gui.aniBtn.addEventListener('click', () => {
          this.gCube.transitionANI();
          // this.sCube.transitionANI();
-         // this.nCube.transitionANI();
+         this.nCube.transitionANI();
       });
    }
 
