@@ -25,7 +25,7 @@ export class GeoCube implements PolyCube {
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
     private objects: Array<any>;
-
+    private slices: Array<THREE.Group>;
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
@@ -48,6 +48,41 @@ export class GeoCube implements PolyCube {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
         this.colors = D3.scaleOrdinal(D3.schemePaired);
+        this.slices = new Array<THREE.Group>();
+
+        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
+        for(let i = 0; i < this.dm.timeRange.length; i++) {
+            // TIME SLICES
+            let slice = new THREE.Group();
+
+            // name set to year -> we can now map objects to certain layers by checking their
+            // this.dm.getTimeQuantile(date) and the slices name.
+            slice.name = this.dm.timeRange[i].getFullYear();
+
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
+            let edgeGeometry = new THREE.EdgesGeometry(geometry);
+            let material = new THREE.LineBasicMaterial( {color: 0x000000 } );
+            let plane = new THREE.LineSegments( edgeGeometry, material );
+
+            plane.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            plane.rotation.set(Math.PI/2, 0, 0);
+            slice.add(plane);
+            slice.yPos = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
+            this.slices.push(slice);
+            
+            // CSS 3D TIME SLICE LABELS
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
+        
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            // label.rotation.set(Math.PI);
+            this.cssScene.add(label);
+        }
+
+        console.log(this.slices);
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -60,6 +95,7 @@ export class GeoCube implements PolyCube {
         let boxHelper = new THREE.BoxHelper(placeholderBox, 0x000000);
         boxHelper.name = 'BOX_HELPER';
         this.cubeGroupGL.add(boxHelper);
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
         // this.cubeGroupGL.add( placeholderBox );
     }
 
@@ -83,17 +119,25 @@ export class GeoCube implements PolyCube {
 
                 let cubeCoords = this.map.project(new mapboxgl.LngLat(dataItem.longitude, dataItem.latitude));
                 let sphere = new THREE.Mesh(geometry, material);
-                sphere.position.y = this.timeLinearScale(dataItem.date_time);
+
+                let correspondingSlice: THREE.Object3D;
+
+                // try to find slice that matches data items date_time
+                this.slices.forEach((slice: THREE.Group) => {
+                    if(slice.name === this.dm.getTimeQuantile(dataItem.date_time)) {
+                        correspondingSlice = slice;
+                        return;
+                    }
+                });
                 sphere.position.x = cubeCoords.x;
+                sphere.position.y = correspondingSlice ? correspondingSlice.yPos : this.timeLinearScale(dataItem.date_time);
                 sphere.position.z = cubeCoords.y;
+
                 sphere.data = dataItem;
                 sphere.type = 'DATA_POINT';
+
                 this.cubeGroupGL.add(sphere);
-
             }
-
-            // create a box and add it to the scene
-         
         });
     }
 
@@ -105,11 +149,6 @@ export class GeoCube implements PolyCube {
     }
 
     private createMap(): void {
-        let angle = Math.PI / 2;
-        let distance = CUBE_CONFIG.WIDTH / 2;
-        let pos = [[distance, 0, 0], [-distance, 0, 0], [0, distance, 0], [0, -distance, 0], [0, 0, distance], [0, 0, -distance]];
-        let rot = [[0, angle, 0], [0, -angle, 0], [-angle, 0, 0], [angle, 0, 0], [0, 0, 0], [0, 0, 0]];
-
         // Bottomside of cube
         let mapContainer = document.createElement('div');
         mapContainer.id = 'map-container';
@@ -128,11 +167,8 @@ export class GeoCube implements PolyCube {
         // CSS Object
         let mapObject = new THREE.CSS3DObject(mapContainer);
         mapObject.name = 'MAP_CONTAINER';
-        mapObject.position.x = CUBE_CONFIG.WIDTH / 2;
-        mapObject.position.y = -CUBE_CONFIG.WIDTH / 2;
-        mapObject.position.z = CUBE_CONFIG.WIDTH / 2;
-        // mapObject.position.fromArray(pos[2]);
-        mapObject.rotation.fromArray(rot[2]);
+        mapObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
+        mapObject.rotation.set(-Math.PI/2, 0, 0);
 
         this.cubeGroupCSS.add(mapObject);
     }
@@ -178,8 +214,7 @@ export class GeoCube implements PolyCube {
         this.mouse.x = ($event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = -($event.clientY / window.innerHeight) * 2 + 1;
         this.raycaster.setFromCamera(this.mouse, this.camera);
-        // let vec = new THREE.Vector3(this.mouse.x, this.mouse.y, 1);
-        // vec.unproject(this.camera);
+
         let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children);
         
         let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
@@ -187,8 +222,10 @@ export class GeoCube implements PolyCube {
             this.cubeGroupGL.remove(guideLine);
         }
 
-        if (intersections.length > 0) {
-            let selectedObject = intersections[0].object;
+        for(let i = 0; i < intersections.length; i++) {
+            let selectedObject = intersections[i].object;
+            if(selectedObject.type !== 'DATA_POINT') continue;
+            // get first intersect that is a data point
             selectedObject.material.color.setHex(0xffff00);
             selectedObject.scale.set(2, 2, 2);
             tooltip.nativeElement.style.opacity = '.9';
@@ -204,12 +241,32 @@ export class GeoCube implements PolyCube {
             let line = new THREE.Line(lineGeometry, lineMaterial);
             line.name = 'GUIDE_LINE';
             this.cubeGroupGL.add(line);
-        } else {
-            tooltip.nativeElement.style.opacity = '0';
-            tooltip.nativeElement.style.top = '0px';
-            tooltip.nativeElement.style.left = '0px';
-            tooltip.nativeElement.innerHTML = '';
+            return;
         }
+        // if (intersections.length > 0) {
+
+        //     let selectedObject = intersections[0].object;
+        //     selectedObject.material.color.setHex(0xffff00);
+        //     selectedObject.scale.set(2, 2, 2);
+        //     tooltip.nativeElement.style.opacity = '.9';
+        //     tooltip.nativeElement.style.top = `${$event.pageY}px`;
+        //     tooltip.nativeElement.style.left = `${$event.pageX}px`;
+        //     tooltip.nativeElement.innerHTML = selectedObject.data.description;
+        //     let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 10 });
+        //     let lineGeometry = new THREE.Geometry();
+            
+        //     lineGeometry.vertices.push(selectedObject.position);  // x y z 
+        //     lineGeometry.vertices.push(new THREE.Vector3(selectedObject.position.x, -CUBE_CONFIG.WIDTH/2, selectedObject.position.z)); 
+
+        //     let line = new THREE.Line(lineGeometry, lineMaterial);
+        //     line.name = 'GUIDE_LINE';
+        //     this.cubeGroupGL.add(line);
+        // } else {
+        //     tooltip.nativeElement.style.opacity = '0';
+        //     tooltip.nativeElement.style.top = '0px';
+        //     tooltip.nativeElement.style.left = '0px';
+        //     tooltip.nativeElement.innerHTML = '';
+        // }
     }
 
     onDblClick($event: any): void {
