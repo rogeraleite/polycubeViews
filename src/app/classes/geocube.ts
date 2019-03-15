@@ -17,6 +17,7 @@ export class GeoCube implements PolyCube {
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
     private setMap: Set<string>;
+    private boundingBox: THREE.BoxHelper;
 
     // THREEJS Objects
     private raycaster: THREE.Raycaster;
@@ -58,13 +59,13 @@ export class GeoCube implements PolyCube {
 
             let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
-            let material = new THREE.LineBasicMaterial( {color: 0x000000 } );
+            let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
             let plane = new THREE.LineSegments( edgeGeometry, material );
 
-            plane.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI/2, 0, 0);
             slice.add(plane);
-            slice.yPos = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
             this.slices.push(slice);
             
             // CSS 3D TIME SLICE LABELS
@@ -87,9 +88,9 @@ export class GeoCube implements PolyCube {
                                 new THREE.MeshBasicMaterial( {color: 0x00ff00} ) 
                             );
         placeholderBox.position.set(CUBE_CONFIG.WIDTH/2,0,CUBE_CONFIG.WIDTH/2);
-        let boxHelper = new THREE.BoxHelper(placeholderBox, 0x000000);
-        boxHelper.name = 'BOX_HELPER';
-        this.cubeGroupGL.add(boxHelper);
+        this.boundingBox = new THREE.BoxHelper(placeholderBox, '#b5b5b5');
+        this.boundingBox.name = 'BOX_HELPER';
+        this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
 
@@ -123,9 +124,11 @@ export class GeoCube implements PolyCube {
                         return;
                     }
                 });
-                sphere.position.x = cubeCoords.x;
-                sphere.position.y = correspondingSlice ? correspondingSlice.yPos : this.timeLinearScale(dataItem.date_time);
-                sphere.position.z = cubeCoords.y;
+            
+                // need to offset the x,z coordinate so they overlap with cube
+                sphere.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
+                // sphere.position.y = correspondingSlice.position.y; -- y coordinate is inherited from the slice positioning
+                sphere.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
 
                 sphere.data = dataItem;
                 sphere.type = 'DATA_POINT';
@@ -183,8 +186,25 @@ export class GeoCube implements PolyCube {
 
     }
 
-    transitionSTC(): void { }
-    transitionJP(): void { }
+    transitionSTC(): void { 
+        let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
+        this.cubeGroupGL.add(this.boundingBox);
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            console.log(slice);
+            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+        });
+    }
+
+    transitionJP(): void {
+        let vertOffset = CUBE_CONFIG.HEIGHT + 20;
+        this.cubeGroupGL.remove(this.boundingBox);
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            console.log(slice);
+            slice.position.z = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
+            slice.position.y = 0;
+        });
+
+    }
     transitionSI(): void { }
     transitionANI(): void { }
 
