@@ -59,29 +59,9 @@ export class NetCube implements PolyCube {
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
-        let geometry = new THREE.SphereGeometry( 1, 32, 32 );
         
-        for(let i = 0; i < this.dm.data.length; i++) {
-            let dataItem = this.dm.data[i];
-            // TODO: consider just updating color property of material if you ever find out how to do it
-            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
-            
-            let sphere = new THREE.Mesh( geometry, material );
-            //sphere.position.y = this.timeLinearScale(dataItem.date_time);
-            let position = this.getNormalizedPositionById(dataItem.id);
-            sphere.position.x = position.x;
-            sphere.position.z = position.y;
-
-            sphere.data = dataItem;
-            sphere.type = 'DATA_POINT';
-            
-            //console.log(this.findTimeSlice(dataItem.date_time));
-            this.findTimeSlice(dataItem.date_time).add(sphere);
-        }
-
-        console.log("netCube ready");
-        console.log(this.slices);
-
+        this.createNodes();
+        this.createLinks();
     }
     
     render(): void {
@@ -204,12 +184,85 @@ export class NetCube implements PolyCube {
 
     getNormalizedPositionById(id){
         let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
-        let pos_dim = this.dm.getDataPositionDimensions()
+        let pos_dim = this.dm.getDataPositionDimensions();
 
-        let normalized_x = pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
-        let normalized_y = pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
+        let normalized_x = null;
+        let normalized_z = null;
+        if(pos_map[id]){
+            normalized_x = pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
+            normalized_z = pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
+        }        
 
-        return {x: normalized_x, y: normalized_y};
+        if(normalized_x) return {x: normalized_x, y: null, z: normalized_z};
+        else return null;        
+    }
+
+
+    createNodes(): void {
+        let geometry = new THREE.SphereGeometry( 1, 32, 32 );
+        
+        for(let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            // TODO: consider just updating color property of material if you ever find out how to do it
+            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+            
+            let sphere = new THREE.Mesh( geometry, material );
+            
+            let position = this.getNormalizedPositionById(dataItem.id);
+            if(position){
+                sphere.position.x = position.x;
+                sphere.position.z = position.z;
+                //sphere.position.y = this.timeLinearScale(dataItem.date_time);
+    
+                sphere.data = dataItem;
+                sphere.type = 'DATA_POINT';
+                
+                //console.log(this.findTimeSlice(dataItem.date_time));
+                this.findTimeSlice(dataItem.date_time).add(sphere);
+            }//end if            
+        }//end for
+    }
+
+    createLinks(): void {
+        let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });//red
+        let linksPerNode = 1;
+
+        for(let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            let sourceNode_position = this.getNormalizedPositionById(dataItem.id);
+            sourceNode_position.y = this.findTimeSlice(dataItem.date_time).position.y;
+
+            for(let a = 0; a < linksPerNode; a++) {//3 links for each nodes
+                let lineGeometry = new THREE.Geometry();
+                let targetId = dataItem.target_nodes[a];
+                let targetNode_position = this.getNormalizedPositionById(targetId);
+
+                if(targetNode_position){
+                    let position_fix = CUBE_CONFIG.WIDTH / 2;
+                    targetNode_position.y = this.findTimeSlice(this.dm.dataMap[targetId].date_time).position.y;
+                    lineGeometry.vertices.push(
+                        new THREE.Vector3(
+                            sourceNode_position.x + position_fix, 
+                            sourceNode_position.y,
+                            sourceNode_position.z + position_fix
+                            )
+                        ); 
+                    lineGeometry.vertices.push(
+                        new THREE.Vector3(                        
+                            targetNode_position.x + position_fix, 
+                            targetNode_position.y,
+                            targetNode_position.z + position_fix
+                            )
+                        );     
+                    let line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.name = dataItem.id+"_"+targetId;
+                    this.cubeGroupGL.add(line);
+                }//end if
+
+
+            }//end for     
+        }//end for
+            
     }
 
     createSlices(): void {

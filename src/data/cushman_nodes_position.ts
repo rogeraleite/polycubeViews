@@ -8,8 +8,7 @@ export class CushmanForcedDirected {
 
     constructor() {        
         this._position_map = new Map();
-        this.buildPosition();
-        this.buildPositionMap();
+        this.buildPosition();        
     }
 
     buildPosition(){
@@ -9840,6 +9839,7 @@ export class CushmanForcedDirected {
               "y": 184.4543427743724
             }
           ];
+        this.buildPositionMap();
     }
     
     buildPositionMap(){

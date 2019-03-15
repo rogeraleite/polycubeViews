@@ -6,7 +6,7 @@ import { CushmanForcedDirected } from '../../data/cushman_nodes_position';
 
 export class DataManager {
     private _data: Array<any>;
-    private _data_map: any;
+    private _data_map: Map<any,any>;
     private _cushman_pos: CushmanForcedDirected;
 
     private _numSlices: number
@@ -21,6 +21,10 @@ export class DataManager {
         this._cushman_pos = new CushmanForcedDirected();
         this._numSlices = 5;
         this._timeRange = new Array<Date>();
+    }
+
+    get dataMap(): Map<any,any> {
+        return this._data_map;
     }
 
     get data(): Array<any> {
@@ -40,10 +44,22 @@ export class DataManager {
         this.timeLinearScale = D3.scaleLinear()
                                  .domain([this.MIN_DATE, this.MAX_DATE])
                                  .range([-CUBE_CONFIG.WIDTH/2, CUBE_CONFIG.WIDTH/2]);
+
+        
+        this.createDataMap();
     }
 
     get timeRange(): any {
         return this._timeRange;
+    }
+
+    createDataMap(): any{
+        if(this._data){
+            this._data_map = new Map();
+            this._data.forEach(e => {
+                this._data_map[e.id] = e;
+            });
+        }
     }
 
     getForcedDirectedCushmanPositionMap(): any {                
