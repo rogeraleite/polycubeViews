@@ -61,14 +61,15 @@ export class NetCube implements PolyCube {
             
             let sphere = new THREE.Mesh( geometry, material );
             sphere.position.y = this.timeLinearScale(dataItem.date_time);
-            // sphere.position.x = Math.random()*CUBE_CONFIG.WIDTH;
-            // sphere.position.z = Math.random()*CUBE_CONFIG.WIDTH;
 
             let position = this.getNormalizedPositionById(dataItem.id);
             sphere.position.x = position.x;
             sphere.position.z = position.y;
 
-            this.cubeGroupGL.add(sphere);
+            sphere.data = dataItem;
+            sphere.type = 'DATA_POINT';
+
+            this.findTimeSlice(dataItem.date_time).add(sphere);
         }
 
         console.log("netCube");
@@ -150,6 +151,21 @@ export class NetCube implements PolyCube {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the corresponding timeslice to a given objects date (date_time property)
+     * @param date Date object
+     */
+    findTimeSlice(date: Date): THREE.Group {
+        let correspondingSlice;
+        this.slices.forEach((slice: THREE.Group) => {
+            if(slice.name === this.dm.getTimeQuantile(date)) {
+                correspondingSlice = slice;
+                return;
+            }
+        });
+        return correspondingSlice;
     }
 
     onDblClick($event: any): void {

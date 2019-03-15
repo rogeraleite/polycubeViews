@@ -176,7 +176,7 @@ export class AppComponent implements AfterViewInit {
    addEventListeners = () => {
       this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
          $event.preventDefault();
-         let foundItem = this.gCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement   );
+         let foundItem = this.getClickedItem($event);
          if(foundItem) {
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
@@ -191,6 +191,13 @@ export class AppComponent implements AfterViewInit {
             this.tooltip.nativeElement.style.opacity = '0';
          }
       });
+   }
+
+   getClickedItem = ($event) =>{
+      let foundItem = this.gCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
+      if(!foundItem) foundItem = this.sCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
+      if(!foundItem) foundItem = this.nCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
+      return foundItem;
    }
 
    /**
