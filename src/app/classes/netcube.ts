@@ -3,6 +3,7 @@ import { DataManager } from './datamanager';
 import * as THREE from 'three-full';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
+import { ElementRef } from '@angular/core';
 
 import * as D3 from 'd3';
 import * as moment from 'moment';
@@ -20,7 +21,7 @@ export class NetCube implements PolyCube {
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
     private objects: Array<any>;    
-
+    private slices: Array<THREE.Group>;
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
@@ -35,12 +36,15 @@ export class NetCube implements PolyCube {
         this.render();    
     }
 
-    createObjects(): void {
+    createObjects(): void {        
+        this.cubeGroupGL = new THREE.Group();
+        this.cubeGroupCSS = new THREE.Group();
+        this.colors = D3.scaleOrdinal(D3.schemePaired);
+
+        this.createSlices();
+
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
-        this.cubeGroupGL = new THREE.Group();
-
-        this.colors = D3.scaleOrdinal(D3.schemePaired);
     }
     
     assembleData(): void {
@@ -72,16 +76,21 @@ export class NetCube implements PolyCube {
     }
     
     render(): void {
-        let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
+        // group holding all webGl objects
         this.cubeGroupGL.name = 'NET_CUBE';
-        this.cubeGroupGL.add(boxHelper);
         this.cubeGroupGL.position.set((CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER)*2, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
+        // group holding all css objects
+        this.cubeGroupCSS.name = 'GEO_CUBE_CSS';
+        this.cubeGroupCSS.position.set(0, 0, 0);
+        this.cssScene.add(this.cubeGroupCSS); // add group to css scene
     }
 
     update(currentViewState: VIEW_STATES): void {
         if(currentViewState.valueOf() === VIEW_STATES.NET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
+            this.cssScene.add(this.cubeGroupCSS);
+            this.showBottomLayer();
         }
     }
 
@@ -103,17 +112,44 @@ export class NetCube implements PolyCube {
     }
 
 
-    onClick($event: any): void {
+    onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
 
-        this.mouse.x = ($event.clientX - window.innerWidth)*2 - 1;
-        this.mouse.y = ($event.clientY - window.innerHeight)*-2 + 1
+        this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
+        this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
-        let intersections = this.raycaster.intersectObjects(this.webGLScene.children);
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+
+        let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children, true);
+        let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
+
+        if(guideLine) {
+            this.cubeGroupGL.remove(guideLine);
+        }
 
         for(let i = 0; i < intersections.length; i++) {
+            let selectedObject = intersections[i].object;
+            if(selectedObject.type !== 'DATA_POINT') continue;
+            // get first intersect that is a data point
+            selectedObject.material.color.setHex(0xffff00);
+            selectedObject.scale.set(2, 2, 2);
+            tooltip.nativeElement.style.opacity = '.9';
+            tooltip.nativeElement.style.top = `${$event.pageY}px`;
+            tooltip.nativeElement.style.left = `${$event.pageX}px`;
+            tooltip.nativeElement.innerHTML = selectedObject.data.description;
+            let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 10 });
+            let lineGeometry = new THREE.Geometry();
+            
+            lineGeometry.vertices.push(selectedObject.position);  // x y z 
+            lineGeometry.vertices.push(new THREE.Vector3(selectedObject.position.x, -CUBE_CONFIG.WIDTH/2, selectedObject.position.z)); 
 
+            let line = new THREE.Line(lineGeometry, lineMaterial);
+            line.name = 'GUIDE_LINE';
+            this.cubeGroupGL.add(line);
+            return selectedObject.data;
         }
+
+        return null;
     }
 
     onDblClick($event: any): void {
@@ -131,6 +167,52 @@ export class NetCube implements PolyCube {
         normalized_y = normalized_y + CUBE_CONFIG.WIDTH / 2;
 
         return {x: normalized_x, y: normalized_y};
+    }
+
+    createSlices(): void {
+        this.slices = new Array<THREE.Group>();
+        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
+        for(let i = 0; i < this.dm.timeRange.length; i++) {
+            // TIME SLICES
+            let slice = new THREE.Group();
+
+            // name set to year -> we can now map objects to certain layers by checking their
+            // this.dm.getTimeQuantile(date) and the slices name.
+            slice.name = this.dm.timeRange[i].getFullYear();
+
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
+            let edgeGeometry = new THREE.EdgesGeometry(geometry);
+            let material = new THREE.LineBasicMaterial( {color: 0x000000 } );
+            let plane = new THREE.LineSegments( edgeGeometry, material );
+
+            plane.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            plane.rotation.set(Math.PI/2, 0, 0);
+            slice.add(plane);
+            slice.yPos = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
+            this.slices.push(slice);
+            
+            // CSS 3D TIME SLICE LABELS
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
+        
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            // label.rotation.set(Math.PI);
+            this.cssScene.add(label);
+        }
+
+        let placeholderBox = new THREE.Mesh( 
+            new THREE.BoxGeometry( CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH ), 
+            new THREE.MeshBasicMaterial( {color: 0x00ff00} ) 
+        );
+
+        placeholderBox.position.set(CUBE_CONFIG.WIDTH/2,0,CUBE_CONFIG.WIDTH/2);
+        let boxHelper = new THREE.BoxHelper(placeholderBox, 0x000000);
+        boxHelper.name = 'BOX_HELPER';
+        this.cubeGroupGL.add(boxHelper);
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
 
 
@@ -172,6 +254,8 @@ export class NetCube implements PolyCube {
         // )
         // console.log(nodes4);
     }
-    hideBottomLayer(): void {}
+
     showBottomLayer(): void {}
+
+    hideBottomLayer(): void {}
 }
