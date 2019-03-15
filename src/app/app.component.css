@@ -28,7 +28,7 @@
     width: 25vw;
     height: inherit;
     box-sizing: border-box;
-    border: 2px dashed #f3f3f3;
+    border-right: 2px dashed #f3f3f3;
 }
 
 .error {
