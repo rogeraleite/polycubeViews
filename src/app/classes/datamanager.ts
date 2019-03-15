@@ -10,7 +10,7 @@ export class DataManager {
     private _cushman_pos: CushmanForcedDirected;
 
     private _numSlices: number
-    
+    private _timeRange: Array<Date>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
     
     private MIN_DATE: Date;
@@ -20,6 +20,7 @@ export class DataManager {
         this._data_map = new Map();
         this._cushman_pos = new CushmanForcedDirected();
         this._numSlices = 5;
+        this._timeRange = new Array<Date>();
     }
 
     get data(): Array<any> {
@@ -31,9 +32,18 @@ export class DataManager {
         this._numSlices = 5;
         this.MIN_DATE = this.getTimeExtentAsDate()[0];
         this.MAX_DATE = this.getTimeExtentAsDate()[1];
+        // NOTE: not guarenteed to return same amount of ticks as passed
+        // need to define tickValues function to enforce same amount of ticks 
+        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-chartshttps://stackoverflow.com/questions/24541296/d3-js-time-scale-nicely-spaced-ticks-at-minute-intervals-when-data-is-in-second
+
+        this._timeRange = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]).ticks(this._numSlices);
         this.timeLinearScale = D3.scaleLinear()
                                  .domain([this.MIN_DATE, this.MAX_DATE])
                                  .range([-CUBE_CONFIG.WIDTH/2, CUBE_CONFIG.WIDTH/2]);
+    }
+
+    get timeRange(): any {
+        return this._timeRange;
     }
 
     getForcedDirectedCushmanPositionMap(): any {                
@@ -74,19 +84,18 @@ export class DataManager {
     //     return 0;
     // }
 
-    timeRange(date: Date): any {
-        let timeScale = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]);
-
+    getTimeQuantile(date: Date): any {
         // NOTE: not guarenteed to return same amount of ticks as passed
         // need to define tickValues function to enforce same amount of ticks 
-        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-chartshttps://stackoverflow.com/questions/24541296/d3-js-time-scale-nicely-spaced-ticks-at-minute-intervals-when-data-is-in-second
+        // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-charts
+        // https://stackoverflow.com/questions/24541296/d3-js-time-scale-nicely-spaced-ticks-at-minute-intervals-when-data-is-in-second
 
-        let xRange = timeScale.ticks(8);
+        this._timeRange = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]).ticks(this._numSlices);
         
         // TODO: Consider temporal granularity (currently in years) -> days?
         let myQuantizeFunction = D3.scaleQuantize()
                                    .domain([this.MIN_DATE, this.MAX_DATE])
-                                   .range(xRange.map((d) => { return d.getFullYear(); }));
+                                   .range( this._timeRange.map((d) => { return d.getFullYear(); }));
 
         return myQuantizeFunction(date);
     }
