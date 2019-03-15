@@ -12,6 +12,7 @@ import { VIEW_STATES } from './classes/viewStates';
 import { GUI } from './classes/gui';
 import { DataManager } from './classes/datamanager';
 import { CUBE_CONFIG } from './cube.config';
+import * as moment from'moment';
 
 @Component({
    selector: 'app-root',
@@ -26,6 +27,7 @@ export class AppComponent implements AfterViewInit {
 
    @ViewChild('tooltip') tooltip: ElementRef;
    title = 'polycubeViews';
+   previewItem: any;
 
    /**
   * PolyCube main controller
@@ -57,7 +59,9 @@ export class AppComponent implements AfterViewInit {
    errorMessage: string;
 
    // inject google
-   constructor(private google: GoogleDriveProvider) {}
+   constructor(private google: GoogleDriveProvider) {
+      this.previewItem = null;
+   }
 
    /**
     * Lifecycle hook called when the DOM is initialized
@@ -92,8 +96,8 @@ export class AppComponent implements AfterViewInit {
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
      
-      // this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
-      this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
+      // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
       this.camera.up.set(0, 1, 0)
       this.camera.position.set(0, 0, 1000);
       this.camera.lookAt(this.webGLScene.position);
@@ -172,8 +176,20 @@ export class AppComponent implements AfterViewInit {
    addEventListeners = () => {
       this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
          $event.preventDefault();
-
-         this.gCube.onClick($event, this.tooltip);
+         let foundItem = this.gCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement   );
+         if(foundItem) {
+            this.previewItem = {
+               title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
+               mediaURL: foundItem.external_url,
+               date: moment(foundItem.date_time).format('DD-MM-YYYY'),
+               location: foundItem.location_name,
+               description: foundItem.description,
+               externalURL: foundItem.media_url
+            };
+         } else {
+            this.previewItem = null;
+            this.tooltip.nativeElement.style.opacity = '0';
+         }
       });
    }
 

@@ -27,6 +27,15 @@
                     </div>
                 </div>
             </div>
+
+            <div class="preview-item" *ngIf="previewItem">
+                <h2 class="preview-title">{{ previewItem.title }} </h2>
+                <img class="preview-picture" [src]="previewItem.mediaURL">
+                <p class="preview-metainfo">{{ previewItem.date }} @ {{ previewItem.location }}</p>
+                <br>
+                <p class="preview-description">{{ previewItem.description }}</p>
+                <a [attr.href]="previewItem.externalURL" target="_blank">More info...</a>
+            </div>
             <!-- <app-timeslider 
                 *ngIf="dataManager" 
                 [minDate]="getMinDate()" 

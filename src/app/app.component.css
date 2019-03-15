@@ -28,7 +28,7 @@
     width: 25vw;
     height: inherit;
     box-sizing: border-box;
-    border-right: 1px solid gray;
+    border: 2px dashed #f3f3f3;
 }
 
 .error {
@@ -49,5 +49,26 @@
     top: 0;
     left: 0;
     transition: all 0.25s ease-in-out;
+}
+
+.preview-item {
+    margin-top: 2em;
+    max-width: calc(25vw - 2em);
+}
+
+.preview-title {
+    color: gray;
+}
+.preview-picture {
+    max-width: inherit;
+}
+.preview-metainfo {
+    font-style: italic;
+    font-size: 18px;
+    color: gray;
+}
+.preview-description {
+    text-align: justify;
+    font-style: italic;
 }
 
