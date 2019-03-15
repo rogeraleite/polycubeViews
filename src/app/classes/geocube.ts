@@ -7,7 +7,6 @@ import * as D3 from 'd3';
 import * as mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
 import { ElementRef } from '@angular/core';
-import { select } from 'd3';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
