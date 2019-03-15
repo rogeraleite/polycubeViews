@@ -7,6 +7,7 @@ import * as D3 from 'd3';
 import * as mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
 import { ElementRef } from '@angular/core';
+import { select } from 'd3';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -194,16 +195,17 @@ export class GeoCube implements PolyCube {
         return positionInWorld;
     }
 
-    onClick($event: any, tooltip: ElementRef): void {
+    onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
 
-        this.mouse.x = ($event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = -($event.clientY / window.innerHeight) * 2 + 1;
+        this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
+        this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
+
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children);
-        
+        let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children, true);
         let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
+
         if(guideLine) {
             this.cubeGroupGL.remove(guideLine);
         }
@@ -227,8 +229,10 @@ export class GeoCube implements PolyCube {
             let line = new THREE.Line(lineGeometry, lineMaterial);
             line.name = 'GUIDE_LINE';
             this.cubeGroupGL.add(line);
-            return;
+            return selectedObject.data;
         }
+
+        return null;
     }
 
     onDblClick($event: any): void {
