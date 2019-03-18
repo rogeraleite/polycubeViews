@@ -38,23 +38,42 @@ export class SetCube implements PolyCube {
     createObjects(): void {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
-
         this.colors = D3.scaleOrdinal(D3.schemePaired);
     }
 
     assembleData(): void {
-        this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
+        this.dm.data.forEach((d: any) => { 
+            this.setMap.add(d.category_1); 
+            //store quantized time 
+            d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
+        });
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
+        //this is currently not alligned with the geo time layers position
         this.timeLinearScale = this.dm.getTimeLinearScale();
+
+        //group by time and then category
+        // run layout simulations and store group positions for other time layers 
+        let groupedData = D3.nest()
+            .key((d: any) => {return d.groupDate })
+            .key((d:any) => {return d.category_1})
+            .entries(this.dm.data)
+            .sort((a:any,b:any) => {return a.key == b.key ? 0 : +(a.key > b.key) || -1;})
+            
+        console.log(groupedData)
+
+        //add gemorty points
         let geometry = new THREE.SphereGeometry( 1, 32, 32 );
-        
         for(let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
             // TODO: consider just updating color property of material if you ever find out how to do it
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
-            
+
             let sphere = new THREE.Mesh( geometry, material );
-            sphere.position.y = this.timeLinearScale(dataItem.date_time);
+            //deprecated
+            sphere.position.y = this.timeLinearScale(dataItem.groupDate);
+
+            // console.log(dataItem)
+
             sphere.position.x = Math.random()*CUBE_CONFIG.WIDTH;
             sphere.position.z = Math.random()*CUBE_CONFIG.WIDTH;
 
