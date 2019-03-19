@@ -61,15 +61,15 @@ export class SetCube implements PolyCube {
             .entries(this.dm.data)
             .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
 
-        // console.log(this.setMap)
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(1, 32, 32);
         let vertOffset = CUBE_CONFIG.WIDTH / groupedData.length;
 
-        groupedData.forEach((timeLayer: any, i: number) => {
+        //layouts
+        let circleLayout = this.getCircleLayout(this.setMap,CUBE_CONFIG.WIDTH / 2,CUBE_CONFIG.WIDTH / 2,180)
+        console.log(circleLayout)
 
-            // console.log(this.getCircleLayout(this.setMap))
-            this.getCircleLayout(this.setMap)
+        groupedData.forEach((timeLayer: any, i: number) => {
 
             // flat planes for JP
             const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
@@ -110,11 +110,17 @@ export class SetCube implements PolyCube {
                 circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-                circle.position.x = Math.random() * CUBE_CONFIG.WIDTH / 2; //need to be fixed for the differente layouts
-                circle.position.z = Math.random() * CUBE_CONFIG.WIDTH / 2;
+                circleLayout.forEach((d) => {
+                    if (d.cat === category.key) {
+                        circle.position.x = d.x
+                        circle.position.z = d.y;
+                    }
+                })
+                // circle.position.x = Math.random() * CUBE_CONFIG.WIDTH / 2; //need to be fixed for the differente layouts
+                // circle.position.z = Math.random() * CUBE_CONFIG.WIDTH / 2;
                 circle.position.y = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
                 this.cubeGroupGL.add(circle)
-    
+
                 //add points after each category
                 let parentPos = circle.position;
 
@@ -129,7 +135,6 @@ export class SetCube implements PolyCube {
                     // sphere.position.y = this.timeLinearScale(points.groupDate);
                     sphere.position.y = parentPos.y;
 
-                    // console.log(points)
 
                     sphere.position.x = points.x;
                     sphere.position.z = points.y;
@@ -141,13 +146,13 @@ export class SetCube implements PolyCube {
 
         })
 
+        //deprecated
         // for (let i = 0; i < this.dm.data.length; i++) {
         //     let dataItem = this.dm.data[i];
         //     // TODO: consider just updating color property of material if you ever find out how to do it
         //     let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
         //     let sphere = new THREE.Mesh(geometry, material);
-        //     //deprecated
         //     sphere.position.y = this.timeLinearScale(dataItem.groupDate);
 
         //     // console.log(dataItem)
@@ -200,43 +205,21 @@ export class SetCube implements PolyCube {
 
     }
 
-    getCircleLayout(group_list) {
+    // function to get circle layout, pass Sets, center x and y and radius
+    getCircleLayout(group_list, x0: number = 0, y0: number = 0, r: number = 20) {
 
-        // let newGroup_list = [...group_list]
-        // console.log(Array.from(group_list))
-        // { ...['a', 'b', 'c'] }
-        
-        let groupArray = [...Array.from(group_list)]
+        let items = [...Array.from(group_list)]
+        let circleLayout = [];
 
-        // [...group_list].sort(function (one, other) {
-        //     //a - b is
-        //     //   0 when elements are the same
-        //     //  >0 when a > b
-        //     //  <0 when a < b
-        //     return one.values.length - other.values.length;
-        // });
-
-        let fraction = (2 * Math.PI) / group_list.length;
-        let current_pos = 0;
-        let r = 20;
-        let posX = r * Math.cos(current_pos);
-        let posY = r * Math.sin(current_pos);
-
-        groupArray.forEach(function (d,i) {
-            // group_list.push({group:d,x:posX,y:posY}) 
-            
-            // d.x = posX;
-            // d.y = posY;
-            // current_pos += fraction;
-            // posX = r * Math.cos(current_pos);
-            // posY = r * Math.sin(current_pos);
-        })
-        // console.log(group_list)
-
-        return group_list
-
+        for (var i = 0; i < items.length; i++) {
+            var x = x0 + r * Math.cos(2 * Math.PI * i / items.length);
+            var y = y0 + r * Math.sin(2 * Math.PI * i / items.length);
+            circleLayout.push({ cat: items[i], x: x, y: y })
+        }
+        return circleLayout
     }
 
+    // function to get spiral spread of points accross a single category in time, pass center x and y, radius and group array
     getSpiralPosition(centerX: number, centerY: number, radius: number, group_list) {
 
         let sides = group_list.length,
@@ -245,7 +228,6 @@ export class SetCube implements PolyCube {
 
         // How far to step away from center for each side.
         let awayStep = radius / sides;
-        // let awayStep = 1.2;
 
         // How far to rotate around center for each side.
         let aroundStep = coils / sides;// 0 to 1 based.
@@ -263,7 +245,6 @@ export class SetCube implements PolyCube {
         for (let i = 0; i < sides; i++) {
             // How far away from center
             let away = (i * awayStep);
-            // let away = (i + 0.1);
 
             // How far around the center.
             let around = i + aroundRadians * rotation;
