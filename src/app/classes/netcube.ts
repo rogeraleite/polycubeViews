@@ -26,6 +26,7 @@ export class NetCube implements PolyCube {
     private slices: Array<THREE.Group>;
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
+    private links: THREE.Group;
 
     private cubeLeftBoarder: number;
 
@@ -87,11 +88,13 @@ export class NetCube implements PolyCube {
         
     }
 
+
     
     /**
      * Transitions from whatever temporal encoding to STC
      */
     transitionSTC(): void { 
+        this.showLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -103,6 +106,7 @@ export class NetCube implements PolyCube {
      * Transitions from whatever temporal encoding to JP
      */
     transitionJP(): void {
+        this.hideLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.cubeGroupGL.remove(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -224,6 +228,7 @@ export class NetCube implements PolyCube {
     }
 
     createLinks(): void {
+        this.links = new THREE.Group();
         let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });//red
         let linksPerNode = 1;
 
@@ -256,12 +261,12 @@ export class NetCube implements PolyCube {
                         );     
                     let line = new THREE.Line(lineGeometry, lineMaterial);
                     line.name = dataItem.id+"_"+targetId;
-                    this.cubeGroupGL.add(line);
+                    this.links.add(line);
                 }//end if
-
-
             }//end for     
         }//end for
+
+        this.cubeGroupGL.add(this.links);
             
     }
 
@@ -367,4 +372,12 @@ export class NetCube implements PolyCube {
     showBottomLayer(): void {}
 
     hideBottomLayer(): void {}
+
+    showLinks(): void {
+        this.cubeGroupGL.add(this.links);
+    }
+
+    hideLinks(): void {
+        this.cubeGroupGL.remove(this.links);
+    }
 }
