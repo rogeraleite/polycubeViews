@@ -69,6 +69,7 @@ export class SetCube implements PolyCube {
         groupedData.forEach((timeLayer: any, i: number) => {
 
             // console.log(this.getCircleLayout(this.setMap))
+            this.getCircleLayout(this.setMap)
 
             // flat planes for JP
             const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
@@ -202,8 +203,10 @@ export class SetCube implements PolyCube {
     getCircleLayout(group_list) {
 
         // let newGroup_list = [...group_list]
-
-        console.log(Array.from(group_list))
+        // console.log(Array.from(group_list))
+        // { ...['a', 'b', 'c'] }
+        
+        let groupArray = [...Array.from(group_list)]
 
         // [...group_list].sort(function (one, other) {
         //     //a - b is
@@ -213,21 +216,24 @@ export class SetCube implements PolyCube {
         //     return one.values.length - other.values.length;
         // });
 
-        // let fraction = (2 * Math.PI) / group_list.length;
-        // let current_pos = 0;
-        // let r = 20;
-        // let posX = r * Math.cos(current_pos);
-        // let posY = r * Math.sin(current_pos);
+        let fraction = (2 * Math.PI) / group_list.length;
+        let current_pos = 0;
+        let r = 20;
+        let posX = r * Math.cos(current_pos);
+        let posY = r * Math.sin(current_pos);
 
-        // group_list.forEach(function (d) {
-        //     d.x = posX;
-        //     d.y = posY;
-        //     current_pos += fraction;
-        //     posX = r * Math.cos(current_pos);
-        //     posY = r * Math.sin(current_pos);
-        // })
+        groupArray.forEach(function (d,i) {
+            // group_list.push({group:d,x:posX,y:posY}) 
+            
+            // d.x = posX;
+            // d.y = posY;
+            // current_pos += fraction;
+            // posX = r * Math.cos(current_pos);
+            // posY = r * Math.sin(current_pos);
+        })
+        // console.log(group_list)
 
-        // return group_list
+        return group_list
 
     }
 
