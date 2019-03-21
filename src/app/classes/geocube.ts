@@ -180,6 +180,7 @@ export class GeoCube implements PolyCube {
         // CSS Object
         let mapObject = new THREE.CSS3DObject(mapContainer);
         mapObject.name = name ? name : 'MAP_CONTAINER';
+
         if(!position) {
             mapObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
         } else {
@@ -204,7 +205,6 @@ export class GeoCube implements PolyCube {
         this.cubeGroupCSS.name = 'GEO_CUBE_CSS';
         this.cubeGroupCSS.position.set(0, 0, 0);
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
-        
     }
 
     /**
@@ -356,7 +356,11 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to ANI
      * TODO: Implement ANI
      */
-    transitionANI(): void { }
+    transitionANI(): void { 
+        // call SI 
+        // create an animation
+        // loop through layers somehow
+    }
 
     /**
      * Returns cube position in *world* coordinates
@@ -451,6 +455,7 @@ export class GeoCube implements PolyCube {
     /**
      * Returns the corresponding timeslice to a given objects date (date_time property)
      * @param date Date object
+     * @returns THREE.Group - the corresponding timeslice
      */
     findTimeSlice(date: Date): THREE.Group {
         let correspondingSlice;
