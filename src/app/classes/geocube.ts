@@ -29,6 +29,7 @@ export class GeoCube implements PolyCube {
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
     private map: mapboxgl.Map;
+    private mapBounds: mapboxgl.LngLatBounds;
 
     /**
      * 
@@ -42,6 +43,7 @@ export class GeoCube implements PolyCube {
         this.webGLScene = webGLScene;
         if (cssScene) { this.cssScene = cssScene; }
         this.setMap = new Set<string>();
+        this.mapBounds = new mapboxgl.LngLatBounds();
         this.camera = camera;
         // https://stackoverflow.com/questions/44332290/mapbox-gl-typing-wont-allow-accesstoken-assignment
         (mapboxgl as typeof mapboxgl).accessToken = environment.MAPBOX_KEY;
@@ -110,7 +112,7 @@ export class GeoCube implements PolyCube {
      */
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
-        this.createMap();
+        this.cubeGroupCSS.add(this.createMap());
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
         let bounds = new mapboxgl.LngLatBounds();
@@ -118,6 +120,7 @@ export class GeoCube implements PolyCube {
         this.dm.data.forEach((d: any) => { bounds.extend(new mapboxgl.LngLat(d.longitude, d.latitude)); });
 
         this.map.fitBounds(bounds);
+        this.mapBounds = bounds;
 
         this.map.on('moveend', () => {
             let geometry = new THREE.SphereGeometry(2, 32, 32);
@@ -144,29 +147,36 @@ export class GeoCube implements PolyCube {
     /**
      * Creates the map for the bottom slice of the cube (CSS3D)
      */
-    private createMap(): void {
+    private createMap(position?: THREE.Vector3, bounds?: mapboxgl.LngLatBounds, name?: string): THREE.CSS3DObject {
         // Bottomside of cube
         let mapContainer = document.createElement('div');
-        mapContainer.id = 'map-container';
+        mapContainer.id = name ? name.toLowerCase() : 'map_container';
         mapContainer.style.width = CUBE_CONFIG.WIDTH + "px";
         mapContainer.style.height = CUBE_CONFIG.WIDTH + "px";
         // need to add it to the DOM so mapbox can hook onto it
         document.getElementById('css-canvas').appendChild(mapContainer);
 
         this.map = new mapboxgl.Map({
-            container: 'map-container',
+            container: name ? name.toLowerCase() : 'map_container',
             style: 'mapbox://styles/velitchko/cjefo9eu118qd2rodaoq3cpj1',
             zoom: 13,
             center: [0, 0]
         });
 
+        if(bounds) this.map.fitBounds(bounds);
+
         // CSS Object
         let mapObject = new THREE.CSS3DObject(mapContainer);
-        mapObject.name = 'MAP_CONTAINER';
-        mapObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
+        mapObject.name = name ? name : 'MAP_CONTAINER';
+        if(!position) {
+            mapObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
+        } else {
+            mapObject.position.set(position.x, position.y, position.z);
+        }
+
         mapObject.rotation.set(-Math.PI/2, 0, 0);
 
-        this.cubeGroupCSS.add(mapObject);
+        return mapObject;
     }
 
     /**
@@ -213,6 +223,8 @@ export class GeoCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
+            let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
+
             let sourceCoords = {
                 x: slice.position.x,
                 y: slice.position.y,
@@ -224,7 +236,7 @@ export class GeoCube implements PolyCube {
                 y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
                 z: CUBE_CONFIG.WIDTH/2
             }
-
+            
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
                                  .delay(i*300)
@@ -233,7 +245,17 @@ export class GeoCube implements PolyCube {
                                     slice.position.x = sourceCoords.x;
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
-                                 }).start();
+
+                                    mapClone.position.x = sourceCoords.x;
+                                    mapClone.position.y = sourceCoords.y;
+                                    mapClone.position.z = sourceCoords.z;
+                                 })
+                                 .onComplete(() => {
+                                    this.cubeGroupCSS.remove(mapClone);
+                                    this.showBottomLayer();
+                                 })
+                                 .start();
+
             // slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
         });
     }
@@ -244,13 +266,18 @@ export class GeoCube implements PolyCube {
     transitionJP(): void {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.cubeGroupGL.remove(this.boundingBox);
+        this.hideBottomLayer();
+
         this.slices.forEach((slice: THREE.Group, i: number) => {
+            let mapClone = this.createMap(new THREE.Vector3(slice.position.x, slice.position.y, slice.position.z), this.mapBounds,`MAP_CONTAINER_${i}`);
+            this.cubeGroupCSS.add(mapClone);
+
             let sourceCoords = {
                 x: slice.position.x,
                 y: slice.position.y,
                 z: slice.position.z
             };
-
+           
             let targetCoords = {
                 x: slice.position.x,
                 y: 0,
@@ -265,6 +292,10 @@ export class GeoCube implements PolyCube {
                                     slice.position.x = sourceCoords.x;
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
+
+                                    mapClone.position.x = sourceCoords.x;
+                                    mapClone.position.y = sourceCoords.y;
+                                    mapClone.position.z = sourceCoords.z;
                                  }).start();
         });
 
@@ -377,13 +408,13 @@ export class GeoCube implements PolyCube {
      * Shows the bottom layer of the geocube (map)
      */
     showBottomLayer(): void {
-        document.getElementById('map-container').style.opacity = '1';
+        document.getElementById('map_container').style.opacity = '1';
     }
 
     /**
      * Hides the bottom layer of the geocube (map)
      */
     hideBottomLayer(): void {
-        document.getElementById('map-container').style.opacity = '0';
+        document.getElementById('map_container').style.opacity = '0';
     }
 }
