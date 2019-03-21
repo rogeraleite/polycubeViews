@@ -236,7 +236,7 @@ export class GeoCube implements PolyCube {
                 y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
                 z: CUBE_CONFIG.WIDTH/2
             }
-            
+
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
                                  .delay(i*300)
@@ -280,7 +280,7 @@ export class GeoCube implements PolyCube {
            
             let targetCoords = {
                 x: slice.position.x,
-                y: 0,
+                y: -CUBE_CONFIG.HEIGHT/2,
                 z: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2)
             }
 
@@ -296,16 +296,43 @@ export class GeoCube implements PolyCube {
                                     mapClone.position.x = sourceCoords.x;
                                     mapClone.position.y = sourceCoords.y;
                                     mapClone.position.z = sourceCoords.z;
-                                 }).start();
+                                 })
+                                 .start();
         });
 
     }
 
     /**
      * Transitions from whatever temporal encoding to SI
-     * TODO: Implement SI
      */
-    transitionSI(): void { }
+    transitionSI(): void { 
+        this.cubeGroupGL.remove(this.boundingBox);
+
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+           
+            let targetCoords = {
+                x: slice.position.x,
+                y: -CUBE_CONFIG.HEIGHT/2,
+                z: slice.position.z
+            }
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .start();
+        });
+    }
 
     /**
      * Transitions from whatever temporal encoding to ANI
