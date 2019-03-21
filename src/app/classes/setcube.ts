@@ -1,10 +1,13 @@
 import { PolyCube } from './polycube.interface';
 import { DataManager } from './datamanager';
 import * as THREE from 'three-full';
+import * as TWEEN from '@tweenjs/tween.js';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
 import * as D3 from 'd3';
 import * as moment from 'moment';
+import { ElementRef } from '@angular/core';
+import { mouse } from 'd3';
 
 export class SetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -16,6 +19,9 @@ export class SetCube implements PolyCube {
     private data: Array<any>;
     private setMap: Set<string>;
 
+    // THREE
+    private raycaster: THREE.Raycaster;
+    private mouse: THREE.Vector2;
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
     private colors: D3.ScaleOrdinal<string, string>;
@@ -41,6 +47,9 @@ export class SetCube implements PolyCube {
         this.cubeGroupCSS = new THREE.Group();
         this.colors = D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
+
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
     }
 
     assembleData(): void {
@@ -66,7 +75,7 @@ export class SetCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.WIDTH / groupedData.length;
 
         //layouts
-        let circleLayout = this.getCircleLayout(this.setMap,CUBE_CONFIG.WIDTH / 2,CUBE_CONFIG.WIDTH / 2,180)
+        let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
         console.log(circleLayout)
 
         groupedData.forEach((timeLayer: any, i: number) => {
@@ -112,14 +121,16 @@ export class SetCube implements PolyCube {
                 //apply group positions
                 circleLayout.forEach((d) => {
                     if (d.cat === category.key) {
-                        circle.position.x = d.x
-                        circle.position.z = d.y;
+                        circle.position.x = d.y
+                        circle.position.z = d.x;
                     }
                 })
+
                 // circle.position.x = Math.random() * CUBE_CONFIG.WIDTH / 2; //need to be fixed for the differente layouts
                 // circle.position.z = Math.random() * CUBE_CONFIG.WIDTH / 2;
                 circle.position.y = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
-                this.cubeGroupGL.add(circle)
+                // this.cubeGroupGL.add(circle)
+                slice.add(circle)
 
                 //add points after each category
                 let parentPos = circle.position;
@@ -128,7 +139,6 @@ export class SetCube implements PolyCube {
                 let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
 
                 spiralCategory.forEach((points) => {
-
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
                     const sphere = new THREE.Mesh(pointGeometry, material);
                     //deprecated
@@ -138,8 +148,10 @@ export class SetCube implements PolyCube {
 
                     sphere.position.x = points.x;
                     sphere.position.z = points.y;
-
-                    this.cubeGroupGL.add(sphere);
+                    // this.cubeGroupGL.add(sphere);
+                    sphere.data = points.data;
+                    sphere.type = 'DATA_POINT'; //data point identifier
+                    slice.add(sphere)
                 })
 
             })
@@ -185,8 +197,22 @@ export class SetCube implements PolyCube {
     }
 
 
-    transitionSTC(): void { }
-    transitionJP(): void { }
+    transitionSTC(): void {
+        // this.showLinks();
+        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
+        // this.cubeGroupGL.add(this.boundingBox);
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+        });
+    }
+    transitionJP(): void {
+        let vertOffset = CUBE_CONFIG.HEIGHT + 20;
+        // this.cubeGroupGL.remove(this.boundingBox);
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            slice.position.z = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
+            slice.position.y = 0;
+        });
+    }
     transitionSI(): void { }
     transitionANI(): void { }
 
@@ -197,8 +223,36 @@ export class SetCube implements PolyCube {
         return positionInWorld;
     }
 
-    onClick($event: any): void {
+    /**
+     * Onclick event handler for the geocube
+     * @param $event event propagated from controller
+     * @param tooltip tooltip item (ElementRef)
+     * @param container canvas container (HTMLElement) used for calculating the raycasting
+     */
+    onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
+        $event.preventDefault();
 
+        this.mouse.x = (($event.clientX - container.offsetLeft) / container.clientWidth) * 2 - 1;
+        this.mouse.y = -(($event.clientY - container.offsetTop) / container.clientHeight) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+
+        let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children, true);
+
+        for (let i = 0; i < intersections.length; i++) {
+            let selectedObject = intersections[i].object;
+            if (selectedObject.type !== 'DATA_POINT') continue;
+            // get first intersect that is a data point
+            selectedObject.material.color.setHex(0xffff00);
+            selectedObject.scale.set(2, 2, 2);
+            tooltip.nativeElement.style.opacity = '.9';
+            tooltip.nativeElement.style.top = `${$event.pageY}px`;
+            tooltip.nativeElement.style.left = `${$event.pageX}px`;
+            tooltip.nativeElement.innerHTML = selectedObject.data.description;
+            return selectedObject.data;
+        }
+
+        return null;
     }
 
     onDblClick($event: any): void {
@@ -257,6 +311,21 @@ export class SetCube implements PolyCube {
         }
 
         return new_time
+    }
+
+    /**
+ * Returns the corresponding timeslice to a given objects date (date_time property)
+ * @param date Date object
+ */
+    findTimeSlice(date: Date): THREE.Group {
+        let correspondingSlice;
+        this.slices.forEach((slice: THREE.Group) => {
+            if (slice.name === this.dm.getTimeQuantile(date)) {
+                correspondingSlice = slice;
+                return;
+            }
+        });
+        return correspondingSlice;
     }
 
     hideBottomLayer(): void { }
