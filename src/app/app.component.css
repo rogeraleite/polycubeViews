@@ -72,3 +72,7 @@
     font-style: italic;
 }
 
+::ng-deep .time-slice-label {
+    opacity: 1;
+    transition: all 0.25s ease-in-out;
+}
