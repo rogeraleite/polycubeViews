@@ -205,7 +205,6 @@ export class AppComponent implements AfterViewInit {
     * Initializes the GUI elements including button event listeners
     */
    initGUI = () => {
-      // TODO: could possibly add events on click listeners
       this.gui = new GUI();
       
       this.gui.geoBtn.addEventListener('click', () => {
@@ -226,25 +225,25 @@ export class AppComponent implements AfterViewInit {
 
       this.gui.stcBtn.addEventListener('click', () => {
          this.gCube.transitionSTC();
-         // this.sCube.transitionSTC();
+         this.sCube.transitionSTC();
          this.nCube.transitionSTC();
       });
 
       this.gui.jpBtn.addEventListener('click', () => {
          this.gCube.transitionJP();
-         // this.sCube.transitionJP();
+         this.sCube.transitionJP();
          this.nCube.transitionJP();
       });
 
       this.gui.siBtn.addEventListener('click', () => {
          this.gCube.transitionSI();
-         // this.sCube.transitionSI();
+         this.sCube.transitionSI();
          this.nCube.transitionSI();
       });
 
       this.gui.aniBtn.addEventListener('click', () => {
          this.gCube.transitionANI();
-         // this.sCube.transitionANI();
+         this.sCube.transitionANI();
          this.nCube.transitionANI();
       });
    }
