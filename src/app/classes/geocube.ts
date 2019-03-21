@@ -1,13 +1,14 @@
 import { PolyCube } from './polycube.interface';
 import { DataManager } from './datamanager';
-import * as THREE from 'three-full';
-import * as TWEEN from '@tweenjs/tween.js';
-import { VIEW_STATES } from './viewStates';
-import { CUBE_CONFIG } from '../cube.config';
-import * as D3 from 'd3';
-import * as mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
 import { ElementRef } from '@angular/core';
+import { VIEW_STATES } from './viewStates';
+import { CUBE_CONFIG } from '../cube.config';
+import * as THREE from 'three-full';
+import * as TWEEN from '@tweenjs/tween.js';
+import * as D3 from 'd3';
+import * as mapboxgl from 'mapbox-gl';
+import * as moment from 'moment';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -30,6 +31,7 @@ export class GeoCube implements PolyCube {
 
     private map: mapboxgl.Map;
     private mapBounds: mapboxgl.LngLatBounds;
+    private mapCenter: { lat: number, lng: number };
 
     /**
      * 
@@ -123,6 +125,12 @@ export class GeoCube implements PolyCube {
         this.mapBounds = bounds;
 
         this.map.on('moveend', () => {
+            let center = this.map.getCenter();
+            this.mapCenter = {
+                lat: center.lat,
+                lng: center.lng
+            };
+
             let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
             for (let i = 0; i < this.dm.data.length; i++) {
@@ -164,7 +172,7 @@ export class GeoCube implements PolyCube {
             container: name ? name.toLowerCase() : 'map_container',
             style: 'mapbox://styles/velitchko/cjefo9eu118qd2rodaoq3cpj1',
             zoom: 13,
-            center: [0, 0]
+            center: this.mapCenter ? [this.mapCenter.lng, this.mapCenter.lat] : [0, 0]
         });
 
         if(bounds) this.map.fitBounds(bounds);
@@ -360,6 +368,23 @@ export class GeoCube implements PolyCube {
     }
 
     /**
+     * Iterates through all timeslices and all data points
+     * Resets their position and color back to default
+     */
+    resetSelection(): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+
+                grandChild.scale.set(1,1,1);
+                grandChild.material.color.set(this.colors(grandChild.data.category_1));
+            });
+        });
+    }
+
+    /**
      * Onclick event handler for the geocube
      * @param $event event propagated from controller
      * @param tooltip tooltip item (ElementRef)
@@ -367,7 +392,7 @@ export class GeoCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-
+        this.resetSelection();
         this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
         this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
@@ -386,10 +411,15 @@ export class GeoCube implements PolyCube {
             // get first intersect that is a data point
             selectedObject.material.color.setHex(0xffff00);
             selectedObject.scale.set(2, 2, 2);
+            tooltip.nativeElement.style.display = 'block';
             tooltip.nativeElement.style.opacity = '.9';
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
             tooltip.nativeElement.style.left = `${$event.pageX}px`;
-            tooltip.nativeElement.innerHTML = selectedObject.data.description;
+            tooltip.nativeElement.innerHTML = `
+                                                <h2>${selectedObject.data.id}</h2>
+                                                <p>${selectedObject.data.description}</p>
+                                                <p>Photo taken on ${moment(selectedObject.data.date_time).format('DD/MM/YYYY')} @ ${selectedObject.data.location_name}</p>
+                                              `;
             let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
             let lineGeometry = new THREE.Geometry();
           
