@@ -146,6 +146,10 @@ export class GeoCube implements PolyCube {
 
     /**
      * Creates the map for the bottom slice of the cube (CSS3D)
+     * @param position (optional) position vector (3D) for the css 3d object
+     * @param bounds (optional) bounds that should be set for the map
+     * @param name (optional) name/identifier of the css 3d object
+     * @returns THREE.CSS3DObject the map object
      */
     private createMap(position?: THREE.Vector3, bounds?: mapboxgl.LngLatBounds, name?: string): THREE.CSS3DObject {
         // Bottomside of cube
@@ -245,10 +249,11 @@ export class GeoCube implements PolyCube {
                                     slice.position.x = sourceCoords.x;
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
-
-                                    mapClone.position.x = sourceCoords.x;
-                                    mapClone.position.y = sourceCoords.y;
-                                    mapClone.position.z = sourceCoords.z;
+                                    if(mapClone) {
+                                        mapClone.position.x = sourceCoords.x;
+                                        mapClone.position.y = sourceCoords.y;
+                                        mapClone.position.z = sourceCoords.z;
+                                    }
                                  })
                                  .onComplete(() => {
                                     this.cubeGroupCSS.remove(mapClone);
@@ -309,6 +314,9 @@ export class GeoCube implements PolyCube {
         this.cubeGroupGL.remove(this.boundingBox);
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
+            let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
+            if(mapClone) this.cubeGroupCSS.remove(mapClone);
+
             let sourceCoords = {
                 x: slice.position.x,
                 y: slice.position.y,
@@ -316,9 +324,9 @@ export class GeoCube implements PolyCube {
             };
            
             let targetCoords = {
-                x: slice.position.x,
+                x: CUBE_CONFIG.WIDTH/2,
                 y: -CUBE_CONFIG.HEIGHT/2,
-                z: slice.position.z
+                z: CUBE_CONFIG.WIDTH/2
             }
 
             let tween = new TWEEN.Tween(sourceCoords)
@@ -329,6 +337,8 @@ export class GeoCube implements PolyCube {
                                     slice.position.x = sourceCoords.x;
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
+                                 }).onComplete(() => {
+                                     this.showBottomLayer();
                                  })
                                  .start();
         });
