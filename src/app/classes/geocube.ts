@@ -123,7 +123,7 @@ export class GeoCube implements PolyCube {
         this.mapBounds = bounds;
 
         this.map.on('moveend', () => {
-            let geometry = new THREE.SphereGeometry(2, 32, 32);
+            let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
             for (let i = 0; i < this.dm.data.length; i++) {
                 let dataItem = this.dm.data[i];
