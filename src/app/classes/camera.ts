@@ -25,7 +25,7 @@ export class Camera {
 
     constructor(width: number, height: number) {
         this.perspectiveCamera = new THREE.PerspectiveCamera(75, width / height, .1, 10000);
-        this.orthographicCamera = new THREE.PerspectiveCamera(width/-2, width/2, height/2, height/-2, .1, 10000);
+        this.orthographicCamera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, .1, 10000);
     }
 
     useOrthographicCamera(): void {

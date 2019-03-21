@@ -4,7 +4,7 @@ import * as THREE from 'three-full';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
 import { ElementRef } from '@angular/core';
-
+import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
 
@@ -96,10 +96,35 @@ export class NetCube implements PolyCube {
     transitionSTC(): void { 
         this.showLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
-        this.cubeGroupGL.add(this.boundingBox);
+        this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-        });
+            //slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: CUBE_CONFIG.WIDTH/2,
+                y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
+                z: CUBE_CONFIG.WIDTH/2
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .onComplete(() => {
+                                    //something if needed
+                                 })
+                                 .start();
+        });//end forEach
     }
 
     /**
@@ -108,15 +133,67 @@ export class NetCube implements PolyCube {
     transitionJP(): void {
         this.hideLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
-        this.cubeGroupGL.remove(this.boundingBox);
+        this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.z = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
-            slice.position.y = 0;
+            //slice.position.z = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
+            //slice.position.y = 0;
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+           
+            let targetCoords = {
+                x: slice.position.x,
+                y: -CUBE_CONFIG.HEIGHT/2,
+                z: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2)
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .start();
+
         });
 
     }
 
-    transitionSI(): void {}
+    transitionSI(): void {
+        this.hideLinks();
+        this.boundingBox.visible = false;
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+           
+            let targetCoords = {
+                x: CUBE_CONFIG.WIDTH/2,
+                y: -CUBE_CONFIG.HEIGHT/2,
+                z: CUBE_CONFIG.WIDTH/2
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .start();
+        });
+
+    }
+
     transitionANI(): void {}
 
 
@@ -152,7 +229,7 @@ export class NetCube implements PolyCube {
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
             tooltip.nativeElement.style.left = `${$event.pageX}px`;
             tooltip.nativeElement.innerHTML = selectedObject.data.description;
-            let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 10 });
+            let lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000 });
             let lineGeometry = new THREE.Geometry();
             
             lineGeometry.vertices.push(selectedObject.position);  // x y z 
@@ -203,7 +280,7 @@ export class NetCube implements PolyCube {
 
 
     createNodes(): void {
-        let geometry = new THREE.SphereGeometry( 1, 32, 32 );
+        let geometry = new THREE.SphereGeometry( CUBE_CONFIG.NODE_SIZE, 32, 32 );
         
         for(let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
@@ -229,7 +306,7 @@ export class NetCube implements PolyCube {
 
     createLinks(): void {
         this.links = new THREE.Group();
-        let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });//red
+        let lineMaterial = new THREE.LineBasicMaterial({ color: '#b5b5b5', transparent: true, opacity: 0.75 });
         let linksPerNode = 1;
 
         for(let i = 0; i < this.dm.data.length; i++) {
@@ -305,17 +382,6 @@ export class NetCube implements PolyCube {
             // label.rotation.set(Math.PI);
             this.cssScene.add(label);
         }
-
-        let placeholderBox = new THREE.Mesh( 
-            new THREE.BoxGeometry( CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH ), 
-            new THREE.MeshBasicMaterial( {color: 0x00ff00} ) 
-        );
-
-        placeholderBox.position.set(CUBE_CONFIG.WIDTH/2,0,CUBE_CONFIG.WIDTH/2);
-        let boxHelper = new THREE.BoxHelper(placeholderBox, 0x000000);
-        boxHelper.name = 'BOX_HELPER';
-        this.cubeGroupGL.add(boxHelper);
-        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
 
     createBoundingBox(){
@@ -374,10 +440,10 @@ export class NetCube implements PolyCube {
     hideBottomLayer(): void {}
 
     showLinks(): void {
-        this.cubeGroupGL.add(this.links);
+        this.links.visible = true;
     }
 
     hideLinks(): void {
-        this.cubeGroupGL.remove(this.links);
+        this.links.visible = false;
     }
 }

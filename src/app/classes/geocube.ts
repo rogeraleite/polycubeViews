@@ -1,13 +1,14 @@
 import { PolyCube } from './polycube.interface';
 import { DataManager } from './datamanager';
-import * as THREE from 'three-full';
-import * as TWEEN from '@tweenjs/tween.js';
-import { VIEW_STATES } from './viewStates';
-import { CUBE_CONFIG } from '../cube.config';
-import * as D3 from 'd3';
-import * as mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
 import { ElementRef } from '@angular/core';
+import { VIEW_STATES } from './viewStates';
+import { CUBE_CONFIG } from '../cube.config';
+import * as THREE from 'three-full';
+import * as TWEEN from '@tweenjs/tween.js';
+import * as D3 from 'd3';
+import * as mapboxgl from 'mapbox-gl';
+import * as moment from 'moment';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -23,13 +24,13 @@ export class GeoCube implements PolyCube {
     // THREEJS Objects
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
-    private objects: Array<any>;
     private slices: Array<THREE.Group>;
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
     private map: mapboxgl.Map;
     private mapBounds: mapboxgl.LngLatBounds;
+    private mapCenter: { lat: number, lng: number };
 
     /**
      * 
@@ -45,6 +46,7 @@ export class GeoCube implements PolyCube {
         this.setMap = new Set<string>();
         this.mapBounds = new mapboxgl.LngLatBounds();
         this.camera = camera;
+        
         // https://stackoverflow.com/questions/44332290/mapbox-gl-typing-wont-allow-accesstoken-assignment
         (mapboxgl as typeof mapboxgl).accessToken = environment.MAPBOX_KEY;
         this.createObjects();
@@ -89,8 +91,9 @@ export class GeoCube implements PolyCube {
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            label.name = `LABEL_${i}`;
             // label.rotation.set(Math.PI);
-            this.cssScene.add(label);
+            this.cubeGroupCSS.add(label);
         }
 
         this.raycaster = new THREE.Raycaster();
@@ -123,6 +126,13 @@ export class GeoCube implements PolyCube {
         this.mapBounds = bounds;
 
         this.map.on('moveend', () => {
+            let center = this.map.getCenter();
+            this.mapCenter = {
+                lat: center.lat,
+                lng: center.lng
+            };
+            // TODO: Consider adding an outline to the data points - makes them easier to separate 
+            // https://stemkoski.github.io/Three.js/Outline.html 
             let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
             for (let i = 0; i < this.dm.data.length; i++) {
@@ -164,7 +174,7 @@ export class GeoCube implements PolyCube {
             container: name ? name.toLowerCase() : 'map_container',
             style: 'mapbox://styles/velitchko/cjefo9eu118qd2rodaoq3cpj1',
             zoom: 13,
-            center: [0, 0]
+            center: this.mapCenter ? [this.mapCenter.lng, this.mapCenter.lat] : [0, 0]
         });
 
         if(bounds) this.map.fitBounds(bounds);
@@ -172,6 +182,7 @@ export class GeoCube implements PolyCube {
         // CSS Object
         let mapObject = new THREE.CSS3DObject(mapContainer);
         mapObject.name = name ? name : 'MAP_CONTAINER';
+
         if(!position) {
             mapObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
         } else {
@@ -196,7 +207,6 @@ export class GeoCube implements PolyCube {
         this.cubeGroupCSS.name = 'GEO_CUBE_CSS';
         this.cubeGroupCSS.position.set(0, 0, 0);
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
-        
     }
 
     /**
@@ -225,7 +235,7 @@ export class GeoCube implements PolyCube {
      */
     transitionSTC(): void { 
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
-        this.cubeGroupGL.add(this.boundingBox);
+        this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
 
@@ -239,7 +249,7 @@ export class GeoCube implements PolyCube {
                 x: CUBE_CONFIG.WIDTH/2,
                 y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
                 z: CUBE_CONFIG.WIDTH/2
-            }
+            };
 
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
@@ -270,9 +280,10 @@ export class GeoCube implements PolyCube {
      */
     transitionJP(): void {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
-        this.cubeGroupGL.remove(this.boundingBox);
+        this.boundingBox.visible = false;
         this.hideBottomLayer();
-
+        
+        // D3.selectAll('.time-slice-label').style('opacity', '1');
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = this.createMap(new THREE.Vector3(slice.position.x, slice.position.y, slice.position.z), this.mapBounds,`MAP_CONTAINER_${i}`);
             this.cubeGroupCSS.add(mapClone);
@@ -287,7 +298,14 @@ export class GeoCube implements PolyCube {
                 x: slice.position.x,
                 y: -CUBE_CONFIG.HEIGHT/2,
                 z: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2)
-            }
+            };
+
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(-Math.PI/2, 0, 0);
 
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
@@ -311,7 +329,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to SI
      */
     transitionSI(): void { 
-        this.cubeGroupGL.remove(this.boundingBox);
+        this.boundingBox.visible = false;
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
@@ -327,7 +345,7 @@ export class GeoCube implements PolyCube {
                 x: CUBE_CONFIG.WIDTH/2,
                 y: -CUBE_CONFIG.HEIGHT/2,
                 z: CUBE_CONFIG.WIDTH/2
-            }
+            };
 
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
@@ -338,7 +356,8 @@ export class GeoCube implements PolyCube {
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
                                  }).onComplete(() => {
-                                     this.showBottomLayer();
+                                    D3.selectAll('.time-slice-label').style('opacity', '0');
+                                    this.showBottomLayer();
                                  })
                                  .start();
         });
@@ -348,7 +367,11 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to ANI
      * TODO: Implement ANI
      */
-    transitionANI(): void { }
+    transitionANI(): void { 
+        // call SI 
+        // create an animation
+        // loop through layers somehow
+    }
 
     /**
      * Returns cube position in *world* coordinates
@@ -360,6 +383,23 @@ export class GeoCube implements PolyCube {
     }
 
     /**
+     * Iterates through all timeslices and all data points
+     * Resets their position and color back to default
+     */
+    resetSelection(): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+
+                grandChild.scale.set(1,1,1);
+                grandChild.material.color.set(this.colors(grandChild.data.category_1));
+            });
+        });
+    }
+
+    /**
      * Onclick event handler for the geocube
      * @param $event event propagated from controller
      * @param tooltip tooltip item (ElementRef)
@@ -367,7 +407,7 @@ export class GeoCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-
+        this.resetSelection();
         this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
         this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
@@ -375,21 +415,31 @@ export class GeoCube implements PolyCube {
 
         let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children, true);
         let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
+        let guidePoint = this.cubeGroupGL.getObjectByName('GUIDE_POINT');
 
         if(guideLine) {
             this.cubeGroupGL.remove(guideLine);
+        }
+
+        if(guidePoint) {
+            this.cubeGroupGL.remove(guidePoint);
         }
 
         for(let i = 0; i < intersections.length; i++) {
             let selectedObject = intersections[i].object;
             if(selectedObject.type !== 'DATA_POINT') continue;
             // get first intersect that is a data point
-            selectedObject.material.color.setHex(0xffff00);
+            selectedObject.material.color.setHex(0xff0000);
             selectedObject.scale.set(2, 2, 2);
+            tooltip.nativeElement.style.display = 'block';
             tooltip.nativeElement.style.opacity = '.9';
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
             tooltip.nativeElement.style.left = `${$event.pageX}px`;
-            tooltip.nativeElement.innerHTML = selectedObject.data.description;
+            tooltip.nativeElement.innerHTML = `
+                                                <h2>${selectedObject.data.id}</h2>
+                                                <p>${selectedObject.data.description}</p>
+                                                <p>Photo taken on ${moment(selectedObject.data.date_time).format('DD/MM/YYYY')} @ ${selectedObject.data.location_name}</p>
+                                              `;
             let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
             let lineGeometry = new THREE.Geometry();
           
@@ -411,7 +461,16 @@ export class GeoCube implements PolyCube {
 
             let line = new THREE.Line(lineGeometry, lineMaterial);
             line.name = 'GUIDE_LINE';
+          
+            let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
+            let pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            let point = new THREE.Mesh(pointGeometry, pointMaterial);
+            point.position.set(selectedObject.position.x + CUBE_CONFIG.WIDTH/2, -CUBE_CONFIG.WIDTH/2, selectedObject.position.z + CUBE_CONFIG.WIDTH/2)
+            point.name = 'GUIDE_POINT';
+
             this.cubeGroupGL.add(line);
+            this.cubeGroupGL.add(point);
+
             return selectedObject.data;
         }
 
@@ -421,6 +480,7 @@ export class GeoCube implements PolyCube {
     /**
      * Returns the corresponding timeslice to a given objects date (date_time property)
      * @param date Date object
+     * @returns THREE.Group - the corresponding timeslice
      */
     findTimeSlice(date: Date): THREE.Group {
         let correspondingSlice;

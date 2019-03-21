@@ -188,6 +188,7 @@ export class AppComponent implements AfterViewInit {
             };
          } else {
             this.previewItem = null;
+            this.tooltip.nativeElement.style.display = 'none';
             this.tooltip.nativeElement.style.opacity = '0';
          }
       });
