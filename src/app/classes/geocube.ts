@@ -1,6 +1,7 @@
 import { PolyCube } from './polycube.interface';
 import { DataManager } from './datamanager';
 import * as THREE from 'three-full';
+import * as TWEEN from '@tweenjs/tween.js';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
 import * as D3 from 'd3';
@@ -212,7 +213,28 @@ export class GeoCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: CUBE_CONFIG.WIDTH/2,
+                y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
+                z: CUBE_CONFIG.WIDTH/2
+            }
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 }).start();
+            // slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
         });
     }
 
@@ -223,8 +245,27 @@ export class GeoCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.cubeGroupGL.remove(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.z = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
-            slice.position.y = 0;
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: slice.position.x,
+                y: 0,
+                z: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2)
+            }
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                                 .to(targetCoords, 1000)
+                                 .delay(i*300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 }).start();
         });
 
     }
