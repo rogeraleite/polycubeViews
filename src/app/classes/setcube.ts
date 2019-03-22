@@ -71,7 +71,7 @@ export class SetCube implements PolyCube {
             .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
 
         //add geometry points
-        let pointGeometry = new THREE.SphereGeometry(1, 32, 32);
+        let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
         let vertOffset = CUBE_CONFIG.WIDTH / groupedData.length;
 
         //layouts
@@ -149,6 +149,7 @@ export class SetCube implements PolyCube {
                     sphere.position.x = points.x;
                     sphere.position.z = points.y;
                     // this.cubeGroupGL.add(sphere);
+                    sphere.name = points.data.id;
                     sphere.data = points.data;
                     sphere.type = 'DATA_POINT'; //data point identifier
                     slice.add(sphere)
@@ -223,6 +224,23 @@ export class SetCube implements PolyCube {
         return positionInWorld;
     }
 
+      /**
+     * Iterates through all timeslices and all data points
+     * Resets their position and color back to default
+     */
+    resetSelection(gray: boolean = false): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+
+                grandChild.scale.set(1,1,1);
+                grandChild.material.color.set(gray ? '#b5b5b5' : this.colors(grandChild.data.category_1));
+            });
+        });
+    }
+
     /**
      * Onclick event handler for the geocube
      * @param $event event propagated from controller
@@ -231,7 +249,6 @@ export class SetCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-
         this.mouse.x = (($event.clientX - container.offsetLeft) / container.clientWidth) * 2 - 1;
         this.mouse.y = -(($event.clientY - container.offsetTop) / container.clientHeight) * 2 + 1;
 
@@ -243,16 +260,27 @@ export class SetCube implements PolyCube {
             let selectedObject = intersections[i].object;
             if (selectedObject.type !== 'DATA_POINT') continue;
             // get first intersect that is a data point
-            selectedObject.material.color.setHex(0xffff00);
-            selectedObject.scale.set(2, 2, 2);
+            tooltip.nativeElement.style.display = 'block';
             tooltip.nativeElement.style.opacity = '.9';
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
             tooltip.nativeElement.style.left = `${$event.pageX}px`;
             tooltip.nativeElement.innerHTML = selectedObject.data.description;
             return selectedObject.data;
         }
-
+        this.resetSelection();
         return null;
+    }
+
+    
+    highlightObject(id: string): void {
+        this.resetSelection(true);
+
+        let highlighted = this.cubeGroupGL.getObjectByName(id);
+
+        if(highlighted) {
+            highlighted.material.color.setHex(0xff0000);
+            highlighted.scale.set(2, 2, 2);
+        }
     }
 
     onDblClick($event: any): void {

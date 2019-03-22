@@ -118,7 +118,7 @@ export class NetCube implements PolyCube {
                 .onUpdate(() => {
                     slice.position.x = sourceCoords.x;
                     slice.position.y = sourceCoords.y,
-                        slice.position.z = sourceCoords.z;
+                    slice.position.z = sourceCoords.z;
                 })
                 .onComplete(() => {
                     //something if needed
@@ -223,7 +223,7 @@ export class NetCube implements PolyCube {
 
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-        this.resetSelection(true);
+        
         this.mouse.x = (($event.clientX - container.offsetLeft) / container.clientWidth) * 2 - 1;
         this.mouse.y = -(($event.clientY - container.offsetTop) / container.clientHeight) * 2 + 1;
 
@@ -235,8 +235,6 @@ export class NetCube implements PolyCube {
             let selectedObject = intersections[i].object;
             if (selectedObject.type !== 'DATA_POINT') continue;
             // get first intersect that is a data point
-            selectedObject.material.color.setHex(0xff0000);
-            selectedObject.scale.set(2, 2, 2);
             tooltip.nativeElement.style.display = 'block';
             tooltip.nativeElement.style.opacity = '.9';
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
@@ -247,6 +245,19 @@ export class NetCube implements PolyCube {
         }
         this.resetSelection();
         return null;
+    }
+
+    // TODO: Should highlight the point consider passing the id of the point or something instead of the 
+    // object, because the object is not unique across multiple cubes
+    highlightObject(id: string): void {
+        this.resetSelection(true);
+        
+        let highlighted = this.cubeGroupGL.getObjectByName(id);
+
+        if(highlighted) {
+            highlighted.material.color.setHex(0xff0000);
+            highlighted.scale.set(2, 2, 2);
+        }
     }
 
     /**
@@ -299,7 +310,7 @@ export class NetCube implements PolyCube {
                 sphere.position.x = position.x;
                 sphere.position.z = position.z;
                 //sphere.position.y = this.timeLinearScale(dataItem.date_time);
-
+                sphere.name = dataItem.id;
                 sphere.data = dataItem;
                 sphere.type = 'DATA_POINT';
 

@@ -146,7 +146,7 @@ export class GeoCube implements PolyCube {
                 sphere.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
                 // sphere.position.y = correspondingSlice.position.y; -- y coordinate is inherited from the slice positioning
                 sphere.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
-
+                sphere.name = dataItem.id;
                 sphere.data = dataItem;
                 sphere.type = 'DATA_POINT';
                 this.findTimeSlice(dataItem.date_time).add(sphere);
@@ -437,30 +437,19 @@ export class GeoCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-        this.resetSelection(true);
+        
         this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
         this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         let intersections = this.raycaster.intersectObjects(this.cubeGroupGL.children, true);
-        let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
-        let guidePoint = this.cubeGroupGL.getObjectByName('GUIDE_POINT');
-
-        if(guideLine) {
-            this.cubeGroupGL.remove(guideLine);
-        }
-
-        if(guidePoint) {
-            this.cubeGroupGL.remove(guidePoint);
-        }
-
+        
         for(let i = 0; i < intersections.length; i++) {
             let selectedObject = intersections[i].object;
             if(selectedObject.type !== 'DATA_POINT') continue;
-            // get first intersect that is a data point
-            selectedObject.material.color.setHex(0xff0000);
-            selectedObject.scale.set(2, 2, 2);
+            // got intersect 
+            // setup tootlip and return object
             tooltip.nativeElement.style.display = 'block';
             tooltip.nativeElement.style.opacity = '.9';
             tooltip.nativeElement.style.top = `${$event.pageY}px`;
@@ -470,22 +459,48 @@ export class GeoCube implements PolyCube {
                                                 <p>${selectedObject.data.description}</p>
                                                 <p>Photo taken on ${moment(selectedObject.data.date_time).format('DD/MM/YYYY')} @ ${selectedObject.data.location_name}</p>
                                               `;
+          
+            return selectedObject.data;
+        }
+        this.clearGuideline();
+        this.resetSelection();
+        return null;
+    }
+
+    clearGuideline(): void {
+        let guideLine = this.cubeGroupGL.getObjectByName('GUIDE_LINE');
+        let guidePoint = this.cubeGroupGL.getObjectByName('GUIDE_POINT');
+
+        if(guideLine) this.cubeGroupGL.remove(guideLine);
+        if(guidePoint) this.cubeGroupGL.remove(guidePoint);
+    }
+
+    
+    highlightObject(id: string): void {
+        this.clearGuideline();
+        this.resetSelection(true);
+        let highlighted = this.cubeGroupGL.getObjectByName(id);
+
+        if(highlighted) {
+            highlighted.material.color.setHex(0xff0000);
+            highlighted.scale.set(2, 2, 2);
+
             let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
             let lineGeometry = new THREE.Geometry();
           
             lineGeometry.vertices.push(
                     new THREE.Vector3(
-                        selectedObject.position.x + CUBE_CONFIG.WIDTH/2, 
-                        this.findTimeSlice(selectedObject.data.date_time).position.y,
-                        selectedObject.position.z + CUBE_CONFIG.WIDTH/2
+                        highlighted.position.x + CUBE_CONFIG.WIDTH/2, 
+                        this.findTimeSlice(highlighted.data.date_time).position.y,
+                        highlighted.position.z + CUBE_CONFIG.WIDTH/2
                         )
                     ); 
 
             lineGeometry.vertices.push(
                 new THREE.Vector3(
-                    selectedObject.position.x + CUBE_CONFIG.WIDTH/2, 
+                    highlighted.position.x + CUBE_CONFIG.WIDTH/2, 
                     -CUBE_CONFIG.WIDTH/2, 
-                    selectedObject.position.z + CUBE_CONFIG.WIDTH/2
+                    highlighted.position.z + CUBE_CONFIG.WIDTH/2
                     )
                 ); 
 
@@ -495,22 +510,13 @@ export class GeoCube implements PolyCube {
             let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
             let pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             let point = new THREE.Mesh(pointGeometry, pointMaterial);
-            point.position.set(selectedObject.position.x + CUBE_CONFIG.WIDTH/2, -CUBE_CONFIG.WIDTH/2, selectedObject.position.z + CUBE_CONFIG.WIDTH/2)
+
+            point.position.set(highlighted.position.x + CUBE_CONFIG.WIDTH/2, -CUBE_CONFIG.WIDTH/2, highlighted.position.z + CUBE_CONFIG.WIDTH/2)
             point.name = 'GUIDE_POINT';
 
             this.cubeGroupGL.add(line);
             this.cubeGroupGL.add(point);
-
-            return selectedObject.data;
         }
-        this.resetSelection();
-        return null;
-    }
-
-    
-    highlightObject(object: THREE.Object3D): void {
-        object.material.color.setHex(0xff0000);
-        object.scale.set(2, 2, 2);
     }
 
     /**

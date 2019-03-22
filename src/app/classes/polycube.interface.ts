@@ -23,6 +23,9 @@ export interface PolyCube {
     hideBottomLayer: Function, 
     showBottomLayer: Function, 
 
+    // interactions
+    highlightObject: Function,
+
     // event handleers
     onClick: Function,
     onDblClick: Function

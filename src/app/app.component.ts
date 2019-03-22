@@ -195,9 +195,17 @@ export class AppComponent implements AfterViewInit {
    }
 
    getClickedItem = ($event) =>{
+      // look for item across cubes
       let foundItem = this.gCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
       if(!foundItem) foundItem = this.sCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
       if(!foundItem) foundItem = this.nCube.onClick($event, this.tooltip, this.webGLContainer.nativeElement );
+      
+      // if item clicked highlight accross cubes
+      if(foundItem) {
+         this.gCube.highlightObject(foundItem.id);
+         this.sCube.highlightObject(foundItem.id);
+         this.nCube.highlightObject(foundItem.id);
+      }
       return foundItem;
    }
 
