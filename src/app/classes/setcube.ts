@@ -70,11 +70,9 @@ export class SetCube implements PolyCube {
             d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
         });
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
-        //this is currently not alligned with the geo time layers position
         this.timeLinearScale = this.dm.getTimeLinearScale();
 
         //group by time and then category
-        // run layout simulations and store group positions for other time layers 
         let groupedData = D3.nest()
             .key((d: any) => { return moment(d.groupDate).format('YYYY') })
             .key((d: any) => { return d.category_1 })
@@ -115,7 +113,6 @@ export class SetCube implements PolyCube {
                 const geometry = new THREE.CircleGeometry(rad, 32);//hull resolution
                 const material = new THREE.MeshBasicMaterial({
                     color: '#d0d0d0',
-                    // color: colorScale(data.key),
                     side: THREE.DoubleSide,
                     transparent: true,
                     opacity: 0.7
@@ -135,7 +132,6 @@ export class SetCube implements PolyCube {
                         circle.position.z = d.x;
                     }
                 })
-                // circle.position.y = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
 
                 // this.cubeGroupGL.add(circle)
                 slice.add(circle)
@@ -150,14 +146,11 @@ export class SetCube implements PolyCube {
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
                     const sphere = new THREE.Mesh(pointGeometry, material);
 
-                    //deprecated
-                    // sphere.position.y = this.timeLinearScale(points.groupDate);
                     sphere.position.y = parentPos.y;
 
 
                     sphere.position.x = points.x;
                     sphere.position.z = points.y;
-                    // this.cubeGroupGL.add(sphere);
                     sphere.name = points.data.id;
                     sphere.data = points.data;
                     sphere.type = 'DATA_POINT'; //data point identifier
@@ -171,9 +164,7 @@ export class SetCube implements PolyCube {
 
     render(): void {
         // create a box and add it to the scene
-        // let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
         this.cubeGroupGL.name = 'SET_CUBE';
-        // this.cubeGroupGL.add(boxHelper);
         this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
     }
@@ -192,10 +183,6 @@ export class SetCube implements PolyCube {
     dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
-
-    // resetFilter(): void {
-    //     this.cube
-    // }
 
     filterData(startDate: Date, endDate: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
@@ -233,7 +220,7 @@ export class SetCube implements PolyCube {
                 .onUpdate(() => {
                     slice.position.x = sourceCoords.x;
                     slice.position.y = sourceCoords.y,
-                    slice.position.z = sourceCoords.z;
+                        slice.position.z = sourceCoords.z;
                 })
                 .onComplete(() => {
                     //something if needed
@@ -271,7 +258,7 @@ export class SetCube implements PolyCube {
         });
 
     }
-    transitionSI(): void { 
+    transitionSI(): void {
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let sourceCoords = {
