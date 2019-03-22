@@ -26,6 +26,7 @@ export class SetCube implements PolyCube {
     private cssScene: THREE.Scene;
     private colors: D3.ScaleOrdinal<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
+    private boundingBox: THREE.BoxHelper;
 
     private slices: Array<THREE.Group>;
 
@@ -50,6 +51,16 @@ export class SetCube implements PolyCube {
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
+
+
+        let placeholderBox = new THREE.Mesh(
+            new THREE.BoxGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH),
+            new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+        );
+        placeholderBox.position.set(CUBE_CONFIG.WIDTH / 2, 0, CUBE_CONFIG.WIDTH / 2);
+        this.boundingBox = new THREE.BoxHelper(placeholderBox, '#b5b5b5');
+        this.boundingBox.name = 'BOX_HELPER';
+        this.cubeGroupGL.add(this.boundingBox);
     }
 
     assembleData(): void {
@@ -76,7 +87,6 @@ export class SetCube implements PolyCube {
 
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
-        console.log(circleLayout)
 
         groupedData.forEach((timeLayer: any, i: number) => {
 
@@ -91,8 +101,8 @@ export class SetCube implements PolyCube {
             // time slices
             let slice = new THREE.Group();
             slice.name = timeLayer.key; // we need to decide either to use full date or
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
             slice.add(plane);
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
             this.slices.push(slice);
             this.cubeGroupGL.add(slice)
 
@@ -125,10 +135,8 @@ export class SetCube implements PolyCube {
                         circle.position.z = d.x;
                     }
                 })
+                // circle.position.y = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
 
-                // circle.position.x = Math.random() * CUBE_CONFIG.WIDTH / 2; //need to be fixed for the differente layouts
-                // circle.position.z = Math.random() * CUBE_CONFIG.WIDTH / 2;
-                circle.position.y = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
                 // this.cubeGroupGL.add(circle)
                 slice.add(circle)
 
@@ -141,6 +149,7 @@ export class SetCube implements PolyCube {
                 spiralCategory.forEach((points) => {
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
                     const sphere = new THREE.Mesh(pointGeometry, material);
+
                     //deprecated
                     // sphere.position.y = this.timeLinearScale(points.groupDate);
                     sphere.position.y = parentPos.y;
@@ -158,30 +167,13 @@ export class SetCube implements PolyCube {
             })
 
         })
-
-        //deprecated
-        // for (let i = 0; i < this.dm.data.length; i++) {
-        //     let dataItem = this.dm.data[i];
-        //     // TODO: consider just updating color property of material if you ever find out how to do it
-        //     let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
-
-        //     let sphere = new THREE.Mesh(geometry, material);
-        //     sphere.position.y = this.timeLinearScale(dataItem.groupDate);
-
-        //     // console.log(dataItem)
-
-        //     sphere.position.x = Math.random() * CUBE_CONFIG.WIDTH;
-        //     sphere.position.z = Math.random() * CUBE_CONFIG.WIDTH;
-
-        //     this.cubeGroupGL.add(sphere);
-        // }
     }
 
     render(): void {
         // create a box and add it to the scene
-        let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
+        // let boxHelper = new THREE.BoxHelper(this.cubeGroupGL, 0x000000);
         this.cubeGroupGL.name = 'SET_CUBE';
-        this.cubeGroupGL.add(boxHelper);
+        // this.cubeGroupGL.add(boxHelper);
         this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
     }
@@ -207,36 +199,106 @@ export class SetCube implements PolyCube {
 
     filterData(startDate: Date, endDate: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+                if (grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if(!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
+                if (!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
             });
         })
     }
 
 
     transitionSTC(): void {
-        // this.showLinks();
+        this.boundingBox.visible = true;
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
-        // this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
-        });
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: CUBE_CONFIG.WIDTH / 2,
+                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2),
+                z: CUBE_CONFIG.WIDTH / 2
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                .to(targetCoords, 1000)
+                .delay(i * 300)
+                .easing(TWEEN.Easing.Cubic.InOut)
+                .onUpdate(() => {
+                    slice.position.x = sourceCoords.x;
+                    slice.position.y = sourceCoords.y,
+                    slice.position.z = sourceCoords.z;
+                })
+                .onComplete(() => {
+                    //something if needed
+                })
+                .start();
+        });//end forEach
     }
     transitionJP(): void {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
-        // this.cubeGroupGL.remove(this.boundingBox);
+        this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            slice.position.z = (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2);
-            slice.position.y = 0;
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: slice.position.x,
+                y: -CUBE_CONFIG.HEIGHT / 2,
+                z: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                .to(targetCoords, 1000)
+                .delay(i * 300)
+                .easing(TWEEN.Easing.Cubic.InOut)
+                .onUpdate(() => {
+                    slice.position.x = sourceCoords.x;
+                    slice.position.y = sourceCoords.y,
+                        slice.position.z = sourceCoords.z;
+                })
+                .start();
+
+        });
+
+    }
+    transitionSI(): void { 
+        this.boundingBox.visible = false;
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            let sourceCoords = {
+                x: slice.position.x,
+                y: slice.position.y,
+                z: slice.position.z
+            };
+
+            let targetCoords = {
+                x: CUBE_CONFIG.WIDTH / 2,
+                y: -CUBE_CONFIG.HEIGHT / 2,
+                z: CUBE_CONFIG.WIDTH / 2
+            };
+
+            let tween = new TWEEN.Tween(sourceCoords)
+                .to(targetCoords, 1000)
+                .delay(i * 300)
+                .easing(TWEEN.Easing.Cubic.InOut)
+                .onUpdate(() => {
+                    slice.position.x = sourceCoords.x;
+                    slice.position.y = sourceCoords.y,
+                        slice.position.z = sourceCoords.z;
+                })
+                .start();
         });
     }
-    transitionSI(): void { }
     transitionANI(): void { }
-
 
     getCubePosition(): THREE.Vector3 {
         const positionInWorld = new THREE.Vector3();
@@ -244,18 +306,18 @@ export class SetCube implements PolyCube {
         return positionInWorld;
     }
 
-      /**
-     * Iterates through all timeslices and all data points
-     * Resets their position and color back to default
-     */
+    /**
+   * Iterates through all timeslices and all data points
+   * Resets their position and color back to default
+   */
     resetSelection(gray: boolean = false): void {
         this.cubeGroupGL.children.forEach((child: any) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+                if (grandChild.type !== 'DATA_POINT') return;
 
-                grandChild.scale.set(1,1,1);
+                grandChild.scale.set(1, 1, 1);
                 grandChild.material.color.set(gray ? '#b5b5b5' : this.colors(grandChild.data.category_1));
             });
         });
@@ -291,13 +353,13 @@ export class SetCube implements PolyCube {
         return null;
     }
 
-    
+
     highlightObject(id: string): void {
         this.resetSelection(true);
 
         let highlighted = this.cubeGroupGL.getObjectByName(id);
 
-        if(highlighted) {
+        if (highlighted) {
             highlighted.material.color.setHex(0xff0000);
             highlighted.scale.set(2, 2, 2);
         }
