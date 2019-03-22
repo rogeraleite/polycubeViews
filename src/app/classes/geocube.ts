@@ -416,7 +416,7 @@ export class GeoCube implements PolyCube {
      * Iterates through all timeslices and all data points
      * Resets their position and color back to default
      */
-    resetSelection(): void {
+    resetSelection(gray: boolean = false): void {
         this.cubeGroupGL.children.forEach((child: any) => {
             if(child.type !== 'Group') return;
 
@@ -424,24 +424,7 @@ export class GeoCube implements PolyCube {
                 if(grandChild.type !== 'DATA_POINT') return;
 
                 grandChild.scale.set(1,1,1);
-                grandChild.material.color.set(this.colors(grandChild.data.category_1));
-            });
-        });
-    }
-
-    /**
-     * Iterates through all timeslices and all data points
-     * Resets their position and color back to default
-     */
-    deselectAll(): void {
-        this.cubeGroupGL.children.forEach((child: any) => {
-            if(child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-
-                grandChild.scale.set(1,1,1);
-                grandChild.material.color.set('#b5b5b5');
+                grandChild.material.color.set(gray ? '#b5b5b5' : this.colors(grandChild.data.category_1));
             });
         });
     }
@@ -454,7 +437,7 @@ export class GeoCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-        this.deselectAll();
+        this.resetSelection(true);
         this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
         this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
