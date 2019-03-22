@@ -430,6 +430,23 @@ export class GeoCube implements PolyCube {
     }
 
     /**
+     * Iterates through all timeslices and all data points
+     * Resets their position and color back to default
+     */
+    deselectAll(): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+
+                grandChild.scale.set(1,1,1);
+                grandChild.material.color.set('#b5b5b5');
+            });
+        });
+    }
+
+    /**
      * Onclick event handler for the geocube
      * @param $event event propagated from controller
      * @param tooltip tooltip item (ElementRef)
@@ -437,7 +454,7 @@ export class GeoCube implements PolyCube {
      */
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
-        this.resetSelection();
+        this.deselectAll();
         this.mouse.x= (($event.clientX - container.offsetLeft)/container.clientWidth) * 2 - 1;
         this.mouse.y= -(($event.clientY - container.offsetTop)/container.clientHeight) * 2 + 1;
 
@@ -503,7 +520,7 @@ export class GeoCube implements PolyCube {
 
             return selectedObject.data;
         }
-
+        this.resetSelection();
         return null;
     }
 
