@@ -87,7 +87,7 @@ export class GeoCube implements PolyCube {
             let element = document.createElement('div');
             element.innerHTML = slice.name;
             element.className = 'time-slice-label';
-        
+            
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
@@ -174,7 +174,8 @@ export class GeoCube implements PolyCube {
             container: name ? name.toLowerCase() : 'map_container',
             style: 'mapbox://styles/velitchko/cjefo9eu118qd2rodaoq3cpj1',
             zoom: 13,
-            center: this.mapCenter ? [this.mapCenter.lng, this.mapCenter.lat] : [0, 0]
+            center: this.mapCenter ? [this.mapCenter.lng, this.mapCenter.lat] : [0, 0],
+            preserveDrawingBuffer: true // needed to use map.getCanvas().toDataURL();
         });
 
         if(bounds) this.map.fitBounds(bounds);
@@ -250,7 +251,14 @@ export class GeoCube implements PolyCube {
                 y: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2),
                 z: CUBE_CONFIG.WIDTH/2
             };
-
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(0, 0, 0);
+            // label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
                                  .delay(i*300)
@@ -266,12 +274,13 @@ export class GeoCube implements PolyCube {
                                     }
                                  })
                                  .onComplete(() => {
-                                    this.cubeGroupCSS.remove(mapClone);
+                                    if(mapClone) {
+                                        this.cubeGroupCSS.remove(mapClone);
+                                        mapClone.visible = false;
+                                    }
                                     this.showBottomLayer();
                                  })
                                  .start();
-
-            // slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
         });
     }
 
@@ -279,14 +288,27 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to JP
      */
     transitionJP(): void {
+        this.hideBottomLayer();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.boundingBox.visible = false;
-        this.hideBottomLayer();
-        
-        // D3.selectAll('.time-slice-label').style('opacity', '1');
+        // FIXME: At start of JP transition some weird flicker happens to one of the slices and rotation is wrong?
+        let mapPic = this.map.getCanvas().toDataURL();
+        let mapElem = document.createElement('img');
+        mapElem.className = 'map-object';
+        mapElem.style.width = CUBE_CONFIG.WIDTH + 'px';
+        mapElem.style.height = CUBE_CONFIG.WIDTH + 'px';
+        mapElem.src = mapPic;
+
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            let mapClone = this.createMap(new THREE.Vector3(slice.position.x, slice.position.y, slice.position.z), this.mapBounds,`MAP_CONTAINER_${i}`);
-            this.cubeGroupCSS.add(mapClone);
+            let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
+            if(!mapClone) {
+                mapClone = new THREE.CSS3DObject(mapElem.cloneNode());
+                mapClone.name = `MAP_CONTAINER_${i}`;
+                this.cubeGroupCSS.add(mapClone);
+            }
+
+            mapClone.position.set(new THREE.Vector3(slice.position.x, slice.position.y, slice.position.z));
+            mapClone.rotation.set(-Math.PI/2, 0, 0);
 
             let sourceCoords = {
                 x: slice.position.x,
@@ -301,7 +323,7 @@ export class GeoCube implements PolyCube {
             };
 
             let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
-            
+            D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -322,7 +344,6 @@ export class GeoCube implements PolyCube {
                                  })
                                  .start();
         });
-
     }
 
     /**
@@ -333,7 +354,6 @@ export class GeoCube implements PolyCube {
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
-            if(mapClone) this.cubeGroupCSS.remove(mapClone);
 
             let sourceCoords = {
                 x: slice.position.x,
@@ -355,7 +375,17 @@ export class GeoCube implements PolyCube {
                                     slice.position.x = sourceCoords.x;
                                     slice.position.y = sourceCoords.y,
                                     slice.position.z = sourceCoords.z;
+                                    if(mapClone) {
+                                        mapClone.position.x = sourceCoords.x;
+                                        mapClone.position.y = sourceCoords.y,
+                                        mapClone.position.z = sourceCoords.z;
+                                    }
                                  }).onComplete(() => {
+                                    if(mapClone) {
+                                        mapClone.visible = false;
+                                        this.cubeGroupCSS.remove(mapClone);
+                                    }
+                    
                                     D3.selectAll('.time-slice-label').style('opacity', '0');
                                     this.showBottomLayer();
                                  })
