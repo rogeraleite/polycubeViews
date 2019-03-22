@@ -239,7 +239,6 @@ export class GeoCube implements PolyCube {
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
-
             let sourceCoords = {
                 x: slice.position.x,
                 y: slice.position.y,
@@ -288,28 +287,25 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to JP
      */
     transitionJP(): void {
-        this.hideBottomLayer();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
-        this.boundingBox.visible = false;
-        // FIXME: At start of JP transition some weird flicker happens to one of the slices and rotation is wrong?
         let mapPic = this.map.getCanvas().toDataURL();
         let mapElem = document.createElement('img');
+        
+        this.boundingBox.visible = false;
+        
         mapElem.className = 'map-object';
         mapElem.style.width = CUBE_CONFIG.WIDTH + 'px';
         mapElem.style.height = CUBE_CONFIG.WIDTH + 'px';
         mapElem.src = mapPic;
+       
+        this.hideBottomLayer();
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            let mapClone = this.cubeGroupCSS.getObjectByName(`MAP_CONTAINER_${i}`);
-            if(!mapClone) {
-                mapClone = new THREE.CSS3DObject(mapElem.cloneNode());
-                mapClone.name = `MAP_CONTAINER_${i}`;
-                this.cubeGroupCSS.add(mapClone);
-            }
-
+            let mapClone = new THREE.CSS3DObject(mapElem.cloneNode());
+            mapClone.name = `MAP_CONTAINER_${i}`;
             mapClone.position.set(new THREE.Vector3(slice.position.x, slice.position.y, slice.position.z));
             mapClone.rotation.set(-Math.PI/2, 0, 0);
-
+            
             let sourceCoords = {
                 x: slice.position.x,
                 y: slice.position.y,
@@ -323,7 +319,9 @@ export class GeoCube implements PolyCube {
             };
 
             let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+        
             D3.selectAll('.time-slice-label').style('opacity', '1');
+        
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -341,6 +339,8 @@ export class GeoCube implements PolyCube {
                                     mapClone.position.x = sourceCoords.x;
                                     mapClone.position.y = sourceCoords.y;
                                     mapClone.position.z = sourceCoords.z;
+                                 }).onComplete(() => {
+                                    this.cubeGroupCSS.add(mapClone);
                                  })
                                  .start();
         });
@@ -505,6 +505,12 @@ export class GeoCube implements PolyCube {
         }
         this.resetSelection();
         return null;
+    }
+
+    
+    highlightObject(object: THREE.Object3D): void {
+        object.material.color.setHex(0xff0000);
+        object.scale.set(2, 2, 2);
     }
 
     /**
