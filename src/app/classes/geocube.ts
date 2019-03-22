@@ -231,6 +231,24 @@ export class GeoCube implements PolyCube {
 
     }
 
+    dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
+        return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
+    }
+
+
+
+    filterData(startDate: Date, endDate: Date): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+                if(!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
+            });
+        })
+    }
+
     /**
      * Transitions from whatever temporal encoding to STC
      */

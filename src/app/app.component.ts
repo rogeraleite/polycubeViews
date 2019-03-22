@@ -55,6 +55,7 @@ export class AppComponent implements AfterViewInit {
    dataManager: DataManager;
 
    loadingDataset: boolean = false;
+   dataLoaded: boolean = false;
    errorOccurred: boolean = false;
    errorMessage: string;
 
@@ -124,6 +125,7 @@ export class AppComponent implements AfterViewInit {
       this.google.load(_id).then((success: any) => {
          this.dataManager.data = success;
          this.loadingDataset = false;
+         this.dataLoaded = true;
          this.initScene();
          this.initCubes();
          this.initGUI();
@@ -358,6 +360,12 @@ export class AppComponent implements AfterViewInit {
       this.updateCubesView();
    }
 
+   filterData($event: any): void {
+      this.gCube.filterData($event[0], $event[1]);
+      this.sCube.filterData($event[0], $event[1]);
+      this.nCube.filterData($event[0], $event[1]);
+   }
+
    /**
     * 
     */
@@ -367,4 +375,9 @@ export class AppComponent implements AfterViewInit {
     * 
     */
    getMaxDate(): Date { return this.dataManager.getMaxDate(); }
+
+   /**
+    * 
+    */
+   getWindowInnerHeight(): number { return window.innerHeight; }
 }
