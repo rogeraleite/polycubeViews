@@ -36,13 +36,14 @@
                 <p class="preview-description">{{ previewItem.description }}</p>
                 <a [attr.href]="previewItem.externalURL" target="_blank">More info...</a>
             </div>
-            <!-- <app-timeslider 
-                *ngIf="dataManager" 
+            <app-timeslider 
+                *ngIf="dataLoaded" 
                 [minDate]="getMinDate()" 
                 [maxDate]="getMaxDate()" 
-                [width]="50" 
-                [height]="200"
-            ></app-timeslider> -->
+                [width]="60" 
+                [height]="getWindowInnerHeight()"
+                (onSelect)="filterData($event)"
+            ></app-timeslider>
     </div>
     <div class="canvases">
         <canvas id="webgl-canvas" #webGLCanvas></canvas>

@@ -1,5 +1,57 @@
-.timeslider {
+.time-slider {
     position: absolute;
-    top: 25%;
-    left: 1em;
+    z-index: 999;
+    top: 0em;
+    left: 25vw; /* this is offset defined by gui class in app.component.css */
+}
+
+::ng-deep .time-slider svg {
+    overflow: visible;
+}
+
+
+/*time slider*/
+.axis--grid .domain {
+    /*fill: #ddd;*/
+    stroke: none;
+}
+
+.axis--x .domain,
+.axis--grid .tick line {
+    stroke: #353636;
+}
+
+/*.axis--y .domain,*/
+.tick text {
+    /*fill: #EDCA3A;*/
+    /*fill: #462015;*/
+    /*fill: #c83409;*/
+    fill: #2d2d2d;
+}
+
+/*.axis--y .domain,*/
+.notick text {
+    /*fill: #353636 !important;*/
+    stroke: #525252;
+    stroke-width: 0.3px;
+    font-size: 120%;
+    font-weight: bold;
+}
+
+
+.axis--grid .tick--minor line {
+    stroke-opacity: .5;
+}
+
+.axis2,
+.axis--y2 line {
+    stroke: #8a8a8a;
+    stroke-opacity: .5;
+}
+
+.axis,
+.axis--chart {
+    /*fill: #3f3f3f;*/
+    fill: #353636;
+    stroke-width: 0;
 }
