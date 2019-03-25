@@ -29,8 +29,8 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        console.log(this.width, this.height);
-        console.log(this.minDate, this.maxDate);
+        // console.log(this.width, this.height);
+        // console.log(this.minDate, this.maxDate);
         // define margin for timeline
         let margin = {
             top: 0,
@@ -40,10 +40,12 @@ export class TimeSliderComponent implements AfterViewInit {
         };
         // define scales
         this.xScale = D3.scaleLinear().range([0, this.width]);
-        this.yScale = D3.scaleTime().domain([this.minDate, this.maxDate]).range([0, this.height]);
+        this.yScale = D3.scaleTime().domain([this.maxDate, this.minDate]).range([0, this.height]);
 
         // define brush
-        this.brush = D3.brushY().extent([[0, 0], [this.width, this.height]]).on('end', this.brushEnd.bind(this))
+        this.brush = D3.brushY()
+        .extent([[0, 0], [this.width, this.height]])
+        .on('end', this.brushEnd.bind(this))
 
 
         let svg = D3.select(this.timeSlider.nativeElement)
@@ -104,7 +106,7 @@ export class TimeSliderComponent implements AfterViewInit {
         let startD = this.yScale.invert(+range[0]);
         let endD = this.yScale.invert(+range[1]);
 
-        this.onSelect.emit(new Array<Date>(startD, endD));
+        this.onSelect.emit(new Array<Date>(endD, startD));
     }
 
 }
