@@ -65,7 +65,7 @@ export class SetCube implements PolyCube {
 
     assembleData(): void {
         this.dm.data.forEach((d: any) => {
-            this.setMap.add(d.category_1);
+            this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
             d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
         });
