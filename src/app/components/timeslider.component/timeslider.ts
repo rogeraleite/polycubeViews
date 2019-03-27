@@ -26,8 +26,8 @@ export class TimeSliderComponent implements AfterViewInit {
     brush: any;
 
     _brushMemory: Array<Date>;
-    _animationTime: number = 60;
-    _timeLeft: number = 60;
+    _animationTime: number = 5;
+    _timeLeft: number = 5;
     _interval;
 
     constructor() {
@@ -157,7 +157,7 @@ export class TimeSliderComponent implements AfterViewInit {
         } 
         else{
             let timePeriod = this._brushMemory;
-            this.switchButtonLabel();
+            this.switchPlayButtonLabel();
 
             if(!this.isAnimationPlaying()) this.animate();
             else this.pauseAnimation();
@@ -177,6 +177,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     stepForwardWithBrush(){
+        console.log(this._brushMemory);
         let newEndDate = this.addYearToDate(this._brushMemory[0]);
         let newStartDate = this.addYearToDate(this._brushMemory[1]);
         
@@ -197,12 +198,20 @@ export class TimeSliderComponent implements AfterViewInit {
 
     addYearToDate(date:Date): Date{
         //1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
-        return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
+        if(date) return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
+        else {
+            this.setPlayButtonLabel("pause");
+            this.pauseAnimation();
+        }
+        
+        return null;
     }
-
-    switchButtonLabel(){
+    setPlayButtonLabel(str: any){
+        D3.select('text.playButton').text(str);
+    }
+    switchPlayButtonLabel(){
         let newLabel = "";
-        if(!this.isAnimationPlaying()) newLabel = "stop";
+        if(!this.isAnimationPlaying()) newLabel = "pause";
         else newLabel = "play";
         D3.select('text.playButton').text(newLabel);
     }
