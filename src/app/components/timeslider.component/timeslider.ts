@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import * as D3 from 'd3';
 import * as moment from 'moment';
+import { timer } from 'rxjs';
 
 @Component({
     selector: 'app-timeslider',
@@ -24,8 +25,14 @@ export class TimeSliderComponent implements AfterViewInit {
     yScale: D3.ScaleTime<any, any>;
     brush: any;
 
+    _brushMemory: Array<Date>;
+    _animationTime: number = 60;
+    _timeLeft: number = 60;
+    _interval;
+
     constructor() {
         this.onSelect = new EventEmitter<Array<Date>>();
+        this._brushMemory = new Array<Date>();
     }
 
     ngAfterViewInit(): void {
@@ -93,16 +100,19 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr("width", this.width)
             .attr("height", 40)
 
-        button.append("path")
-            .attr("d", "M5 5 L5 35 L35 20 Z")
-            .style("fill", "#8a8a8a")
-            .style("stroke", "#8a8a8a");
+        // button.append("path")
+        //     .attr("d", "M5 5 L5 35 L35 20 Z")
+        //     .style("fill", "#8a8a8a")
+        //     .style("stroke", "#8a8a8a");
 
         // for play text
-        // append('text')
-        //     .attr("font-size", "2em")
-        //     .attr("fill", "white")
-        //     .text('play')
+        button.append('text')
+            .attr("class","playButton")
+            .attr("font-size", "1.5em")
+            .attr("fill", "white")
+            .text('play')
+            .attr("transform", "translate(8,28)")
+            .on('mouseup', this.animateBasedOnPeriod.bind(this));
 
         // brush
         svg.append('g')
@@ -113,22 +123,96 @@ export class TimeSliderComponent implements AfterViewInit {
 
     }
 
-    brushEnd(): void {
-        if (!D3.event.sourceEvent || !D3.event.selection) return; // no selection or event
-
+    getTimePeriodFromSlider(): Array<Date>{
         let d0 = D3.event.selection.map(this.yScale.invert);
         let d1 = d0.map(D3.timeMonth.round);
+
+        console.log(d0);
+        console.log(d1);
+        console.log(this.maxDate);
+        console.log(this.minDate);
+
         let brushDOM = D3.select('.brush');
 
         brushDOM.transition().call(D3.event.target.move, d1.map(this.yScale));
-        // console.log(D3.event);
         let range = D3.brushSelection((brushDOM as any).node());
-
 
         let startD = this.yScale.invert(+range[0]);
         let endD = this.yScale.invert(+range[1]);
 
-        this.onSelect.emit(new Array<Date>(endD, startD));
+        return new Array<Date>(endD, startD);
+    }
+
+    getWholeTimePeriod(): Array<Date>{
+        return new Array<Date>(this.minDate, this.maxDate);
+    }
+    
+    isAnimationPlaying(): boolean{
+        return this._animationTime > this._timeLeft;
+    }
+
+    animateBasedOnPeriod(){
+        if (!this._brushMemory) {
+            alert("Missing period - Brush the vertical time line to define a period");
+        } 
+        else{
+            let timePeriod = this._brushMemory;
+            this.switchButtonLabel();
+
+            if(!this.isAnimationPlaying()) this.animate();
+            else this.pauseAnimation();
+        }        
+    }    
+
+    animate() {        
+        this._interval = setInterval(() => {
+            if(this._timeLeft > 0) {this._timeLeft--;
+                console.log(this._timeLeft);}
+            else this._timeLeft = this._animationTime;
+          }, 1000);
+    }
+
+    pauseAnimation() {
+        clearInterval(this._interval);
+        this._timeLeft = this._animationTime;
+    }
+
+    switchButtonLabel(){
+        let newLabel = "";
+        if(!this.isAnimationPlaying()) newLabel = "stop";
+        else newLabel = "play";
+        D3.select('text.playButton').text(newLabel);
+    }
+
+    brushEnd(): void {
+        if (this.isEventNotActive()) return;
+
+        let timePeriod: Array<Date>; 
+        if (this.isSelectionMissing()){ 
+            timePeriod = this.getWholeTimePeriod(); 
+            this.eraseLastBrush();
+        }
+        else{
+             timePeriod = this.getTimePeriodFromSlider();
+             this.saveLastBrush(timePeriod);
+        }
+
+        this.onSelect.emit(timePeriod);        
+    }
+
+    isSelectionMissing(): boolean{
+        return !D3.event.selection
+    }
+
+    isEventNotActive(): boolean{
+        return !D3.event.sourceEvent
+    }
+
+    saveLastBrush(timePeriod: Array<Date>):void{
+        this._brushMemory = timePeriod;
+    }
+    eraseLastBrush():void{
+        this._brushMemory = null;
     }
 
 }
