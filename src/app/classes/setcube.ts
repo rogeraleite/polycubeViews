@@ -184,7 +184,7 @@ export class SetCube implements PolyCube {
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
-    filterData(startDate: Date, endDate: Date): void {
+    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if (child.type !== 'Group') return;
 

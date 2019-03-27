@@ -237,7 +237,7 @@ export class GeoCube implements PolyCube {
 
 
 
-    filterData(startDate: Date, endDate: Date): void {
+    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if(child.type !== 'Group') return;
 

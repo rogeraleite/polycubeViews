@@ -11,7 +11,7 @@ export interface PolyCube {
     render: Function,
     update: Function,
     updateData: Function,
-    filterData: Function,
+    filterDataByDatePeriod: Function,
 
     // temporal encodings
     transitionSTC: Function,

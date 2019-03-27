@@ -360,10 +360,10 @@ export class AppComponent implements AfterViewInit {
       this.updateCubesView();
    }
 
-   filterData($event: any): void {
-      this.gCube.filterData($event[0], $event[1]);
-      this.sCube.filterData($event[0], $event[1]);
-      this.nCube.filterData($event[0], $event[1]);
+   filterDataWithTimeSlider($event: any): void {
+      this.gCube.filterDataByDatePeriod($event[0], $event[1]);
+      this.sCube.filterDataByDatePeriod($event[0], $event[1]);
+      this.nCube.filterDataByDatePeriod($event[0], $event[1]);
    }
 
    /**
