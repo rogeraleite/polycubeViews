@@ -88,26 +88,51 @@ export class NetCube implements PolyCube {
 
     }
 
-    dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
+    isDateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
-
-
-    filterData(startDate: Date, endDate: Date): void {
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-                if(!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
-            });
-        })
+    areBothDatesWithinInterval(startDate: Date, endDate: Date, dates: Array<Date>): boolean {
+        let isFirstDate = moment(dates[0]) >= moment(startDate) && moment(dates[0]) <= moment(endDate);
+        let isSecondDate = moment(dates[1]) >= moment(startDate) && moment(dates[1]) <= moment(endDate);
+        return isFirstDate && isSecondDate;
     }
 
 
 
+    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
+        this.hideNodesByDatePeriod(startDate, endDate);
+        this.hideLinksByDatePeriod(startDate, endDate);
+    }
+
+    hideNodesByDatePeriod(startDate: Date, endDate: Date): void {
+        this.cubeGroupGL.children.forEach((e: THREE.Group) => {
+            if(e.type !== 'Group') return;
+            e.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+                if(!this.isDateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
+            });
+        });
+    }
+
+    hideLinksByDatePeriod(startDate: Date, endDate: Date): void {
+        this.links.children.forEach((e: THREE.Group) => {
+            let bothNodeDates = this.getLinkDates(e);
+            e.visible = true;
+            if(!this.areBothDatesWithinInterval(startDate, endDate, bothNodeDates)){
+                e.visible = false;
+            }
+        });
+    }
+
+    getLinkDates(e: any): Array<Date>{
+        let couple_ids = e.name.split("_",2);
+        let id1 = couple_ids[0];
+        let id2 = couple_ids[1];
+        
+       return [this.dm.dataMap[id1].date_time, this.dm.dataMap[id2].date_time];        
+    }
     /**
      * Transitions from whatever temporal encoding to STC
      */
@@ -480,4 +505,6 @@ export class NetCube implements PolyCube {
     hideLinks(): void {
         this.links.visible = false;
     }
+
+    
 }
