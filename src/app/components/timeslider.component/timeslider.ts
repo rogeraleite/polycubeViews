@@ -166,15 +166,38 @@ export class TimeSliderComponent implements AfterViewInit {
 
     animate() {        
         this._interval = setInterval(() => {
-            if(this._timeLeft > 0) {this._timeLeft--;
-                console.log(this._timeLeft);}
+            if(this._timeLeft > 0) {
+                this._timeLeft--;
+                console.log(this._timeLeft);
+
+                this.stepForwardWithBrush();
+            }
             else this._timeLeft = this._animationTime;
           }, 1000);
     }
 
-    pauseAnimation() {
+    stepForwardWithBrush(){
+        let newEndDate = this.addYearToDate(this._brushMemory[0]);
+        let newStartDate = this.addYearToDate(this._brushMemory[1]);
+        
+        let timePeriod = Array<Date>(newEndDate, newStartDate);
+
+         this.saveAndEmitSelection(timePeriod);
+    }
+
+    saveAndEmitSelection(timePeriod:Array<Date>){
+        this.saveLastBrush(timePeriod);
+        this.onSelect.emit(timePeriod);  
+    }
+
+    pauseAnimation(){
         clearInterval(this._interval);
         this._timeLeft = this._animationTime;
+    }
+
+    addYearToDate(date:Date): Date{
+        //1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
+        return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
     }
 
     switchButtonLabel(){
