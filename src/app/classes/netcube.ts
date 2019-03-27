@@ -419,7 +419,7 @@ export class NetCube implements PolyCube {
 
             let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
-            let material = new THREE.LineBasicMaterial({ color: 0x000000 });
+            let material = new THREE.LineBasicMaterial({ color: 0xb5b5b5 });
             let plane = new THREE.LineSegments(edgeGeometry, material);
 
 
