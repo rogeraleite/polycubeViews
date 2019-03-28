@@ -250,12 +250,6 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionSI();
          this.nCube.transitionSI();
       });
-
-      this.gui.aniBtn.addEventListener('click', () => {
-         this.gCube.transitionANI();
-         this.sCube.transitionANI();
-         this.nCube.transitionANI();
-      });
    }
 
    /**
