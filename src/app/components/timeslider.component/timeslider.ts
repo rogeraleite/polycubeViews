@@ -26,8 +26,7 @@ export class TimeSliderComponent implements AfterViewInit {
     brush: any;
 
     _brushMemory: Array<Date>;
-    _animationTime: number = 5;
-    _timeLeft: number = 5;
+    _animationStep = 10;
     _interval;
     _svg;
 
@@ -101,15 +100,10 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr("width", this.width)
             .attr("height", 40)
 
-        // button.append("path")
-        //     .attr("d", "M5 5 L5 35 L35 20 Z")
-        //     .style("fill", "#8a8a8a")
-        //     .style("stroke", "#8a8a8a");
-
         // for play text
         button.append('text')
             .attr("class","playButton")
-            .attr("font-size", "1.5em")
+            .attr("font-size", "1em")
             .attr("fill", "white")
             .text('play')
             .attr("transform", "translate(8,28)")
@@ -123,26 +117,16 @@ export class TimeSliderComponent implements AfterViewInit {
             .call(this.brush);
         
         this._svg.select("g.brush").select("rect.selection").attr('fill-opacity',0.8);
-
-
     }
 
     getTimePeriodFromSlider(): Array<Date>{
-        let d0 = D3.event.selection.map(this.yScale.invert);
-        let d1 = d0.map(D3.timeMonth.round);
+        let endDate_yPosition: any = D3.select("g.brush rect.handle--n").attr("y");
+        let startDate_yPosition: any = D3.select("g.brush rect.handle--s").attr("y");
 
-        console.log(d0);
-        console.log(d1);
+        let endDate = this.yScale.invert(endDate_yPosition);
+        let startDate = this.yScale.invert(startDate_yPosition);
 
-        let brushDOM = D3.select('.brush');
-
-        brushDOM.transition().call(D3.event.target.move, d1.map(this.yScale));
-        let range = D3.brushSelection((brushDOM as any).node());
-
-        let startD = this.yScale.invert(+range[0]);
-        let endD = this.yScale.invert(+range[1]);
-
-        return new Array<Date>(endD, startD);
+        return new Array<Date>(startDate,endDate);
     }
 
     getWholeTimePeriod(): Array<Date>{
@@ -150,7 +134,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
     
     isAnimationPlaying(): boolean{
-        return this._animationTime > this._timeLeft;
+        return D3.select('text.playButton').text() == "pause";
     }
 
     animateBasedOnPeriod(){
@@ -158,54 +142,34 @@ export class TimeSliderComponent implements AfterViewInit {
             alert("Missing period - Brush the vertical time line to define a period");
         } 
         else{
-            let timePeriod = this._brushMemory;            
-
             if(!this.isAnimationPlaying()) this.animate();
             else this.pauseAnimation();
         }        
     }    
 
     animate() {   
-        this.setPlayButtonLabel("play");
-        
+        this.setPlayButtonLabel("pause");
         this._interval = setInterval(() => {
-            if(this._timeLeft > 0) {
-                this._timeLeft--;                
-                console.log(this._timeLeft);
-
-                this.stepForwardWithBrush(10);
-            }
-            else this._timeLeft = this._animationTime;
-          }, 1000);
-
-        
+                this.stepForwardWithBrush(this._animationStep);
+          }, 1000);        
     }
 
-    stepForwardWithBrush(y){
-        // console.log(this._brushMemory);
-        // let newEndDate = this.addYearToDate(this._brushMemory[0]);
-        // let newStartDate = this.addYearToDate(this._brushMemory[1]);
-        
-        // let timePeriod = Array<Date>(newEndDate, newStartDate);
+    stepForwardWithBrush(step: number){
+        this.moveBrushPieces(step);
+        this.filterPeriodAccordingToNewBrushPositions();
+    }
 
-        //  this.saveAndEmitSelection(timePeriod);
-        this.moveBrushPieces(10);
-
-
-        //TODO: filter according to new positions
-
-        // let timePeriod = this.getTimePeriodFromSlider();
-        // this.saveLastBrush(timePeriod);
-        // this.onSelect.emit(timePeriod);  
-
+    filterPeriodAccordingToNewBrushPositions(){
+        let timePeriod = this.getTimePeriodFromSlider();
+        this.saveLastBrush(timePeriod);
+        this.onSelect.emit(timePeriod);        
     }
 
     moveBrushPieces(step: number){
-        // north border
-        let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
-
-        if (currentY<step) this.pauseAnimation();
+        if (this.isBrushInUpLimit(step)) this.pauseAnimation();
         else{
+            // north border
+            let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
             currentY = currentY-step;
             D3.select("g.brush rect.handle--n").attr("y",currentY);
     
@@ -221,26 +185,30 @@ export class TimeSliderComponent implements AfterViewInit {
         }        
     }
 
+    isBrushInUpLimit(step: number){
+        // north border
+        let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
+        return currentY<step;
+    }
+
     saveAndEmitSelection(timePeriod:Array<Date>){
         this.saveLastBrush(timePeriod);
         this.onSelect.emit(timePeriod);  
     }
 
     pauseAnimation(){
-        this.setPlayButtonLabel("pause");
+        this.setPlayButtonLabel("play");
         clearInterval(this._interval);
-        this._timeLeft = this._animationTime;
     }
 
     addYearToDate(date:Date): Date{
         //1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
         if(date) return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
-        else {            
-            this.pauseAnimation();
-        }
-        
+        else this.pauseAnimation();
+
         return null;
     }
+
     setPlayButtonLabel(str: any){
         D3.select('text.playButton').text(str);
     }
