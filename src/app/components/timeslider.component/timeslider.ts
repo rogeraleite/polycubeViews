@@ -29,6 +29,7 @@ export class TimeSliderComponent implements AfterViewInit {
     _animationTime: number = 5;
     _timeLeft: number = 5;
     _interval;
+    _svg;
 
     constructor() {
         this.onSelect = new EventEmitter<Array<Date>>();
@@ -57,14 +58,14 @@ export class TimeSliderComponent implements AfterViewInit {
             .on('end', this.brushEnd.bind(this));
 
 
-        let svg = D3.select(this.timeSlider.nativeElement)
+        this._svg = D3.select(this.timeSlider.nativeElement)
             .append('svg')
             .attr('width', this.width)
             .attr('height', this.height)
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top - 15})`);
         // timeline y axis (not labels)
-        svg.append('g')
+        this._svg.append('g')
             .attr('class', 'axis2 axis--y2')
             .attr('transform', `translate(0, ${margin.top})`)
             .call(
@@ -77,7 +78,7 @@ export class TimeSliderComponent implements AfterViewInit {
             )
             .selectAll('.tick')
 
-        svg.append('g')
+        this._svg.append('g')
             .attr('class', 'axis axis--y')
             .attr('transform', `translate(0, ${margin.top})`)
             .call(
@@ -92,7 +93,7 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('fill', 'black'); // TODO: change colorcoding later according to timer
 
         //animate button
-        let button = svg.append('g')
+        let button = this._svg.append('g')
             .attr("transform", "translate(" + 0 + "," + (this.height) + ")")
             .attr("class", "animateButton")
 
@@ -115,13 +116,13 @@ export class TimeSliderComponent implements AfterViewInit {
             .on('mouseup', this.animateBasedOnPeriod.bind(this));
 
         // brush
-        svg.append('g')
+        this._svg.append('g')
             .attr('class', 'brush')
             .attr('transform', `translate(0, ${margin.top})`)
             .attr("fill", "black")
             .call(this.brush);
         
-        svg.select("g.brush").select("rect.selection").attr('fill-opacity',0.8);
+        this._svg.select("g.brush").select("rect.selection").attr('fill-opacity',0.8);
 
 
     }
@@ -132,8 +133,6 @@ export class TimeSliderComponent implements AfterViewInit {
 
         console.log(d0);
         console.log(d1);
-        console.log(this.maxDate);
-        console.log(this.minDate);
 
         let brushDOM = D3.select('.brush');
 
@@ -159,34 +158,67 @@ export class TimeSliderComponent implements AfterViewInit {
             alert("Missing period - Brush the vertical time line to define a period");
         } 
         else{
-            let timePeriod = this._brushMemory;
-            this.switchPlayButtonLabel();
+            let timePeriod = this._brushMemory;            
 
             if(!this.isAnimationPlaying()) this.animate();
             else this.pauseAnimation();
         }        
     }    
 
-    animate() {        
+    animate() {   
+        this.setPlayButtonLabel("play");
+        
         this._interval = setInterval(() => {
             if(this._timeLeft > 0) {
-                this._timeLeft--;
+                this._timeLeft--;                
                 console.log(this._timeLeft);
 
-                this.stepForwardWithBrush();
+                this.stepForwardWithBrush(10);
             }
             else this._timeLeft = this._animationTime;
           }, 1000);
+
+        
     }
 
-    stepForwardWithBrush(){
-        console.log(this._brushMemory);
-        let newEndDate = this.addYearToDate(this._brushMemory[0]);
-        let newStartDate = this.addYearToDate(this._brushMemory[1]);
+    stepForwardWithBrush(y){
+        // console.log(this._brushMemory);
+        // let newEndDate = this.addYearToDate(this._brushMemory[0]);
+        // let newStartDate = this.addYearToDate(this._brushMemory[1]);
         
-        let timePeriod = Array<Date>(newEndDate, newStartDate);
+        // let timePeriod = Array<Date>(newEndDate, newStartDate);
 
-         this.saveAndEmitSelection(timePeriod);
+        //  this.saveAndEmitSelection(timePeriod);
+        this.moveBrushPieces(10);
+
+
+        //TODO: filter according to new positions
+
+        // let timePeriod = this.getTimePeriodFromSlider();
+        // this.saveLastBrush(timePeriod);
+        // this.onSelect.emit(timePeriod);  
+
+    }
+
+    moveBrushPieces(step: number){
+        // north border
+        let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
+
+        if (currentY<step) this.pauseAnimation();
+        else{
+            currentY = currentY-step;
+            D3.select("g.brush rect.handle--n").attr("y",currentY);
+    
+            // center
+            currentY = D3.select("g.brush rect.selection").attr("y");
+            currentY = currentY-step;
+            D3.select("g.brush rect.selection").attr("y",currentY);        
+            
+            // south border
+            currentY = D3.select("g.brush rect.handle--s").attr("y");
+            currentY = currentY-step;
+            D3.select("g.brush rect.handle--s").attr("y",currentY);
+        }        
     }
 
     saveAndEmitSelection(timePeriod:Array<Date>){
@@ -195,6 +227,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     pauseAnimation(){
+        this.setPlayButtonLabel("pause");
         clearInterval(this._interval);
         this._timeLeft = this._animationTime;
     }
@@ -202,8 +235,7 @@ export class TimeSliderComponent implements AfterViewInit {
     addYearToDate(date:Date): Date{
         //1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
         if(date) return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
-        else {
-            this.setPlayButtonLabel("pause");
+        else {            
             this.pauseAnimation();
         }
         
@@ -212,6 +244,8 @@ export class TimeSliderComponent implements AfterViewInit {
     setPlayButtonLabel(str: any){
         D3.select('text.playButton').text(str);
     }
+
+    //DEPRICATED
     switchPlayButtonLabel(){
         let newLabel = "";
         if(!this.isAnimationPlaying()) newLabel = "pause";
@@ -228,8 +262,8 @@ export class TimeSliderComponent implements AfterViewInit {
             this.eraseLastBrush();
         }
         else{
-             timePeriod = this.getTimePeriodFromSlider();
-             this.saveLastBrush(timePeriod);
+            timePeriod = this.getTimePeriodFromSlider();
+            this.saveLastBrush(timePeriod);
         }
 
         this.onSelect.emit(timePeriod);        
