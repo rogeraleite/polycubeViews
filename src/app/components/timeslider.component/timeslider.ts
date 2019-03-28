@@ -54,7 +54,7 @@ export class TimeSliderComponent implements AfterViewInit {
         // define brush
         this.brush = D3.brushY()
             .extent([[0, 0], [this.width, this.height]])
-            .on('end', this.brushEnd.bind(this))
+            .on('end', this.brushEnd.bind(this));
 
 
         let svg = D3.select(this.timeSlider.nativeElement)
@@ -118,7 +118,10 @@ export class TimeSliderComponent implements AfterViewInit {
         svg.append('g')
             .attr('class', 'brush')
             .attr('transform', `translate(0, ${margin.top})`)
-            .call(this.brush)
+            .attr("fill", "black")
+            .call(this.brush);
+        
+        svg.select("g.brush").select("rect.selection").attr('fill-opacity',0.8);
 
 
     }
