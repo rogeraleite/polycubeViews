@@ -82,4 +82,9 @@
     font-size  : .875rem;
     line-height  : .5;
     border-radius : .2rem;
-  }
+}
+
+::ng-deep .animateButton,
+::ng-deep .animateButton text {
+    cursor: pointer;
+}
