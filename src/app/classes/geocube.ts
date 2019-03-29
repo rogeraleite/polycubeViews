@@ -9,6 +9,8 @@ import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as mapboxgl from 'mapbox-gl';
 import * as moment from 'moment';
+import { Vector2 } from 'three';
+import { SwitchView } from '@angular/common/src/directives/ng_switch';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -25,12 +27,15 @@ export class GeoCube implements PolyCube {
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
     private slices: Array<THREE.Group>;
-    private colors: D3.ScaleOrdinal<string, string>;
+    private colors: any; //D3.Scale<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
     private map: mapboxgl.Map;
     private mapBounds: mapboxgl.LngLatBounds;
     private mapCenter: { lat: number, lng: number };
+
+    private _jitter: number = 0;
+    private colorCoding: string = 'categorical';
 
     /**
      * 
@@ -108,6 +113,14 @@ export class GeoCube implements PolyCube {
         this.boundingBox.name = 'BOX_HELPER';
         this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
+    }
+
+    get jitter(): number {
+        return this._jitter;
+    }
+
+    set jitter(jitter: number) {
+        this._jitter = jitter;
     }
 
     /**
@@ -214,12 +227,71 @@ export class GeoCube implements PolyCube {
      * Updates current view (from controller)
      * @param currentViewState 
      */
-    update(currentViewState: VIEW_STATES): void {
+    updateView(currentViewState: VIEW_STATES): void {
         if (currentViewState.valueOf() === VIEW_STATES.GEO_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
             this.showBottomLayer();
         }
+    }
+
+    updateColorCoding(encoding: string): void {
+        this.colorCoding = encoding;
+        switch(encoding) {
+            case 'categorical' : 
+                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                break;
+            case 'temporal' :
+                this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
+                break;
+            case 'monochrome' :
+                this.colors = D3.scaleOrdinal(D3.schemeSet2);
+                break;
+
+            default:
+                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                break;
+        }
+    }
+
+    updateJitter(jitter: number): void {
+        this.jitter = jitter;
+
+        this.jitterPoint();
+    }
+
+    updateNumSlices(): void {
+
+    }
+
+    updateNodeColor(encoding: string): void {
+        this.updateColorCoding(encoding);
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                switch(encoding) {
+                    case 'categorical' : 
+                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        break;
+                    case 'temporal' :
+                        grandChild.material.color.set(this.colors(grandChild.data.date_time));
+                        break;
+                    case 'monochrome' : 
+                        grandChild.material.color.set('#b5b5b5');
+                        break;
+                    default: 
+                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        break;
+                }
+                                    
+            });
+        });
+    }
+
+    updateNodeSize(): void {
+
     }
 
     /**
@@ -235,6 +307,48 @@ export class GeoCube implements PolyCube {
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
+    getRandomInteger(min: number, max: number): number {
+        return Math.floor((Math.random() * (max - min + 1)) + min);
+    }
+
+    jitterPoint(): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+
+                let xJitter = this.getRandomInteger(-1*this._jitter, this._jitter);
+                let zJitter = this.getRandomInteger(-1*this._jitter, this._jitter);
+
+                let sourceCoords = {
+                    x: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.x,
+                    y: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.y,
+                    z: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.z
+                };
+
+                let targetCoords = {
+                    x: grandChild.originalCoordinates ? grandChild.originalCoordinates.x + xJitter : grandChild.position.x + xJitter,
+                    y: grandChild.originalCoordinates ? grandChild.originalCoordinates.y : grandChild.position.y,
+                    z: grandChild.originalCoordinates ? grandChild.originalCoordinates.z + zJitter : grandChild.position.z + zJitter,
+                }
+
+                if(grandChild.originalCoordinates) grandChild.originalCoordinates = new THREE.Vector3(sourceCoords.x, sourceCoords.y, sourceCoords.z);
+
+                let tween = new TWEEN.Tween(sourceCoords)
+                                    .to(targetCoords, 250)
+                                    .easing(TWEEN.Easing.Cubic.InOut)
+                                    .onUpdate(() => {
+                                       grandChild.position.x = sourceCoords.x;
+                                       grandChild.position.y = sourceCoords.y,
+                                       grandChild.position.z = sourceCoords.z;
+                                    })
+                                    .start();
+                                    
+            });
+        });
+    }
+
 
 
     filterDataByDatePeriod(startDate: Date, endDate: Date): void {
@@ -246,7 +360,7 @@ export class GeoCube implements PolyCube {
                 grandChild.visible = true;
                 if(!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
             });
-        })
+        });
     }
 
     /**
@@ -403,7 +517,7 @@ export class GeoCube implements PolyCube {
                                         mapClone.visible = false;
                                         this.cubeGroupCSS.remove(mapClone);
                                     }
-                    
+                                    
                                     D3.selectAll('.time-slice-label').style('opacity', '0');
                                     this.showBottomLayer();
                                  })
@@ -430,6 +544,15 @@ export class GeoCube implements PolyCube {
         return positionInWorld;
     }
 
+    getCurrentColor(object: THREE.Object3D): string {
+        switch(this.colorCoding)  {
+            case 'categorical': return this.colors(object.data.category_1);
+            case 'temporal' : return this.colors(object.data.date_time);
+            case 'monochrome' : return '#b5b5b5';
+            default: return this.colors(object.data.category_1)
+        }
+    }
+
     /**
      * Iterates through all timeslices and all data points
      * Resets their position and color back to default
@@ -442,7 +565,7 @@ export class GeoCube implements PolyCube {
                 if(grandChild.type !== 'DATA_POINT') return;
 
                 grandChild.scale.set(1,1,1);
-                grandChild.material.color.set(gray ? '#b5b5b5' : this.colors(grandChild.data.category_1));
+                grandChild.material.color.set(gray ? '#b5b5b5' : this.getCurrentColor(grandChild));
             });
         });
     }

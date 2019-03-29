@@ -170,10 +170,22 @@ export class SetCube implements PolyCube {
     }
 
 
-    update(currentViewState: VIEW_STATES): void {
+    updateView(currentViewState: VIEW_STATES): void {
         if (currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
         }
+    }
+
+    updateNumSlices(): void {
+
+    }
+
+    updateNodeColor(): void {
+
+    }
+
+    updateNodeSize(): void {
+        
     }
 
     updateData(): void {

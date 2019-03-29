@@ -76,12 +76,24 @@ export class NetCube implements PolyCube {
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
     }
 
-    update(currentViewState: VIEW_STATES): void {
+    updateView(currentViewState: VIEW_STATES): void {
         if (currentViewState.valueOf() === VIEW_STATES.NET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
             this.showBottomLayer();
         }
+    }
+    
+    updateNumSlices(): void {
+
+    }
+
+    updateNodeColor(): void {
+
+    }
+
+    updateNodeSize(): void {
+        
     }
 
     updateData(): void {

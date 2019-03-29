@@ -9,9 +9,14 @@ export interface PolyCube {
     createObjects: Function,
     assembleData: Function,
     render: Function,
-    update: Function,
-    updateData: Function,
     filterDataByDatePeriod: Function,
+
+    // updating settings / data
+    updateView: Function,
+    updateData: Function,
+    updateNodeSize: Function,
+    updateNodeColor: Function,
+    updateNumSlices: Function,
 
     // temporal encodings
     transitionSTC: Function,

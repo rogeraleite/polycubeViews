@@ -60,7 +60,7 @@ export class AppComponent implements AfterViewInit {
    errorMessage: string;
 
    // inject google
-   constructor(private google: GoogleDriveProvider) {
+   constructor(private google: GoogleDriveProvider, private compRef: ElementRef) {
       this.previewItem = null;
    }
 
@@ -118,7 +118,7 @@ export class AppComponent implements AfterViewInit {
     */
    initDataset(): void {
       this.loadingDataset = true;
-      let _id = '1j-FnypM3zD2fjWWoZUa_X6ENh4LosKF627fZoXKSxpY'; // Cushman dataset ID
+      let _id = CUBE_CONFIG.DATA_SET.id; // Cushman dataset ID
       this.dataManager = new DataManager();
       // perform request to get spreadsheet json 
       // parse it when done and pass to datamanager
@@ -216,22 +216,48 @@ export class AppComponent implements AfterViewInit {
     */
    initGUI = () => {
       this.gui = new GUI();
-      
-      this.gui.geoBtn.addEventListener('click', () => {
-         this.setCubeView(VIEW_STATES.GEO_CUBE);
-      });
+      // general settings
+      this.gui.pCubeConfigEmitter.on('change', (change: any) => {
+         if(change.backgroundColor) {
+            this.compRef.nativeElement.ownerDocument.body.style.backgroundColor = change.backgroundColor;
+         }
 
-      this.gui.setBtn.addEventListener('click', () => {
-         this.setCubeView(VIEW_STATES.SET_CUBE);
-      });
+         if(change.numSlices) {
+            this.gCube.updateNumSlices(change.numSlices);
+            this.sCube.updateNumSlices(change.numSlices);
+            this.nCube.updateNumSlices(change.numSlices);
+         }
 
-      this.gui.netBtn.addEventListener('click', () => {
-         this.setCubeView(VIEW_STATES.NET_CUBE);
-      });
+         if(change.nodeSize) {
+            this.gCube.updateNodeSize(change.nodeSize);
+            this.sCube.updateNodeSize(change.nodeSize);
+            this.nCube.updateNodeSize(change.nodeSize);
+         }
 
-      this.gui.polyBtn.addEventListener('click', () => {
-         this.setCubeView(VIEW_STATES.POLY_CUBE);
+         if(change.nodeColor) {
+            this.gCube.updateNodeColor(change.nodeColor);
+            this.sCube.updateNodeColor(change.nodeColor);
+            this.nCube.updateNodeColor(change.nodeColor);
+         }
+
+         if(change.dataSet) {
+         }
       });
+      // geocube settings
+      this.gui.gCubeConfigEmitter.on('change', (change: any) => {
+         if(change.jitter) {
+            (this.gCube as GeoCube).updateJitter(change.jitter)
+         }
+      });   
+
+    
+
+
+      // button event listeners
+      this.gui.geoBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.GEO_CUBE); });
+      this.gui.setBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.SET_CUBE); });
+      this.gui.netBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.NET_CUBE); });
+      this.gui.polyBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.POLY_CUBE); });
 
       this.gui.stcBtn.addEventListener('click', () => {
          this.gCube.transitionSTC();
@@ -311,9 +337,9 @@ export class AppComponent implements AfterViewInit {
     */
    updateCubesView = (): void => {
       this.removeAllCubeViews();
-      this.gCube.update(this.currentViewState);
-      this.sCube.update(this.currentViewState);
-      this.nCube.update(this.currentViewState);
+      this.gCube.updateView(this.currentViewState);
+      this.sCube.updateView(this.currentViewState);
+      this.nCube.updateView(this.currentViewState);
       this.positionCamera();
    };
 
