@@ -526,15 +526,15 @@ export class NetCube implements PolyCube {
             this.slices.push(slice);
 
             // CSS 3D TIME SLICE LABELS
-            // let element = document.createElement('div');
-            // element.innerHTML = slice.name;
-            // element.className = 'time-slice-label';
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
 
-            // //CSS Object
-            // let label = new THREE.CSS3DObject(element);
-            // label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-            // // label.rotation.set(Math.PI);
-            // this.cssScene.add(label);
+            // CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            label.name = `LABEL_${i}`;
+            this.cubeGroupCSS.add(label);
         }
     }
 
