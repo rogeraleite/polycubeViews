@@ -290,8 +290,40 @@ export class GeoCube implements PolyCube {
         });
     }
 
-    updateNodeSize(): void {
+    updateNodeSize(radius: number): void {
+        let scale = 1 + radius * 0.1;
+        let targetScale = {
+            x: scale,
+            y: scale,
+            z: scale
+        };
 
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+              
+                let sourceScale = {
+                    x: grandChild.scale.x,
+                    y: grandChild.scale.y,
+                    z: grandChild.scale.z,
+                };
+
+                let tween = new TWEEN.Tween(sourceScale)
+                                    .to(targetScale, 250)
+                                    .easing(TWEEN.Easing.Cubic.InOut)
+                                    .onUpdate(() => {
+                                        grandChild.scale.x = sourceScale.x;
+                                        grandChild.scale.y = sourceScale.y;
+                                        grandChild.scale.z = sourceScale.z;
+                        
+                                    })
+                                    .start();
+             
+                                    
+            });
+        });
     }
 
     /**
