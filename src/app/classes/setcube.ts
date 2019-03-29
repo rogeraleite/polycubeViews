@@ -24,12 +24,12 @@ export class SetCube implements PolyCube {
     private mouse: THREE.Vector2;
     private webGLScene: THREE.Scene;
     private cssScene: THREE.Scene;
-    private colors: D3.ScaleOrdinal<string, string>;
+    private colors: any;
     private timeLinearScale: D3.ScaleLinear<number, number>;
     private boundingBox: THREE.BoxHelper;
 
     private slices: Array<THREE.Group>;
-
+    private colorCoding: string = 'categorical';
 
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
@@ -180,12 +180,85 @@ export class SetCube implements PolyCube {
 
     }
 
-    updateNodeColor(): void {
+    updateColorCoding(encoding: string): void {
+        this.colorCoding = encoding;
+        switch(encoding) {
+            case 'categorical' : 
+                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                break;
+            case 'temporal' :
+                this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
+                break;
+            case 'monochrome' :
+                this.colors = D3.scaleOrdinal(D3.schemeSet2);
+                break;
 
+            default:
+                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                break;
+        }
+    }
+   
+    updateNodeColor(encoding: string): void {
+        this.updateColorCoding(encoding);
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                switch(encoding) {
+                    case 'categorical' : 
+                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        break;
+                    case 'temporal' :
+                        grandChild.material.color.set(this.colors(grandChild.data.date_time));
+                        break;
+                    case 'monochrome' : 
+                        grandChild.material.color.set('#b5b5b5');
+                        break;
+                    default: 
+                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        break;
+                }
+                                    
+            });
+        });
     }
 
-    updateNodeSize(): void {
-        
+    updateNodeSize(radius: number): void {
+        let scale = 1 + radius * 0.1;
+        let targetScale = {
+            x: scale,
+            y: scale,
+            z: scale
+        };
+
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+              
+                let sourceScale = {
+                    x: grandChild.scale.x,
+                    y: grandChild.scale.y,
+                    z: grandChild.scale.z,
+                };
+
+                let tween = new TWEEN.Tween(sourceScale)
+                                    .to(targetScale, 250)
+                                    .easing(TWEEN.Easing.Cubic.InOut)
+                                    .onUpdate(() => {
+                                        grandChild.scale.x = sourceScale.x;
+                                        grandChild.scale.y = sourceScale.y;
+                                        grandChild.scale.z = sourceScale.z;
+                        
+                                    })
+                                    .start();
+             
+                                    
+            });
+        });
     }
 
     updateData(): void {
@@ -305,6 +378,15 @@ export class SetCube implements PolyCube {
         return positionInWorld;
     }
 
+    getCurrentColor(object: THREE.Object3D): string {
+        switch(this.colorCoding)  {
+            case 'categorical': return this.colors(object.data.category_1);
+            case 'temporal' : return this.colors(object.data.date_time);
+            case 'monochrome' : return '#b5b5b5';
+            default: return this.colors(object.data.category_1)
+        }
+    }
+
     /**
    * Iterates through all timeslices and all data points
    * Resets their position and color back to default
@@ -317,7 +399,7 @@ export class SetCube implements PolyCube {
                 if (grandChild.type !== 'DATA_POINT') return;
 
                 grandChild.scale.set(1, 1, 1);
-                grandChild.material.color.set(gray ? '#b5b5b5' : this.colors(grandChild.data.category_1));
+                grandChild.material.color.set(gray ? '#b5b5b5' : this.getCurrentColor(grandChild));
             });
         });
     }
