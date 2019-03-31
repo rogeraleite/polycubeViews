@@ -219,9 +219,7 @@ export class NetCube implements PolyCube {
         
        return [this.dm.dataMap[id1].date_time, this.dm.dataMap[id2].date_time];        
     }
-    /**
-     * Transitions from whatever temporal encoding to STC
-     */
+   
     transitionSTC(): void {
         this.showLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
@@ -256,9 +254,6 @@ export class NetCube implements PolyCube {
         });//end forEach
     }
 
-    /**
-     * Transitions from whatever temporal encoding to JP
-     */
     transitionJP(): void {
         this.hideLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
