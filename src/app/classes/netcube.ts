@@ -385,8 +385,6 @@ export class NetCube implements PolyCube {
         return null;
     }
 
-    // TODO: Should highlight the point consider passing the id of the point or something instead of the 
-    // object, because the object is not unique across multiple cubes
     highlightObject(id: string): void {
         this.resetSelection(true);
 
@@ -398,10 +396,6 @@ export class NetCube implements PolyCube {
         }
     }
 
-    /**
-     * Returns the corresponding timeslice to a given objects date (date_time property)
-     * @param date Date object
-     */
     findTimeSlice(date: Date): THREE.Group {
         let correspondingSlice;
         this.slices.forEach((slice: THREE.Group) => {
@@ -438,7 +432,6 @@ export class NetCube implements PolyCube {
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
-            // TODO: consider just updating color property of material if you ever find out how to do it
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
             let sphere = new THREE.Mesh(geometry, material);
@@ -517,7 +510,6 @@ export class NetCube implements PolyCube {
             let material = new THREE.LineBasicMaterial({ color: 0xb5b5b5 });
             let plane = new THREE.LineSegments(edgeGeometry, material);
 
-
             slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
             plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI / 2, 0, 0);
@@ -535,7 +527,7 @@ export class NetCube implements PolyCube {
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
             label.name = `LABEL_${i}`;
             this.cubeGroupCSS.add(label);
-        }
+        }//end for
     }
 
     createBoundingBox() {
@@ -548,6 +540,18 @@ export class NetCube implements PolyCube {
         this.boundingBox.name = 'BOX_HELPER';
         this.cubeGroupGL.add(this.boundingBox);
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
+    }
+
+    showBottomLayer(): void { }
+
+    hideBottomLayer(): void { }
+
+    showLinks(): void {
+        this.links.visible = true;
+    }
+
+    hideLinks(): void {
+        this.links.visible = false;
     }
 
     //saving useful scripts for future usage
@@ -588,18 +592,5 @@ export class NetCube implements PolyCube {
         // )
         // console.log(nodes4);
     }
-
-    showBottomLayer(): void { }
-
-    hideBottomLayer(): void { }
-
-    showLinks(): void {
-        this.links.visible = true;
-    }
-
-    hideLinks(): void {
-        this.links.visible = false;
-    }
-
     
 }
