@@ -150,6 +150,9 @@ export class AppComponent implements AfterViewInit {
       this.google.load(id).then((success: any) => {
          this.dataManager.data = success;
          this.loadingDataset = false;
+      }).catch((err: any) => {
+         this.errorOccurred = true;
+         this.errorMessage = err;
       });
    }
 

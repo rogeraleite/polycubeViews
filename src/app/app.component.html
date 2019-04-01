@@ -54,5 +54,6 @@
 
 <div *ngIf="errorOccurred" class="alert alert-danger error">
     <a href="#" class="close" data-dismiss="alert" aria-label="close" (click)="errorOccurred = false">&times;</a>
-    <strong>Error</strong> {{ errorMessage }}
+    <strong>Error</strong> 
+    <p>{{ errorMessage }}</p>
 </div>
