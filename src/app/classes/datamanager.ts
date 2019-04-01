@@ -74,7 +74,7 @@ export class DataManager {
         return this._numSlices;
     }
 
-    set numSlicers(slices: number) {
+    set numSlices(slices: number) {
         this._numSlices = slices;
     }
 
