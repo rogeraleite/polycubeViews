@@ -59,6 +59,67 @@ export class GeoCube implements PolyCube {
         this.render();
     }
 
+    updateSlices(): void {
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
+        this.slices = new Array<THREE.Group>();
+
+        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
+        for(let i = 0; i < this.dm.timeRange.length; i++) {
+            // TIME SLICES
+            let slice = new THREE.Group();
+
+            // name set to year -> we can now map objects to certain layers by checking their
+            // this.dm.getTimeQuantile(date) and the slices name.
+            slice.name = this.dm.timeRange[i].getFullYear();
+
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
+            let edgeGeometry = new THREE.EdgesGeometry(geometry);
+            let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
+            let plane = new THREE.LineSegments( edgeGeometry, material );
+
+            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            plane.position.set(0, 0, 0);
+            plane.rotation.set(Math.PI/2, 0, 0);
+            slice.add(plane);
+            this.slices.push(slice);
+            
+            // CSS 3D TIME SLICE LABELS
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
+            
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            label.name = `LABEL_${i}`;
+            // label.rotation.set(Math.PI);
+            this.cubeGroupCSS.add(label);
+        }
+
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
+    }
+
+    updateDataPoints(): void {
+        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
+
+        for (let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+
+            let cubeCoords = this.map.project(new mapboxgl.LngLat(dataItem.longitude, dataItem.latitude));
+            let sphere = new THREE.Mesh(geometry, material);
+
+            // need to offset the x,z coordinate so they overlap with cube
+            sphere.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
+            // sphere.position.y = correspondingSlice.position.y; -- y coordinate is inherited from the slice positioning
+            sphere.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
+            sphere.name = dataItem.id;
+            sphere.data = dataItem;
+            sphere.type = 'DATA_POINT';
+            this.findTimeSlice(dataItem.date_time).add(sphere);
+        }
+    }
+
     /**
      * Initialize all group objects 
      */
@@ -261,7 +322,28 @@ export class GeoCube implements PolyCube {
     }
 
     updateNumSlices(): void {
+        this.timeLinearScale = this.dm.getTimeLinearScale();
+        console.log(this.dm.timeRange);
+        console.log(`new slice count : ${this.dm.numSlices}`);
+        this.updateSlices();
+        this.updateDataPoints();
+        // let currentNumSlices = this.slices.length;
+        // let targetNumSlices = this.dm.numSlices;
 
+        // let sliceDiff = targetNumSlices - currentNumSlices;
+        // console.log(sliceDiff > 0 ? `add ${sliceDiff} slices` : `remove ${sliceDiff} slices`);
+
+        // // 2 cases either remove or add slices
+        // if(sliceDiff > 0) {
+        //     for(let i = 0; i < Math.abs(sliceDiff); i++) { 
+        //         this.slices.push(); 
+        //     }
+
+        
+        //     // add sliceDiff slices to the array
+        // } else {
+        //     // remove sliceDiff slices from the array
+        // }
     }
 
     updateNodeColor(encoding: string): void {
