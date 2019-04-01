@@ -223,6 +223,8 @@ export class AppComponent implements AfterViewInit {
          }
 
          if(change.numSlices) {
+            this.dataManager.numSlices = change.numSlices;
+            
             this.gCube.updateNumSlices(change.numSlices);
             this.sCube.updateNumSlices(change.numSlices);
             this.nCube.updateNumSlices(change.numSlices);
