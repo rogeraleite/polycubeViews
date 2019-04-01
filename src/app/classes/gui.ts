@@ -49,12 +49,12 @@ export class GUI {
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
         
-        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(10).onChange(() => {
+        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(10).step(1).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 numSlices: Math.floor(pCubeParams.numSlices)
             });
         });
-        pCubeFolder.add(pCubeParams, 'nodeSize').min(1).max(10).onChange(() => {
+        pCubeFolder.add(pCubeParams, 'nodeSize').min(1).max(10).step(1).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 nodeSize: Math.floor(pCubeParams.nodeSize)
             });
@@ -83,7 +83,7 @@ export class GUI {
         };
         let gCubeFolder = this.gui.addFolder('GeoCube');
 
-        gCubeFolder.add(gCubeParams, 'jitter').min(0).max(30).onChange(() => {
+        gCubeFolder.add(gCubeParams, 'jitter').min(0).max(30).step(1).onChange(() => {
             this.gCubeConfigEmitter.emit('change', {
                 jitter: Math.floor(gCubeParams.jitter)
             }); 
