@@ -238,19 +238,26 @@ export class NetCube implements PolyCube {
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(0, 0, 0);
+
             let tween = new TWEEN.Tween(sourceCoords)
-                .to(targetCoords, 1000)
-                .delay(i * 300)
-                .easing(TWEEN.Easing.Cubic.InOut)
-                .onUpdate(() => {
-                    slice.position.x = sourceCoords.x;
-                    slice.position.y = sourceCoords.y,
-                    slice.position.z = sourceCoords.z;
-                })
-                .onComplete(() => {
-                    //something if needed
-                })
-                .start();
+                                 .to(targetCoords, 1000)
+                                 .delay(i * 300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .onComplete(() => {
+                                    //something if needed
+                                 })
+                                 .start();
         });//end forEach
     }
 
@@ -273,19 +280,24 @@ export class NetCube implements PolyCube {
                 z: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
             };
 
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(-Math.PI/2, 0, 0);
+
             let tween = new TWEEN.Tween(sourceCoords)
-                .to(targetCoords, 1000)
-                .delay(i * 300)
-                .easing(TWEEN.Easing.Cubic.InOut)
-                .onUpdate(() => {
-                    slice.position.x = sourceCoords.x;
-                    slice.position.y = sourceCoords.y,
-                        slice.position.z = sourceCoords.z;
-                })
-                .start();
-
+                                 .to(targetCoords, 1000)
+                                 .delay(i * 300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .start();
         });
-
     }
 
     transitionSI(): void {
@@ -305,17 +317,19 @@ export class NetCube implements PolyCube {
             };
 
             let tween = new TWEEN.Tween(sourceCoords)
-                .to(targetCoords, 1000)
-                .delay(i * 300)
-                .easing(TWEEN.Easing.Cubic.InOut)
-                .onUpdate(() => {
-                    slice.position.x = sourceCoords.x;
-                    slice.position.y = sourceCoords.y,
-                        slice.position.z = sourceCoords.z;
-                })
-                .start();
+                                 .to(targetCoords, 1000)
+                                 .delay(i * 300)
+                                 .easing(TWEEN.Easing.Cubic.InOut)
+                                 .onUpdate(() => {
+                                    slice.position.x = sourceCoords.x;
+                                    slice.position.y = sourceCoords.y,
+                                    slice.position.z = sourceCoords.z;
+                                 })
+                                 .onComplete(() => {
+                                    D3.selectAll('.time-slice-label').style('opacity', '0');
+                                 })
+                                 .start();
         });
-
     }
 
     transitionANI(): void { }
