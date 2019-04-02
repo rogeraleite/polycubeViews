@@ -1,7 +1,5 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
 import * as D3 from 'd3';
-import * as moment from 'moment';
-import { timer } from 'rxjs';
 
 @Component({
     selector: 'app-timeslider',
@@ -93,35 +91,35 @@ export class TimeSliderComponent implements AfterViewInit {
 
         //animate button
         let button = this._svg.append('g')
-            .attr("transform", "translate(" + 0 + "," + (this.height) + ")")
-            .attr("class", "animateButton")
+            .attr('transform', 'translate(' + 0 + ',' + (this.height) + ')')
+            .attr('class', 'animateButton')
 
-        button.append("rect")
-            .attr("width", this.width)
-            .attr("height", 40)
+        button.append('rect')
+            .attr('width', this.width)
+            .attr('height', 40)
 
         // for play text
         button.append('text')
-            .attr("class","playButton")
-            .attr("font-size", "1em")
-            .attr("fill", "white")
+            .attr('class','playButton')
+            .attr('font-size', '1em')
+            .attr('fill', 'white')
             .text('play')
-            .attr("transform", "translate(8,28)")
+            .attr('transform', 'translate(8,28)')
             .on('mouseup', this.animateBasedOnPeriod.bind(this));
 
         // brush
         this._svg.append('g')
             .attr('class', 'brush')
             .attr('transform', `translate(0, ${margin.top})`)
-            .attr("fill", "black")
+            .attr('fill', 'black')
             .call(this.brush);
         
-        this._svg.select("g.brush").select("rect.selection").attr('fill-opacity',0.8);
+        this._svg.select('g.brush').select('rect.selection').attr('fill-opacity',0.8);
     }
 
     getTimePeriodFromSlider(): Array<Date>{
-        let endDate_yPosition: any = D3.select("g.brush rect.handle--n").attr("y");
-        let startDate_yPosition: any = D3.select("g.brush rect.handle--s").attr("y");
+        let endDate_yPosition: any = D3.select('g.brush rect.handle--n').attr('y');
+        let startDate_yPosition: any = D3.select('g.brush rect.handle--s').attr('y');
 
         let endDate = this.yScale.invert(endDate_yPosition);
         let startDate = this.yScale.invert(startDate_yPosition);
@@ -134,12 +132,12 @@ export class TimeSliderComponent implements AfterViewInit {
     }
     
     isAnimationPlaying(): boolean{
-        return D3.select('text.playButton').text() == "pause";
+        return D3.select('text.playButton').text() === 'pause';
     }
 
     animateBasedOnPeriod(){
         if (!this._brushMemory) {
-            alert("Missing period - Brush the vertical time line to define a period");
+            alert('Missing period - Brush the vertical time line to define a period');
         } 
         else{
             if(!this.isAnimationPlaying()) this.animate();
@@ -148,7 +146,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }    
 
     animate() {   
-        this.setPlayButtonLabel("pause");
+        this.setPlayButtonLabel('pause');
         this._interval = setInterval(() => {
                 this.stepForwardWithBrush(this._animationStep);
           }, 1000);        
@@ -169,25 +167,25 @@ export class TimeSliderComponent implements AfterViewInit {
         if (this.isBrushInUpLimit(step)) this.pauseAnimation();
         else{
             // north border
-            let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
+            let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
             currentY = currentY-step;
-            D3.select("g.brush rect.handle--n").attr("y",currentY);
+            D3.select('g.brush rect.handle--n').attr('y',currentY);
     
             // center
-            currentY = D3.select("g.brush rect.selection").attr("y");
+            currentY = D3.select('g.brush rect.selection').attr('y');
             currentY = currentY-step;
-            D3.select("g.brush rect.selection").attr("y",currentY);        
+            D3.select('g.brush rect.selection').attr('y',currentY);        
             
             // south border
-            currentY = D3.select("g.brush rect.handle--s").attr("y");
+            currentY = D3.select('g.brush rect.handle--s').attr('y');
             currentY = currentY-step;
-            D3.select("g.brush rect.handle--s").attr("y",currentY);
+            D3.select('g.brush rect.handle--s').attr('y',currentY);
         }        
     }
 
     isBrushInUpLimit(step: number){
         // north border
-        let currentY: any = D3.select("g.brush rect.handle--n").attr("y");
+        let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
         return currentY<step;
     }
 
@@ -197,7 +195,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     pauseAnimation(){
-        this.setPlayButtonLabel("play");
+        this.setPlayButtonLabel('play');
         clearInterval(this._interval);
     }
 
@@ -215,9 +213,9 @@ export class TimeSliderComponent implements AfterViewInit {
 
     //DEPRICATED
     switchPlayButtonLabel(){
-        let newLabel = "";
-        if(!this.isAnimationPlaying()) newLabel = "pause";
-        else newLabel = "play";
+        let newLabel = '';
+        if(!this.isAnimationPlaying()) newLabel = 'pause';
+        else newLabel = 'play';
         D3.select('text.playButton').text(newLabel);
     }
 
@@ -248,6 +246,7 @@ export class TimeSliderComponent implements AfterViewInit {
     saveLastBrush(timePeriod: Array<Date>):void{
         this._brushMemory = timePeriod;
     }
+
     eraseLastBrush():void{
         this._brushMemory = null;
     }
