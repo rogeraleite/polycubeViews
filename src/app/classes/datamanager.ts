@@ -33,7 +33,7 @@ export class DataManager {
 
     set data(data: Array<any>) {
         this._data = data;
-        this._numSlices = 5;
+        this._numSlices = 10;
         this.MIN_DATE = this.getTimeExtentAsDate()[0];
         this.MAX_DATE = this.getTimeExtentAsDate()[1];
         // NOTE: not guarenteed to return same amount of ticks as passed

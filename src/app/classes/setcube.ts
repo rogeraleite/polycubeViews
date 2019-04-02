@@ -69,13 +69,17 @@ export class SetCube implements PolyCube {
         this.updateCube();
     }
 
-    updateCube(): void{
+
+    updateCube(segs: any = 5): void {
+        //clean function
+        this.slices = [];
+
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
             d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
         });
-        
+
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
 
@@ -92,9 +96,11 @@ export class SetCube implements PolyCube {
 
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
+        let packLayout = this.getPackLayout()
+
 
         groupedData.forEach((timeLayer: any, i: number) => {
-            
+
             // flat planes for JP
             const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
@@ -133,10 +139,17 @@ export class SetCube implements PolyCube {
                 circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-                circleLayout.forEach((d) => {
+                // circleLayout.forEach((d) => {
+                //     if (d.cat === category.key) {
+                //         circle.position.x = d.y
+                //         circle.position.z = d.x;
+                //     }
+                // })
+
+                packLayout.forEach((d) => {
                     if (d.cat === category.key) {
-                        circle.position.x = d.y
-                        circle.position.z = d.x;
+                        circle.position.x = d.x
+                        circle.position.z = d.y;
                     }
                 })
 
@@ -195,10 +208,10 @@ export class SetCube implements PolyCube {
         let newSlices = this.dm.timeRange.length;
 
         let groupedData = D3.nest()
-        .key((d: any) => { return moment(d.groupDate).format('YYYY') })
-        .key((d: any) => { return d.category_1 })
-        .entries(this.dm.data)
-        .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
+            .key((d: any) => { return moment(d.groupDate).format('YYYY') })
+            .key((d: any) => { return d.category_1 })
+            .entries(this.dm.data)
+            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
 
         console.log(groupedData)
     }
@@ -208,14 +221,14 @@ export class SetCube implements PolyCube {
 
     updateColorCoding(encoding: string): void {
         this.colorCoding = encoding;
-        switch(encoding) {
-            case 'categorical' : 
+        switch (encoding) {
+            case 'categorical':
                 this.colors = D3.scaleOrdinal(D3.schemePaired);
                 break;
-            case 'temporal' :
+            case 'temporal':
                 this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
                 break;
-            case 'monochrome' :
+            case 'monochrome':
                 this.colors = D3.scaleOrdinal(D3.schemeSet2);
                 break;
 
@@ -224,29 +237,29 @@ export class SetCube implements PolyCube {
                 break;
         }
     }
-   
+
     updateNodeColor(encoding: string): void {
         this.updateColorCoding(encoding);
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                switch(encoding) {
-                    case 'categorical' : 
+                if (grandChild.type !== 'DATA_POINT') return;
+                switch (encoding) {
+                    case 'categorical':
                         grandChild.material.color.set(this.colors(grandChild.data.category_1));
                         break;
-                    case 'temporal' :
+                    case 'temporal':
                         grandChild.material.color.set(this.colors(grandChild.data.date_time));
                         break;
-                    case 'monochrome' : 
+                    case 'monochrome':
                         grandChild.material.color.set('#b5b5b5');
                         break;
-                    default: 
+                    default:
                         grandChild.material.color.set(this.colors(grandChild.data.category_1));
                         break;
                 }
-                                    
+
             });
         });
     }
@@ -260,11 +273,11 @@ export class SetCube implements PolyCube {
         };
 
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-              
+                if (grandChild.type !== 'DATA_POINT') return;
+
                 let sourceScale = {
                     x: grandChild.scale.x,
                     y: grandChild.scale.y,
@@ -272,17 +285,17 @@ export class SetCube implements PolyCube {
                 };
 
                 let tween = new TWEEN.Tween(sourceScale)
-                                    .to(targetScale, 250)
-                                    .easing(TWEEN.Easing.Cubic.InOut)
-                                    .onUpdate(() => {
-                                        grandChild.scale.x = sourceScale.x;
-                                        grandChild.scale.y = sourceScale.y;
-                                        grandChild.scale.z = sourceScale.z;
-                        
-                                    })
-                                    .start();
-             
-                                    
+                    .to(targetScale, 250)
+                    .easing(TWEEN.Easing.Cubic.InOut)
+                    .onUpdate(() => {
+                        grandChild.scale.x = sourceScale.x;
+                        grandChild.scale.y = sourceScale.y;
+                        grandChild.scale.z = sourceScale.z;
+
+                    })
+                    .start();
+
+
             });
         });
     }
@@ -405,10 +418,10 @@ export class SetCube implements PolyCube {
     }
 
     getCurrentColor(object: THREE.Object3D): string {
-        switch(this.colorCoding)  {
+        switch (this.colorCoding) {
             case 'categorical': return this.colors(object.data.category_1);
-            case 'temporal' : return this.colors(object.data.date_time);
-            case 'monochrome' : return '#b5b5b5';
+            case 'temporal': return this.colors(object.data.date_time);
+            case 'monochrome': return '#b5b5b5';
             default: return this.colors(object.data.category_1)
         }
     }
@@ -490,6 +503,24 @@ export class SetCube implements PolyCube {
         return circleLayout
     }
 
+    getPackLayout() {
+        let groupedData = D3.nest()
+            .key((d: any) => { return d.category_1 })
+            .entries(this.dm.data)
+            .map(function (d) {
+                return { Category: d.key, Value: d.values.length };
+            });
+        const data = { name: "groups", children: groupedData };
+        let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT]);
+        var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; });
+        var vNodes = vRoot.descendants();
+        let layout = vLayout(vRoot).children.map((d:any) => {
+            return { cat: d.data.Category, x: d.x - CUBE_CONFIG.WIDTH/2, y:d.y- CUBE_CONFIG.HEIGHT/2, count:d.value, r:d.r };
+        })
+
+        return layout
+    }
+
     // function to get spiral spread of points accross a single category in time, pass center x and y, radius and group array
     getSpiralPosition(centerX: number, centerY: number, radius: number, group_list) {
 
@@ -544,6 +575,8 @@ export class SetCube implements PolyCube {
         });
         return correspondingSlice;
     }
+
+
 
     hideBottomLayer(): void { }
     showBottomLayer(): void { }
