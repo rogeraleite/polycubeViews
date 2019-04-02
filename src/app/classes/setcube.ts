@@ -64,11 +64,18 @@ export class SetCube implements PolyCube {
     }
 
     assembleData(): void {
+        //pass new slices numer and run the simulation again
+        //clear scene of old objects
+        this.updateCube();
+    }
+
+    updateCube(): void{
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
             d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
         });
+        
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
 
@@ -87,7 +94,7 @@ export class SetCube implements PolyCube {
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
 
         groupedData.forEach((timeLayer: any, i: number) => {
-
+            
             // flat planes for JP
             const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
@@ -177,7 +184,26 @@ export class SetCube implements PolyCube {
     }
 
     updateNumSlices(): void {
+        this.timeLinearScale = this.dm.getTimeLinearScale();
+        // this.clearLabels();
+        this.updateSlices();
+        this.updateDataPoints();
+    }
 
+    updateSlices(): void {
+
+        let newSlices = this.dm.timeRange.length;
+
+        let groupedData = D3.nest()
+        .key((d: any) => { return moment(d.groupDate).format('YYYY') })
+        .key((d: any) => { return d.category_1 })
+        .entries(this.dm.data)
+        .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
+
+        console.log(groupedData)
+    }
+
+    updateDataPoints(): void {
     }
 
     updateColorCoding(encoding: string): void {
