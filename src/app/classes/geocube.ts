@@ -100,6 +100,7 @@ export class GeoCube implements PolyCube {
     }
 
     updateDataPoints(): void {
+        // TODO: clear previous geometries from scene / cubeGroupGL
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
         for (let i = 0; i < this.dm.data.length; i++) {
@@ -118,6 +119,14 @@ export class GeoCube implements PolyCube {
             sphere.type = 'DATA_POINT';
             this.findTimeSlice(dataItem.date_time).add(sphere);
         }
+    }
+
+    clearLabels(): void {
+        let removed = new Array<THREE.CSS3DObject>();
+        this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
+            if(child.name.includes('LABEL')) removed.push(child);
+        });
+        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
     }
 
     /**
@@ -322,28 +331,13 @@ export class GeoCube implements PolyCube {
     }
 
     updateNumSlices(): void {
+        // TODO: Fix labels (remove and remake) -> would make it more fluid and less laggy (high effort)
+        // TODO: instead of recreating eveverything try to update the items and transition? (low prio)
+        // FIXME: D3 doesnt follow the user selection but returns the best way to split data
         this.timeLinearScale = this.dm.getTimeLinearScale();
-        console.log(this.dm.timeRange);
-        console.log(`new slice count : ${this.dm.numSlices}`);
+        this.clearLabels();
         this.updateSlices();
         this.updateDataPoints();
-        // let currentNumSlices = this.slices.length;
-        // let targetNumSlices = this.dm.numSlices;
-
-        // let sliceDiff = targetNumSlices - currentNumSlices;
-        // console.log(sliceDiff > 0 ? `add ${sliceDiff} slices` : `remove ${sliceDiff} slices`);
-
-        // // 2 cases either remove or add slices
-        // if(sliceDiff > 0) {
-        //     for(let i = 0; i < Math.abs(sliceDiff); i++) { 
-        //         this.slices.push(); 
-        //     }
-
-        
-        //     // add sliceDiff slices to the array
-        // } else {
-        //     // remove sliceDiff slices from the array
-        // }
     }
 
     updateNodeColor(encoding: string): void {
@@ -409,12 +403,13 @@ export class GeoCube implements PolyCube {
     }
 
     /**
-     * TODO: Implement this function
      * Should be called when data has changed from the datamanager
      * Should reinitialize whole cube
      */
     updateData(): void {
-
+        this.clearLabels();
+        this.updateSlices();
+        this.updateDataPoints();
     }
 
     dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
@@ -436,9 +431,9 @@ export class GeoCube implements PolyCube {
                 let zJitter = this.getRandomInteger(-1*this._jitter, this._jitter);
 
                 let sourceCoords = {
-                    x: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.x,
-                    y: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.y,
-                    z: grandChild.originalCoordinates ? grandChild.originalCoordinates : grandChild.position.z
+                    x: grandChild.originalCoordinates ? grandChild.originalCoordinates.x : grandChild.position.x,
+                    y: grandChild.originalCoordinates ? grandChild.originalCoordinates.y : grandChild.position.y,
+                    z: grandChild.originalCoordinates ? grandChild.originalCoordinates.z : grandChild.position.z
                 };
 
                 let targetCoords = {
@@ -447,7 +442,7 @@ export class GeoCube implements PolyCube {
                     z: grandChild.originalCoordinates ? grandChild.originalCoordinates.z + zJitter : grandChild.position.z + zJitter,
                 }
 
-                if(grandChild.originalCoordinates) grandChild.originalCoordinates = new THREE.Vector3(sourceCoords.x, sourceCoords.y, sourceCoords.z);
+                if(!grandChild.originalCoordinates) grandChild.originalCoordinates = new THREE.Vector3(sourceCoords.x, sourceCoords.y, sourceCoords.z);
 
                 let tween = new TWEEN.Tween(sourceCoords)
                                     .to(targetCoords, 250)
