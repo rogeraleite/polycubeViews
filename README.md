@@ -35,7 +35,7 @@ The spreadsheet is seperated into different sections. We go over the sections an
 | external_url      | URL - The URL to an external resource, __e.g., ''__ |
 | comments      | Text - The users comments for the object  |
 
-### Temporal Data (bright range cells)
+### Temporal Data (bright orange cells)
 
 | -| - |
 |----------------------|---|
