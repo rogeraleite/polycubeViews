@@ -64,11 +64,11 @@ export class SetCube implements PolyCube {
     }
 
     assembleData(): void {
-        this.updateSetCube();
+        this.updateSetCube(this.dm.timeRange.length, true);
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: number = this.dm.timeRange.length): void {
+    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false): void {
 
         //clean function
         //clear scene of old objects
@@ -114,7 +114,7 @@ export class SetCube implements PolyCube {
             let slice = new THREE.Group();
             slice.name = timeLayer.key; // we need to decide either to use full date or
             slice.add(plane);
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for initial run
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
             // slice.position.set(CUBE_CONFIG.WIDTH / 2, - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for updates
             this.slices.push(slice);
             this.cubeGroupGL.add(slice)
@@ -305,21 +305,20 @@ export class SetCube implements PolyCube {
     transitionSTC(): void {
         this.boundingBox.visible = true;
         //TODO:on STC, update setcube with stacked layers
-         this.updateSetCube()
-        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
+        this.updateSetCube();
 
-        console.log(this.slices);
+        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let sourceCoords = {
                 x: slice.position.x,
-                y: slice.position.y, 
+                y: slice.position.y,
                 z: slice.position.z
             };
-            
+
             let targetCoords = {
                 x: CUBE_CONFIG.WIDTH / 2,
-                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), 
+                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2),
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
