@@ -64,12 +64,11 @@ export class SetCube implements PolyCube {
     }
 
     assembleData(): void {
-
         this.updateSetCube();
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: any = this.dm.timeRange.length): void {
+    updateSetCube(segs: number = this.dm.timeRange.length): void {
 
         //clean function
         //clear scene of old objects
@@ -79,11 +78,11 @@ export class SetCube implements PolyCube {
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
-            d.groupDate = moment((this.dm.getTimeQuantile(d.date_time, segs)), 'YYYY').toDate()
+            d.groupDate = moment((this.dm.getCustomTimeQuantile(d.date_time, segs)), 'YYYY').toDate()
         });
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
-        this.timeLinearScale = this.dm.getTimeLinearScale();
+        // this.timeLinearScale = this.dm.getTimeLinearScale();
 
         //group by time and then category
         let groupedData = D3.nest()
@@ -94,14 +93,14 @@ export class SetCube implements PolyCube {
 
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
-        let vertOffset = CUBE_CONFIG.WIDTH / groupedData.length;
+        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
 
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
         let packLayout = this.getPackLayout()
 
 
-        groupedData.forEach((timeLayer: any, i: number) => {
+        groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
             // flat planes for JP
             const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
@@ -115,12 +114,13 @@ export class SetCube implements PolyCube {
             let slice = new THREE.Group();
             slice.name = timeLayer.key; // we need to decide either to use full date or
             slice.add(plane);
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for initial run
+            // slice.position.set(CUBE_CONFIG.WIDTH / 2, - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for updates
             this.slices.push(slice);
             this.cubeGroupGL.add(slice)
 
             // each category inside each time slice
-            timeLayer.values.forEach((category) => {
+            timeLayer.values.forEach((category) => { //slices group
                 // draw group geometries
 
                 //circle geometry
@@ -141,19 +141,19 @@ export class SetCube implements PolyCube {
                 circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-                // circleLayout.forEach((d) => {
-                //     if (d.cat === category.key) {
-                //         circle.position.x = d.y
-                //         circle.position.z = d.x;
-                //     }
-                // })
-
-                packLayout.forEach((d) => {
+                circleLayout.forEach((d) => {
                     if (d.cat === category.key) {
-                        circle.position.x = d.x
-                        circle.position.z = d.y;
+                        circle.position.x = d.y
+                        circle.position.z = d.x;
                     }
-                })
+                });
+
+                // packLayout.forEach((d) => {
+                //     if (d.cat === category.key) {
+                //         circle.position.x = d.x
+                //         circle.position.z = d.y;
+                //     }
+                // });
 
                 // this.cubeGroupGL.add(circle)
                 slice.add(circle)
@@ -164,24 +164,22 @@ export class SetCube implements PolyCube {
                 //get this category points positions
                 let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
 
-                spiralCategory.forEach((points) => {
+                spiralCategory.forEach((points) => { //points group 
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
-                    const sphere = new THREE.Mesh(pointGeometry, material);
+                    const point = new THREE.Mesh(pointGeometry, material);
 
-                    sphere.position.y = parentPos.y;
+                    point.position.y = parentPos.y;
+                    point.position.x = points.x;
+                    point.position.z = points.y;
+                    point.name = points.data.id;
+                    point.data = points.data;
+                    point.type = 'DATA_POINT'; //data point identifier
+                    slice.add(point)
+                }) //points groups end
 
+            }) //slices group end
 
-                    sphere.position.x = points.x;
-                    sphere.position.z = points.y;
-                    sphere.name = points.data.id;
-                    sphere.data = points.data;
-                    sphere.type = 'DATA_POINT'; //data point identifier
-                    slice.add(sphere)
-                })
-
-            })
-
-        })
+        }) //complete group end
     }
 
     render(): void {
@@ -306,17 +304,22 @@ export class SetCube implements PolyCube {
 
     transitionSTC(): void {
         this.boundingBox.visible = true;
-        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
+        //TODO:on STC, update setcube with stacked layers
+         this.updateSetCube()
+        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
+
+        console.log(this.slices);
+
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let sourceCoords = {
                 x: slice.position.x,
-                y: slice.position.y,
+                y: slice.position.y, 
                 z: slice.position.z
             };
-
+            
             let targetCoords = {
                 x: CUBE_CONFIG.WIDTH / 2,
-                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2),
+                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), 
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
@@ -367,6 +370,9 @@ export class SetCube implements PolyCube {
     }
     transitionSI(): void {
         this.boundingBox.visible = false;
+        let duration = 1000,
+            tween;
+
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let sourceCoords = {
                 x: slice.position.x,
@@ -380,8 +386,8 @@ export class SetCube implements PolyCube {
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
-            let tween = new TWEEN.Tween(sourceCoords)
-                .to(targetCoords, 1000)
+            tween = new TWEEN.Tween(sourceCoords)
+                .to(targetCoords, duration)
                 .delay(i * 300)
                 .easing(TWEEN.Easing.Cubic.InOut)
                 .onUpdate(() => {
@@ -389,8 +395,14 @@ export class SetCube implements PolyCube {
                     slice.position.y = sourceCoords.y,
                         slice.position.z = sourceCoords.z;
                 })
-                .start();
+                .start()
         });
+
+        //on complete tweening, update setcube with flattened layers
+        tween.onComplete(() => {
+            console.log('complete')
+            this.updateSetCube(1)
+        })
     }
     transitionANI(): void { }
 
