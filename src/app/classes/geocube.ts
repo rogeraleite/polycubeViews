@@ -108,16 +108,16 @@ export class GeoCube implements PolyCube {
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
             let cubeCoords = this.map.project(new mapboxgl.LngLat(dataItem.longitude, dataItem.latitude));
-            let sphere = new THREE.Mesh(geometry, material);
+            let point = new THREE.Mesh(geometry, material);
 
             // need to offset the x,z coordinate so they overlap with cube
-            sphere.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
+            point.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
             // sphere.position.y = correspondingSlice.position.y; -- y coordinate is inherited from the slice positioning
-            sphere.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
-            sphere.name = dataItem.id;
-            sphere.data = dataItem;
-            sphere.type = 'DATA_POINT';
-            this.findTimeSlice(dataItem.date_time).add(sphere);
+            point.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
+            point.name = dataItem.id;
+            point.data = dataItem;
+            point.type = 'DATA_POINT';
+            this.findTimeSlice(dataItem.date_time).add(point);
         }
     }
 
@@ -223,16 +223,16 @@ export class GeoCube implements PolyCube {
                 let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
                 let cubeCoords = this.map.project(new mapboxgl.LngLat(dataItem.longitude, dataItem.latitude));
-                let sphere = new THREE.Mesh(geometry, material);
+                let point = new THREE.Mesh(geometry, material);
 
                 // need to offset the x,z coordinate so they overlap with cube
-                sphere.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
+                point.position.x = cubeCoords.x - CUBE_CONFIG.WIDTH/2;
                 // sphere.position.y = correspondingSlice.position.y; -- y coordinate is inherited from the slice positioning
-                sphere.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
-                sphere.name = dataItem.id;
-                sphere.data = dataItem;
-                sphere.type = 'DATA_POINT';
-                this.findTimeSlice(dataItem.date_time).add(sphere);
+                point.position.z = cubeCoords.y - CUBE_CONFIG.HEIGHT/2;
+                point.name = dataItem.id;
+                point.data = dataItem;
+                point.type = 'DATA_POINT';
+                this.findTimeSlice(dataItem.date_time).add(point);
             }
         });
     }
