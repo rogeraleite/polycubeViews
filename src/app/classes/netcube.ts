@@ -408,7 +408,7 @@ export class NetCube implements PolyCube {
     findTimeSlice(date: Date): THREE.Group {
         let correspondingSlice;
         this.slices.forEach((slice: THREE.Group) => {
-            if (slice.name === this.dm.getTimeQuantile(date)) {
+            if (slice.name === this.dm.getTimeQuantile(date,this.dm.timeRange.length)) {
                 correspondingSlice = slice;
                 return;
             }

@@ -112,13 +112,13 @@ export class DataManager {
     //     return 0;
     // }
 
-    getTimeQuantile(date: Date): any {
+    getTimeQuantile(date: Date, slice:number = this._numSlices): any {
         // NOTE: not guarenteed to return same amount of ticks as passed
         // need to define tickValues function to enforce same amount of ticks 
         // https://stackoverflow.com/questions/51497534/how-to-force-a-specific-amount-of-y-axis-ticks-in-d3-charts
         // https://stackoverflow.com/questions/24541296/d3-js-time-scale-nicely-spaced-ticks-at-minute-intervals-when-data-is-in-second
 
-        this._timeRange = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]).ticks(this._numSlices);
+        this._timeRange = D3.scaleTime().domain([this.MIN_DATE, this.MAX_DATE]).ticks(slice);
         
         // TODO: Consider temporal granularity (currently in years) -> days?
         let myQuantizeFunction = D3.scaleQuantize()

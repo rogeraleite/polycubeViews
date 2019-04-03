@@ -64,20 +64,22 @@ export class SetCube implements PolyCube {
     }
 
     assembleData(): void {
-        //pass new slices numer and run the simulation again
-        //clear scene of old objects
-        this.updateCube();
+
+        this.updateSetCube();
     }
 
+    //pass new slices numer and run the simulation again
+    updateSetCube(segs: any = this.dm.timeRange.length): void {
 
-    updateCube(segs: any = 5): void {
         //clean function
-        this.slices = [];
+        //clear scene of old objects
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
+        this.slices = new Array<THREE.Group>();
 
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
-            d.groupDate = moment((this.dm.getTimeQuantile(d.date_time)), 'YYYY').toDate()
+            d.groupDate = moment((this.dm.getTimeQuantile(d.date_time, segs)), 'YYYY').toDate()
         });
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
@@ -197,26 +199,8 @@ export class SetCube implements PolyCube {
     }
 
     updateNumSlices(): void {
-        this.timeLinearScale = this.dm.getTimeLinearScale();
-        // this.clearLabels();
-        this.updateSlices();
-        this.updateDataPoints();
-    }
-
-    updateSlices(): void {
-
-        let newSlices = this.dm.timeRange.length;
-
-        let groupedData = D3.nest()
-            .key((d: any) => { return moment(d.groupDate).format('YYYY') })
-            .key((d: any) => { return d.category_1 })
-            .entries(this.dm.data)
-            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
-
-        console.log(groupedData)
-    }
-
-    updateDataPoints(): void {
+        const segs = this.dm.timeRange.length;
+        this.updateSetCube(segs)
     }
 
     updateColorCoding(encoding: string): void {
@@ -301,7 +285,6 @@ export class SetCube implements PolyCube {
     }
 
     updateData(): void {
-
     }
 
     dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
@@ -514,8 +497,8 @@ export class SetCube implements PolyCube {
         let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT]);
         var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; });
         var vNodes = vRoot.descendants();
-        let layout = vLayout(vRoot).children.map((d:any) => {
-            return { cat: d.data.Category, x: d.x - CUBE_CONFIG.WIDTH/2, y:d.y- CUBE_CONFIG.HEIGHT/2, count:d.value, r:d.r };
+        let layout = vLayout(vRoot).children.map((d: any) => {
+            return { cat: d.data.Category, x: d.x - CUBE_CONFIG.WIDTH / 2, y: d.y - CUBE_CONFIG.HEIGHT / 2, count: d.value, r: d.r };
         })
 
         return layout
@@ -575,7 +558,6 @@ export class SetCube implements PolyCube {
         });
         return correspondingSlice;
     }
-
 
 
     hideBottomLayer(): void { }
