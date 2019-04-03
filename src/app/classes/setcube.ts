@@ -82,7 +82,7 @@ export class SetCube implements PolyCube {
         });
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
-        // this.timeLinearScale = this.dm.getTimeLinearScale();
+        this.timeLinearScale = this.dm.getTimeLinearScale();
 
         //group by time and then category
         let groupedData = D3.nest()
@@ -198,7 +198,7 @@ export class SetCube implements PolyCube {
 
     updateNumSlices(): void {
         const segs = this.dm.timeRange.length;
-        this.updateSetCube(segs)
+        this.updateSetCube(segs, true)
     }
 
     updateColorCoding(encoding: string): void {
