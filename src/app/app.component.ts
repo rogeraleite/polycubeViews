@@ -59,9 +59,13 @@ export class AppComponent implements AfterViewInit {
    errorOccurred: boolean = false;
    errorMessage: string;
 
+   // animation duration
+   duration: number;
+
    // inject google
    constructor(private google: GoogleDriveProvider, private compRef: ElementRef) {
       this.previewItem = null;
+      this.duration = CUBE_CONFIG.DURATION ? CUBE_CONFIG.DURATION : 2000;
    }
 
    /**
@@ -97,18 +101,9 @@ export class AppComponent implements AfterViewInit {
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
      
-      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, 1, 100000);
+      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
       // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
-      this.camera.up.set(0, 1, 0)
-      this.camera.position.set(0, 0, 1000);
-      this.camera.lookAt(this.webGLScene.position);
-
       this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
-      
-      this.light = new THREE.DirectionalLight(0xffffff, 1.0);
-      this.light.position.set(100, 100, 100);
-      this.webGLScene.add(this.light);
-
       this.animate();
    }
 
@@ -353,7 +348,6 @@ export class AppComponent implements AfterViewInit {
     */
    animate = () => {
       requestAnimationFrame(this.animate);
-      TWEEN.update();
       this.render();
    }
 
@@ -362,10 +356,10 @@ export class AppComponent implements AfterViewInit {
     * Renders the scene from the cameras PoV
     */
    render() {
-      //this.webGLRenderer.render(this.scene, this.camera.perspectiveCamera);
+      TWEEN.update();
+      this.controls.update();
       this.webGLRenderer.render(this.webGLScene, this.camera);
       this.css3DRenderer.render(this.cssScene, this.camera);
-      this.controls.update();
    }
 
    /**
