@@ -90,8 +90,15 @@ export class GUI {
         });
 
         // SetCube settings
+        let sCubeParams = {
+            layout: [],
+        };
+
         let sCubeFolder = this.gui.addFolder('SetCube');
 
+        sCubeFolder.add(sCubeParams, 'layout', ['force', 'diagonal', 'circle', 'matrix']).onChange(() => {
+
+        });
 
         // NetCube settings
         let nCubeFolder = this.gui.addFolder('NetCube');
