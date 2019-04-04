@@ -103,6 +103,10 @@ export class AppComponent implements AfterViewInit {
      
       this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
       // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.camera.up.set(0, 1, 0);
+      this.camera.position.set(0, 0, 1000);
+      this.camera.lookAt(this.webGLScene.position.x, this.webGLScene.position.y, this.webGLScene.position.z);
+      
       this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
       this.animate();
    }
