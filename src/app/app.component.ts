@@ -108,7 +108,6 @@ export class AppComponent implements AfterViewInit {
       this.camera.lookAt(this.webGLScene.position.x, this.webGLScene.position.y, this.webGLScene.position.z);
       
       this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
-      this.animate();
    }
 
    /**
@@ -129,6 +128,7 @@ export class AppComponent implements AfterViewInit {
          this.initCubes();
          this.initGUI();
          this.addEventListeners();
+         this.animate();
       });
    }
 
