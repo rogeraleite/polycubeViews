@@ -66,6 +66,14 @@ export class NetCube implements PolyCube {
         this.createLinks();
     }
 
+    clearLabels(): void {
+        let removed = new Array<THREE.CSS3DObject>();
+        this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
+            if(child.name.includes('LABEL')) removed.push(child);
+        });
+        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
+    }
+
     render(): void {
         // group holding all webGl objects
         this.cubeGroupGL.name = 'NET_CUBE';
@@ -97,7 +105,13 @@ export class NetCube implements PolyCube {
     }
 
     updateNumSlices(): void {
-
+        // TODO: Fix labels (remove and remake) -> would make it more fluid and less laggy (high effort)
+        // TODO: instead of recreating eveverything try to update the items and transition? (low prio)
+        // FIXME: D3 doesnt follow the user selection but returns the best way to split data
+        this.timeLinearScale = this.dm.getTimeLinearScale();
+        this.clearLabels();
+        this.updateSlices();
+        this.updateDataPoints();
     }
 
     updateColorCoding(encoding: string): void {
@@ -446,6 +460,31 @@ export class NetCube implements PolyCube {
         else return null;
     }
 
+    updateDataPoints(): void {
+        // TODO: clear previous geometries from scene / cubeGroupGL
+        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
+
+        for (let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+
+            let point = new THREE.Mesh(geometry, material);
+            let position = this.getNormalizedPositionById(dataItem.id);
+
+            if (position) {
+                point.position.x = position.x;
+                point.position.z = position.z;
+                //sphere.position.y = this.timeLinearScale(dataItem.date_time);
+                point.name = dataItem.id;
+                point.data = dataItem;
+                point.type = 'DATA_POINT';
+
+                //console.log(this.findTimeSlice(dataItem.date_time));
+                this.findTimeSlice(dataItem.date_time).add(point);
+            }
+        }
+    }
+
 
     createNodes(): void {
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
@@ -454,19 +493,19 @@ export class NetCube implements PolyCube {
             let dataItem = this.dm.data[i];
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
-            let sphere = new THREE.Mesh(geometry, material);
+            let point = new THREE.Mesh(geometry, material);
 
             let position = this.getNormalizedPositionById(dataItem.id);
             if (position) {
-                sphere.position.x = position.x;
-                sphere.position.z = position.z;
+                point.position.x = position.x;
+                point.position.z = position.z;
                 //sphere.position.y = this.timeLinearScale(dataItem.date_time);
-                sphere.name = dataItem.id;
-                sphere.data = dataItem;
-                sphere.type = 'DATA_POINT';
+                point.name = dataItem.id;
+                point.data = dataItem;
+                point.type = 'DATA_POINT';
 
                 //console.log(this.findTimeSlice(dataItem.date_time));
-                this.findTimeSlice(dataItem.date_time).add(sphere);
+                this.findTimeSlice(dataItem.date_time).add(point);
             }//end if            
         }//end for
     }
@@ -512,6 +551,46 @@ export class NetCube implements PolyCube {
 
         this.cubeGroupGL.add(this.links);
 
+    }
+
+    updateSlices(): void {
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
+        this.slices = new Array<THREE.Group>();
+
+        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
+        for(let i = 0; i < this.dm.timeRange.length; i++) {
+            // TIME SLICES
+            let slice = new THREE.Group();
+
+            // name set to year -> we can now map objects to certain layers by checking their
+            // this.dm.getTimeQuantile(date) and the slices name.
+            slice.name = this.dm.timeRange[i].getFullYear();
+
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
+            let edgeGeometry = new THREE.EdgesGeometry(geometry);
+            let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
+            let plane = new THREE.LineSegments( edgeGeometry, material );
+
+            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            plane.position.set(0, 0, 0);
+            plane.rotation.set(Math.PI/2, 0, 0);
+            slice.add(plane);
+            this.slices.push(slice);
+            
+            // CSS 3D TIME SLICE LABELS
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
+            
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            label.name = `LABEL_${i}`;
+            // label.rotation.set(Math.PI);
+            this.cubeGroupCSS.add(label);
+        }
+
+        this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
 
     createSlices(): void {
