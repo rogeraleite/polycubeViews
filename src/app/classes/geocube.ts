@@ -293,6 +293,17 @@ export class GeoCube implements PolyCube {
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
     }
 
+    updateTime(time: string): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                let sliceOffsetY = child.position.y;
+                grandChild.position.y = time === 'aggregated' ?  0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
+            });
+        });
+    }
+
     /**
      * Updates current view (from controller)
      * @param currentViewState 

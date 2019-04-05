@@ -189,6 +189,17 @@ export class SetCube implements PolyCube {
         this.webGLScene.add(this.cubeGroupGL);
     }
 
+    updateTime(time: string): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.position.y = time === 'aggregated' ?  this.findTimeSlice(grandChild.date_time).position.y : this.timeLinearScale(grandChild.data.date_time);
+            });
+        });
+    }
+
 
     updateView(currentViewState: VIEW_STATES): void {
         if (currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {

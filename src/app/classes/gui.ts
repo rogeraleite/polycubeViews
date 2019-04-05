@@ -44,12 +44,13 @@ export class GUI {
             numSlices: 5,
             backgroundColor: '#ffffff',
             nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
+            time: 'aggregated',
             nodeSize: CUBE_CONFIG.NODE_SIZE,
             dataSet: CUBE_CONFIG.DATA_SET.name
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
         
-        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(10).step(1).onChange(() => {
+        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(10).step(1).onFinishChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 numSlices: Math.floor(pCubeParams.numSlices)
             });
@@ -57,6 +58,11 @@ export class GUI {
         pCubeFolder.add(pCubeParams, 'nodeSize').min(1).max(10).step(1).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 nodeSize: Math.floor(pCubeParams.nodeSize)
+            });
+        });
+        pCubeFolder.add(pCubeParams, 'time', ['aggregated', 'absolute']).onChange(() => {
+            this.pCubeConfigEmitter.emit('change', {
+                time: pCubeParams.time
             });
         });
         pCubeFolder.addColor(pCubeParams, 'backgroundColor').onChange(() => {

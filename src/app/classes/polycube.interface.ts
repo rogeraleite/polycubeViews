@@ -17,6 +17,7 @@ export interface PolyCube {
     updateNodeSize: Function,
     updateNodeColor: Function,
     updateNumSlices: Function,
+    updateTime: Function,
 
     // temporal encodings
     transitionSTC: Function,

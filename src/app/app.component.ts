@@ -224,6 +224,12 @@ export class AppComponent implements AfterViewInit {
             this.compRef.nativeElement.ownerDocument.body.style.backgroundColor = change.backgroundColor;
          }
 
+         if(change.time) {
+            this.gCube.updateTime(change.time);
+            this.gCube.updateTime(change.time);
+            this.gCube.updateTime(change.time);
+         }
+
          if(change.numSlices) {
             this.dataManager.numSlices = change.numSlices;
             
