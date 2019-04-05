@@ -19,7 +19,7 @@ export class DataManager {
     constructor() {
         this._data_map = new Map();
         this._cushman_pos = new CushmanForcedDirected();
-        this._numSlices = 5;
+        this._numSlices = 10;
         this._timeRange = new Array<Date>();
     }
 
