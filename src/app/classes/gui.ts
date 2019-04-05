@@ -41,7 +41,7 @@ export class GUI {
     createDATGUI(): void {
         // polycube
         let pCubeParams = {
-            numSlices: 5,
+            numSlices: 10,
             backgroundColor: '#ffffff',
             nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
             time: 'aggregated',
@@ -50,7 +50,7 @@ export class GUI {
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
         
-        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(10).step(1).onFinishChange(() => {
+        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(50).step(1).onFinishChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 numSlices: Math.floor(pCubeParams.numSlices)
             });
