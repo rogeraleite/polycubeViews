@@ -260,6 +260,14 @@ export class AppComponent implements AfterViewInit {
          }
       });   
 
+      // geocube settings
+      this.gui.sCubeConfigEmitter.on('change', (change: any) => {
+            if(change.sLayout) {
+               // (this.gCube as GeoCube).updateJitter(change.jitter)
+               // console.log('layout change')
+               (this.sCube as SetCube).updateLayout(change.sLayout)
+            }
+         });   
     
 
 

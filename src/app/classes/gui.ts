@@ -97,13 +97,15 @@ export class GUI {
 
         // SetCube settings
         let sCubeParams = {
-            layout: [],
+            layout: ['circle'],
         };
 
         let sCubeFolder = this.gui.addFolder('SetCube');
 
-        sCubeFolder.add(sCubeParams, 'layout', ['force', 'diagonal', 'circle', 'matrix']).onChange(() => {
-
+        sCubeFolder.add(sCubeParams, 'layout', ['circle', 'pack']).onChange(() => {
+            this.sCubeConfigEmitter.emit('change', {
+                sLayout: sCubeParams.layout
+            });
         });
 
         // NetCube settings

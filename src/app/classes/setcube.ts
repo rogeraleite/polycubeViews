@@ -68,7 +68,7 @@ export class SetCube implements PolyCube {
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false): void {
+    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout:string = 'circle'): void {
 
         //clean function
         //clear scene of old objects
@@ -141,12 +141,15 @@ export class SetCube implements PolyCube {
                 circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-                circleLayout.forEach((d) => {
-                    if (d.cat === category.key) {
-                        circle.position.x = d.y
-                        circle.position.z = d.x;
-                    }
-                });
+
+                this.getLayouts(layout, category, circle)
+
+                // circleLayout.forEach((d) => {
+                //     if (d.cat === category.key) {
+                //         circle.position.x = d.y
+                //         circle.position.z = d.x;
+                //     }
+                // });
 
                 // packLayout.forEach((d) => {
                 //     if (d.cat === category.key) {
@@ -154,6 +157,7 @@ export class SetCube implements PolyCube {
                 //         circle.position.z = d.y;
                 //     }
                 // });
+
 
                 // this.cubeGroupGL.add(circle)
                 slice.add(circle)
@@ -189,13 +193,41 @@ export class SetCube implements PolyCube {
         this.webGLScene.add(this.cubeGroupGL);
     }
 
+    updateLayout(layout: string): void {
+        const segs = this.dm.timeRange.length;
+        this.updateSetCube(segs, true, layout)
+    }
+
+    getLayouts(layout: string, category: any, circle: THREE.Mesh) {
+        let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
+        let packLayout = this.getPackLayout()
+
+        if (layout === 'circle') {
+            return circleLayout.forEach((d) => {
+                if (d.cat === category.key) {
+                    circle.position.x = d.y
+                    circle.position.z = d.x;
+                }
+            });
+        }
+
+        if(layout === 'pack'){
+            packLayout.forEach((d) => {
+                if (d.cat === category.key) {
+                    circle.position.x = d.x
+                    circle.position.z = d.y;
+                }
+            });
+        }
+    }
+
     updateTime(time: string): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.position.y = time === 'aggregated' ?  this.findTimeSlice(grandChild.date_time).position.y : this.timeLinearScale(grandChild.data.date_time);
+                if (grandChild.type !== 'DATA_POINT') return;
+                grandChild.position.y = time === 'aggregated' ? this.findTimeSlice(grandChild.date_time).position.y : this.timeLinearScale(grandChild.data.date_time);
             });
         });
     }
