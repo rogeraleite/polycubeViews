@@ -33,6 +33,7 @@ export class SetCube implements PolyCube {
 
     private slices: Array<THREE.Group>;
     private colorCoding: string = 'categorical';
+    private cubeLeftBoarder: number;
 
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
@@ -41,6 +42,7 @@ export class SetCube implements PolyCube {
         this.data = new Array<any>();
         this.setMap = new Set<any>();
         this.camera = camera;
+        this.cubeLeftBoarder = (CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER) * 1;
         this.createObjects();
         this.assembleData();
         this.render();
@@ -49,11 +51,12 @@ export class SetCube implements PolyCube {
     createObjects(): void {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
+        this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
         this.colors = D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
         this.pointGroup = new Array<THREE.Group>();
         // this.pointGroup.name = 'pointGroup'
-        this.cubeGroupGL.pointGroup = this.pointGroup;         
+        this.cubeGroupGL.pointGroup = this.pointGroup;
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -71,16 +74,16 @@ export class SetCube implements PolyCube {
 
     assembleData(): void {
         this.updateSetCube(this.dm.timeRange.length, true);
-        
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout:string = 'circle'): void {
+    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'circle'): void {
 
         //clean function
         //clear scene of old objects
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
         this.slices = new Array<THREE.Group>();
+        this.clearLabels();
 
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
@@ -107,6 +110,7 @@ export class SetCube implements PolyCube {
         let packLayout = this.getPackLayout()
 
 
+
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
             // flat planes for JP
@@ -126,6 +130,17 @@ export class SetCube implements PolyCube {
             this.slices.push(slice);
             this.cubeGroupGL.add(slice)
 
+            // CSS 3D TIME SLICE LABELS
+            let element = document.createElement('div');
+            element.innerHTML = slice.name;
+            element.className = 'time-slice-label';
+
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            label.name = `LABEL_${i}`;
+            // label.rotation.set(Math.PI);
+            this.cubeGroupCSS.add(label);
             // each category inside each time slice
             timeLayer.values.forEach((category) => { //slices group
                 // draw group geometries
@@ -182,60 +197,98 @@ export class SetCube implements PolyCube {
     // Add force-directed layout
     // https://bl.ocks.org/lorenzopub/af1bc8b10e82f4ec8bff27673ef21a13
 
-    forceClusterGraph(): void{
+    forceClusterGraph(): void {
         let state = {
-            numDimensions:3,
-            warmUpTicks:0,
+            numDimensions: 3,
+            warmUpTicks: 0,
             coolDownTicks: Infinity,
             coolDownTime: 15000
         }
         let d3Nodes = this.pointGroup;
-        let groups =   this.getCircleLayout(this.setMap, 0, 0, 180)
+        let groups = this.getCircleLayout(this.setMap, 0, 0, 180)
+        let m = groups.length;
+        let clusters = new Array(m)
+        let radius = 150;
+
+        d3Nodes.map(function (data) {
+
+            let clust = groups.forEach((cat) => {
+                if (cat.cat === data.data.category_1) {
+                    data.cluster = cat.cat.cluster
+                }
+            })
+
+            var i = data.cluster,
+                r = 2,
+                d = {
+                    cluster: data.cluster,
+                    radius: r,
+                    x: Math.cos(i / m * 2 * Math.PI) * 150 + CUBE_CONFIG.WIDTH / 2 + Math.random(),
+                    y: Math.sin(i / m * 2 * Math.PI) * 150 + CUBE_CONFIG.HEIGHT / 2 + Math.random()
+                };
+
+            if (!clusters[i] || (r > clusters[i].radius)) clusters[i] = d;
+            return d;
+        });
 
         const layout = D3.forceSimulation()
             .nodes(d3Nodes)
-            .force('charge',  D3.forceManyBody().strength(4))
-            .force('center', D3.forceCenter(0,0))
+            .force('charge', D3.forceManyBody().strength(20))
+            .force('center', D3.forceCenter(0, 0))
             // cluster by section
-            .force('cluster', forceCluster().centers(function (d) { return  d.data.category_1}))
+            .force('cluster', forceCluster().centers(function (d) { return clusters[d.cluster]; }))
             .stop();
-            
-            for (let i=0; i<state.warmUpTicks; i++) { layout.tick(); } // Initial ticks before starting to render
 
-            let cntTicks = 0;
-            const startTickTime = new Date().getTime() ;
-            layout.on("tick", layoutTick).restart();
-            
-            function layoutTick() {
-                if (cntTicks++ > state.coolDownTicks || (new Date().getTime() ) - startTickTime > state.coolDownTime) {
-                    layout.stop(); // Stop ticking graph
-                }
-                // console.log(d3Nodes);
+        for (let i = 0; i < state.warmUpTicks; i++) { layout.tick(); } // Initial ticks before starting to render
 
-                // Update nodes position
-                d3Nodes.forEach(node => {
-                    const sphere = node;
-                    sphere.position.x = node.x || 0;
-                    // sphere.position.y = node.y || 0;
-                    sphere.position.z = node.y || 0;
-                });
-                // requestAnimationFrame(layoutTick);
+        let cntTicks = 0;
+        const startTickTime = new Date().getTime();
+        layout.on("tick", layoutTick).restart();
+
+        function layoutTick() {
+            if (cntTicks++ > state.coolDownTicks || (new Date().getTime()) - startTickTime > state.coolDownTime) {
+                layout.stop(); // Stop ticking graph
             }
+            // console.log(d3Nodes);
+
+            // Update nodes position
+            d3Nodes.forEach(node => {
+
+                const sphere = node;
+                // sphere.position.x = node.x || 0;
+                // // sphere.position.y = node.y || 0;
+                // sphere.position.z = node.y || 0;
+
+                sphere.position.x = node.x * 20 || 0;
+                // sphere.position.y = node.y || 0;
+                sphere.position.z = node.y * 20 || 0;
+            });
+            // requestAnimationFrame(layoutTick);
+        }
     }
 
     render(): void {
         // create a box and add it to the scene
         this.cubeGroupGL.name = 'SET_CUBE';
         this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
-        this.webGLScene.add(this.cubeGroupGL);  
+        this.webGLScene.add(this.cubeGroupGL);
+        this.cssScene.add(this.cubeGroupCSS); // add css group to css scene
+    }
+
+    clearLabels(): void {
+        let removed = new Array<THREE.CSS3DObject>();
+        this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
+            if (child.name.includes('LABEL')) removed.push(child);
+        });
+        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r));
     }
 
     updateLayout(layout: string): void {
         const segs = this.dm.timeRange.length;
-        if(layout ==='cluster'){ //just for testing cluster force in UI
+        if (layout === 'cluster') { //just for testing cluster force in UI
             // console.log('cluster')
-            this.forceClusterGraph(); 
-        }else{
+            this.forceClusterGraph();
+        } else {
             this.updateSetCube(segs, true, layout)
         }
     }
@@ -253,7 +306,7 @@ export class SetCube implements PolyCube {
             });
         }
 
-        if(layout === 'pack'){
+        if (layout === 'pack') {
             packLayout.forEach((d) => {
                 if (d.cat === category.key) {
                     circle.position.x = d.x
@@ -407,6 +460,15 @@ export class SetCube implements PolyCube {
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
+            //labels
+
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(0, 0, 0);
+
             let tween = new TWEEN.Tween(sourceCoords)
                 .to(targetCoords, 1000)
                 .delay(i * 300)
@@ -437,6 +499,16 @@ export class SetCube implements PolyCube {
                 y: -CUBE_CONFIG.HEIGHT / 2,
                 z: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
             };
+
+            //label
+            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            console.log(label);
+
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(-Math.PI / 2, 0, 0);
 
             let tween = new TWEEN.Tween(sourceCoords)
                 .to(targetCoords, 1000)
@@ -484,8 +556,8 @@ export class SetCube implements PolyCube {
 
         //on complete tweening, update setcube with flattened layers
         tween.onComplete(() => {
-            console.log('complete')
             this.updateSetCube(1)
+            this.clearLabels()
         })
     }
     transitionANI(): void { }
@@ -577,7 +649,7 @@ export class SetCube implements PolyCube {
         for (var i = 0; i < items.length; i++) {
             var x = x0 + r * Math.cos(2 * Math.PI * i / items.length);
             var y = y0 + r * Math.sin(2 * Math.PI * i / items.length);
-            circleLayout.push({ cat: items[i], x: x, y: y })
+            circleLayout.push({ cat: items[i], x: x, y: y, cluster: i })
         }
         return circleLayout
     }
@@ -654,7 +726,6 @@ export class SetCube implements PolyCube {
         });
         return correspondingSlice;
     }
-
 
     hideBottomLayer(): void { }
     showBottomLayer(): void { }
