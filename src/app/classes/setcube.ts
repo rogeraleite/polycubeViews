@@ -8,10 +8,13 @@ import * as D3 from 'd3';
 import * as moment from 'moment';
 import { ElementRef } from '@angular/core';
 import { mouse } from 'd3';
+import { forceCluster } from 'd3-force-cluster'
+
 
 export class SetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
     cubeGroupCSS: THREE.Group;
+    pointGroup: Array<THREE.Group>;
 
     // Data
     private dm: DataManager;
@@ -48,6 +51,9 @@ export class SetCube implements PolyCube {
         this.cubeGroupCSS = new THREE.Group();
         this.colors = D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
+        this.pointGroup = new Array<THREE.Group>();
+        // this.pointGroup.name = 'pointGroup'
+        this.cubeGroupGL.pointGroup = this.pointGroup;         
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -65,6 +71,7 @@ export class SetCube implements PolyCube {
 
     assembleData(): void {
         this.updateSetCube(this.dm.timeRange.length, true);
+        
     }
 
     //pass new slices numer and run the simulation again
@@ -144,21 +151,6 @@ export class SetCube implements PolyCube {
 
                 this.getLayouts(layout, category, circle)
 
-                // circleLayout.forEach((d) => {
-                //     if (d.cat === category.key) {
-                //         circle.position.x = d.y
-                //         circle.position.z = d.x;
-                //     }
-                // });
-
-                // packLayout.forEach((d) => {
-                //     if (d.cat === category.key) {
-                //         circle.position.x = d.x
-                //         circle.position.z = d.y;
-                //     }
-                // });
-
-
                 // this.cubeGroupGL.add(circle)
                 slice.add(circle)
 
@@ -178,6 +170,7 @@ export class SetCube implements PolyCube {
                     point.name = points.data.id;
                     point.data = points.data;
                     point.type = 'DATA_POINT'; //data point identifier
+                    this.pointGroup.push(point)
                     slice.add(point)
                 }) //points groups end
 
@@ -186,16 +179,65 @@ export class SetCube implements PolyCube {
         }) //complete group end
     }
 
+    // Add force-directed layout
+    // https://bl.ocks.org/lorenzopub/af1bc8b10e82f4ec8bff27673ef21a13
+
+    forceClusterGraph(): void{
+        let state = {
+            numDimensions:3,
+            warmUpTicks:0,
+            coolDownTicks: Infinity,
+            coolDownTime: 15000
+        }
+        let d3Nodes = this.pointGroup;
+        let groups =   this.getCircleLayout(this.setMap, 0, 0, 180)
+
+        const layout = D3.forceSimulation()
+            .nodes(d3Nodes)
+            .force('charge',  D3.forceManyBody().strength(4))
+            .force('center', D3.forceCenter(0,0))
+            // cluster by section
+            .force('cluster', forceCluster().centers(function (d) { return  d.data.category_1}))
+            .stop();
+            
+            for (let i=0; i<state.warmUpTicks; i++) { layout.tick(); } // Initial ticks before starting to render
+
+            let cntTicks = 0;
+            const startTickTime = new Date().getTime() ;
+            layout.on("tick", layoutTick).restart();
+            
+            function layoutTick() {
+                if (cntTicks++ > state.coolDownTicks || (new Date().getTime() ) - startTickTime > state.coolDownTime) {
+                    layout.stop(); // Stop ticking graph
+                }
+                // console.log(d3Nodes);
+
+                // Update nodes position
+                d3Nodes.forEach(node => {
+                    const sphere = node;
+                    sphere.position.x = node.x || 0;
+                    // sphere.position.y = node.y || 0;
+                    sphere.position.z = node.y || 0;
+                });
+                // requestAnimationFrame(layoutTick);
+            }
+    }
+
     render(): void {
         // create a box and add it to the scene
         this.cubeGroupGL.name = 'SET_CUBE';
         this.cubeGroupGL.position.set(CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER, 0, 0);
-        this.webGLScene.add(this.cubeGroupGL);
+        this.webGLScene.add(this.cubeGroupGL);  
     }
 
     updateLayout(layout: string): void {
         const segs = this.dm.timeRange.length;
-        this.updateSetCube(segs, true, layout)
+        if(layout ==='cluster'){ //just for testing cluster force in UI
+            // console.log('cluster')
+            this.forceClusterGraph(); 
+        }else{
+            this.updateSetCube(segs, true, layout)
+        }
     }
 
     getLayouts(layout: string, category: any, circle: THREE.Mesh) {

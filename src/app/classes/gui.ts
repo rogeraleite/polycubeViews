@@ -102,7 +102,7 @@ export class GUI {
 
         let sCubeFolder = this.gui.addFolder('SetCube');
 
-        sCubeFolder.add(sCubeParams, 'layout', ['circle', 'pack']).onChange(() => {
+        sCubeFolder.add(sCubeParams, 'layout', ['circle', 'pack', 'cluster']).onChange(() => {
             this.sCubeConfigEmitter.emit('change', {
                 sLayout: sCubeParams.layout
             });
