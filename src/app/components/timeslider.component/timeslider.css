@@ -55,3 +55,8 @@
     fill: #353636;
     stroke-width: 0;
 }
+
+::ng-deep .brush rect.selection {
+    fill: steelblue;
+    fill-opacity: .125;
+}

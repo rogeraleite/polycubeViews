@@ -66,28 +66,14 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('class', 'axis2 axis--y2')
             .attr('transform', `translate(0, ${margin.top})`)
             .call(
-                D3.axisLeft(this.yScale)
-                    .ticks(D3.timeMonth)
-                    .tickSize(-this.width)
-                    .tickFormat(() => {
-                        return null;
-                    })
+                D3.axisRight(this.yScale)
+                .ticks(D3.timeYear.every(1))
+                .tickSize(10)
+                .tickFormat((d: Date) => {
+                  return D3.timeFormat('%Y')(d);
+                })
             )
             .selectAll('.tick')
-
-        this._svg.append('g')
-            .attr('class', 'axis axis--y')
-            .attr('transform', `translate(0, ${margin.top})`)
-            .call(
-                D3.axisLeft(this.yScale)
-                    .tickFormat((d: Date) => {
-                        return D3.timeYear(d) < d ? D3.timeFormat('%b')(d) : D3.timeFormat('%b%Y')(d);
-                    })
-            )
-            .attr('text-anchor', null)
-            .selectAll('text')
-            .attr('x', 70)
-            .attr('fill', 'black'); // TODO: change colorcoding later according to timer
 
         //animate button
         let button = this._svg.append('g')
