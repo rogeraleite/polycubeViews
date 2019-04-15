@@ -52,7 +52,7 @@ export class SetCube implements PolyCube {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
         this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
-        this.colors = D3.scaleOrdinal(D3.schemePaired);
+        this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
         this.pointGroup = new Array<THREE.Group>();
         // this.pointGroup.name = 'pointGroup'
@@ -343,7 +343,7 @@ export class SetCube implements PolyCube {
         this.colorCoding = encoding;
         switch (encoding) {
             case 'categorical':
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors;//D3.scaleOrdinal(D3.schemePaired);
                 break;
             case 'temporal':
                 this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
@@ -353,7 +353,7 @@ export class SetCube implements PolyCube {
                 break;
 
             default:
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors;//D3.scaleOrdinal(D3.schemePaired);
                 break;
         }
     }
@@ -427,6 +427,18 @@ export class SetCube implements PolyCube {
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
+    filterDataByCategory(cat: string): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
+            });
+        });
+    }
+
     filterDataByDatePeriod(startDate: Date, endDate: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if (child.type !== 'Group') return;
@@ -484,6 +496,7 @@ export class SetCube implements PolyCube {
                 .start();
         });//end forEach
     }
+
     transitionJP(): void {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.boundingBox.visible = false;
@@ -575,6 +588,30 @@ export class SetCube implements PolyCube {
             case 'monochrome': return '#b5b5b5';
             default: return this.colors(object.data.category_1)
         }
+    }
+
+    
+    resetCateogrySelection(gray: boolean = false): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+            });
+        });
+    }
+
+    
+    resetCateogrySelection(gray: boolean = false): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+            });
+        });
     }
 
     /**

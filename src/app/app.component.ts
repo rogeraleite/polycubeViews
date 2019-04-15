@@ -47,6 +47,7 @@ export class AppComponent implements AfterViewInit {
    controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
+
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
 
@@ -54,7 +55,7 @@ export class AppComponent implements AfterViewInit {
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
    dataManager: DataManager;
 
-   loadingDataset: boolean = false;
+   loadingDataset: boolean = true;
    dataLoaded: boolean = false;
    errorOccurred: boolean = false;
    errorMessage: string;
@@ -62,9 +63,16 @@ export class AppComponent implements AfterViewInit {
    // animation duration
    duration: number;
 
+   // frontend things
+   categoriesAndColors: Map<string, string>;
+   showColorCodingLegend: boolean = true;
+   categories: Array<string>;
+
    // inject google
    constructor(private google: GoogleDriveProvider, private compRef: ElementRef) {
       this.previewItem = null;
+      this.categories = new Array<string>();
+      this.categoriesAndColors = new Map<string, string>();
       this.duration = CUBE_CONFIG.DURATION ? CUBE_CONFIG.DURATION : 2000;
    }
 
@@ -124,6 +132,8 @@ export class AppComponent implements AfterViewInit {
          this.dataManager.data = success;
          this.loadingDataset = false;
          this.dataLoaded = true;
+         this.categories = Array.from(this.dataManager.categories.keys());
+         this.categoriesAndColors = this.dataManager.categories;
          this.initScene();
          this.initCubes();
          this.initGUI();
@@ -181,6 +191,7 @@ export class AppComponent implements AfterViewInit {
       this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
          $event.preventDefault();
          let foundItem = this.getClickedItem($event);
+         
          if(foundItem) {
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
@@ -188,7 +199,8 @@ export class AppComponent implements AfterViewInit {
                date: moment(foundItem.date_time).format('DD-MM-YYYY'),
                location: foundItem.location_name,
                description: foundItem.description,
-               externalURL: foundItem.media_url
+               externalURL: foundItem.media_url,
+               categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
             };
          } else {
             this.previewItem = null;
@@ -196,6 +208,19 @@ export class AppComponent implements AfterViewInit {
             this.tooltip.nativeElement.style.opacity = '0';
          }
       });
+   }
+
+   clearCategoryFilter(): void {
+      this.gCube.resetCateogrySelection();
+      this.sCube.resetCateogrySelection();
+      this.nCube.resetCateogrySelection();
+   }
+
+   filterDataByCategory(cat: string): void {
+
+      this.gCube.filterDataByCategory(cat);
+      this.sCube.filterDataByCategory(cat);
+      this.nCube.filterDataByCategory(cat);
    }
 
    getClickedItem = ($event) =>{
@@ -245,6 +270,8 @@ export class AppComponent implements AfterViewInit {
          }
 
          if(change.nodeColor) {
+            this.showColorCodingLegend = change.nodeColor !== 'categorical' ? false : true;
+            
             this.gCube.updateNodeColor(change.nodeColor);
             this.sCube.updateNodeColor(change.nodeColor);
             this.nCube.updateNodeColor(change.nodeColor);

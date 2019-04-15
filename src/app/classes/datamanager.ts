@@ -16,11 +16,17 @@ export class DataManager {
     private MIN_DATE: Date;
     private MAX_DATE: Date;
 
+    private _categories: Map<string, string>;
+    private _colors: D3.ScaleOrdinal<string, string>;
+
     constructor() {
         this._data_map = new Map();
         this._cushman_pos = new CushmanForcedDirected();
         this._numSlices = 10;
         this._timeRange = new Array<Date>();
+
+        this._categories = new Map<string, string>();
+        this._colors = D3.scaleOrdinal(D3.schemePaired);
     }
 
     get dataMap(): Map<any,any> {
@@ -47,10 +53,33 @@ export class DataManager {
 
         
         this.createDataMap();
+        this.createCategories();
     }
 
     get timeRange(): any {
         return this._timeRange;
+    }
+
+    get categories(): Map<string, string> {
+        return this._categories;
+    }
+
+    get colors(): D3.ScaleOrdinal<string, string> {
+        return this._colors;
+    }
+
+    getNodeById(id: string): any {
+    return this._data.find((d: any) => { 
+        return d.id == id; 
+    });
+    }
+
+    createCategories(): void {
+
+        this._data.forEach((d: any) => { 
+            if(this._categories.has(d.category_1)) return;
+            this._categories.set(d.category_1, this._colors(d.category_1));
+        });
     }
 
     createDataMap(): any{

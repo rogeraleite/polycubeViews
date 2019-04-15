@@ -31,6 +31,34 @@
     border-right: 2px dashed #f3f3f3;
 }
 
+.categories {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.category-legend {
+    position: absolute;
+    display: flex;
+    top: 1em;
+    width: 100vw;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    margin: auto;
+    z-index: 1000;
+}
+
+.category-legend > div {
+    margin: .25em;
+}
+
+.category-legend > div > span {
+    cursor: pointer;
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+}
+
 .error {
     position: absolute !important; 
     bottom: 0em;

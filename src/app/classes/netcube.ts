@@ -46,7 +46,7 @@ export class NetCube implements PolyCube {
     createObjects(): void {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
-        this.colors = D3.scaleOrdinal(D3.schemePaired);
+        this.colors = this.dm.colors;
 
         this.createSlices();
 
@@ -118,7 +118,7 @@ export class NetCube implements PolyCube {
         this.colorCoding = encoding;
         switch(encoding) {
             case 'categorical' : 
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors;//D3.scaleOrdinal(D3.schemePaired);
                 break;
             case 'temporal' :
                 this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
@@ -128,7 +128,7 @@ export class NetCube implements PolyCube {
                 break;
 
             default:
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
                 break;
         }
     }
@@ -209,7 +209,26 @@ export class NetCube implements PolyCube {
         return isFirstDate && isSecondDate;
     }
 
+    filterDataByCategory(cat: string): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
 
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
+            });
+        });
+
+        this.links.children.forEach((e: THREE.Group) => {
+            e.visible = true;
+            
+            let source = this.dm.dataMap[e.name.split('_')[0]];
+            let target = this.dm.dataMap[e.name.split('_')[1]];
+
+            if(source.category_1 !== cat || target.category_1 !== cat) e.visible = false;
+        });
+    }
 
     filterDataByDatePeriod(startDate: Date, endDate: Date): void {
         this.hideNodesByDatePeriod(startDate, endDate);
@@ -373,6 +392,19 @@ export class NetCube implements PolyCube {
             case 'monochrome' : return '#b5b5b5';
             default: return this.colors(object.data.category_1)
         }
+    }
+
+    resetCateogrySelection(gray: boolean = false): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+            });
+        });
+
+        this.links.children.forEach((e: THREE.Group) => { e.visible = true; });
     }
 
     /**

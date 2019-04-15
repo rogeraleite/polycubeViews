@@ -10,6 +10,9 @@ export interface PolyCube {
     assembleData: Function,
     render: Function,
     filterDataByDatePeriod: Function,
+    filterDataByCategory: Function,
+    resetSelection: Function,
+    resetCateogrySelection: Function,
 
     // updating settings / data
     updateView: Function,

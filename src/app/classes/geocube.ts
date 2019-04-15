@@ -9,8 +9,6 @@ import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as mapboxgl from 'mapbox-gl';
 import * as moment from 'moment';
-import { Vector2 } from 'three';
-import { SwitchView } from '@angular/common/src/directives/ng_switch';
 
 export class GeoCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -135,7 +133,8 @@ export class GeoCube implements PolyCube {
     createObjects(): void {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
-        this.colors = D3.scaleOrdinal(D3.schemePaired);
+        this.colors = this.dm.colors;
+
         this.slices = new Array<THREE.Group>();
 
         let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
@@ -320,7 +319,7 @@ export class GeoCube implements PolyCube {
         this.colorCoding = encoding;
         switch(encoding) {
             case 'categorical' : 
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
                 break;
             case 'temporal' :
                 this.colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dm.getMinDate(), this.dm.getMaxDate()]);
@@ -330,7 +329,7 @@ export class GeoCube implements PolyCube {
                 break;
 
             default:
-                this.colors = D3.scaleOrdinal(D3.schemePaired);
+                this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
                 break;
         }
     }
@@ -469,6 +468,17 @@ export class GeoCube implements PolyCube {
         });
     }
 
+    filterDataByCategory(cat: string): void {
+        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
+            });
+        });
+    }
 
 
     filterDataByDatePeriod(startDate: Date, endDate: Date): void {
@@ -673,6 +683,17 @@ export class GeoCube implements PolyCube {
         }
     }
 
+    resetCateogrySelection(gray: boolean = false): void {
+        this.cubeGroupGL.children.forEach((child: any) => {
+            if(child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if(grandChild.type !== 'DATA_POINT') return;
+                grandChild.visible = true;
+            });
+        });
+    }
+
     /**
      * Iterates through all timeslices and all data points
      * Resets their position and color back to default
@@ -683,7 +704,6 @@ export class GeoCube implements PolyCube {
 
             child.children.forEach((grandChild: any) => {
                 if(grandChild.type !== 'DATA_POINT') return;
-
                 grandChild.scale.set(1,1,1);
                 grandChild.material.color.set(gray ? '#b5b5b5' : this.getCurrentColor(grandChild));
             });
