@@ -24,6 +24,8 @@
 }
 
 .gui {
+    position: relative;
+    z-index: 1000;
     padding: 1em;
     width: 25vw;
     height: inherit;
@@ -45,7 +47,7 @@
     justify-content: center;
     align-content: center;
     margin: auto;
-    z-index: 1000;
+    z-index: 999;
 }
 
 .category-legend > div {
@@ -120,4 +122,10 @@
 ::ng-deep .animateButton,
 ::ng-deep .animateButton text {
     cursor: pointer;
+}
+
+
+/*DAT GUI*/
+::ng-deep .dg.ac {
+    z-index: 1000 !important;
 }
