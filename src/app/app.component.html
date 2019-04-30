@@ -56,6 +56,7 @@
 </div>
 
 <div class="category-legend" *ngIf="showColorCodingLegend">
+    <label>Clickable Legend:</label>
     <div *ngFor="let c of categories">
         <span class="badge badge-secondary"  data-toggle="tooltip" data-placement="bottom" [title]="c" (click)="filterDataByCategory(c)" [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
     </div>
