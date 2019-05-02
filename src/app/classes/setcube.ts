@@ -589,19 +589,6 @@ export class SetCube implements PolyCube {
             default: return this.colors(object.data.category_1)
         }
     }
-
-    
-    resetCateogrySelection(gray: boolean = false): void {
-        this.cubeGroupGL.children.forEach((child: any) => {
-            if(child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-            });
-        });
-    }
-
     
     resetCateogrySelection(gray: boolean = false): void {
         this.cubeGroupGL.children.forEach((child: any) => {
