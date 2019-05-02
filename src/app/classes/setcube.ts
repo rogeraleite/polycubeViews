@@ -173,9 +173,11 @@ export class SetCube implements PolyCube {
                 let parentPos = circle.position;
 
                 //get this category points positions
-                let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
+                // let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
 
-                spiralCategory.forEach((points) => { //points group 
+                let phyllotaxis = this.getPhyllotaxis(parentPos.x, parentPos.z, rad,category.values);
+
+                phyllotaxis.forEach((points) => { //points group 
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
                     const point = new THREE.Mesh(pointGeometry, material);
 
@@ -429,12 +431,12 @@ export class SetCube implements PolyCube {
 
     filterDataByCategory(cat: string): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+                if (grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
+                if (grandChild.data.category_1 !== cat) grandChild.visible = false;
             });
         });
     }
@@ -589,13 +591,13 @@ export class SetCube implements PolyCube {
             default: return this.colors(object.data.category_1)
         }
     }
-    
+
     resetCateogrySelection(gray: boolean = false): void {
         this.cubeGroupGL.children.forEach((child: any) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+                if (grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
             });
         });
@@ -731,6 +733,36 @@ export class SetCube implements PolyCube {
             let y = centerY + Math.cos(around) * away;
 
             new_time.push({ x: x, y: y, data: group_list[i] });
+        }
+
+        return new_time
+    }
+
+    getPhyllotaxis(centerX: number, centerY: number, radius: number, data: any) {
+
+        data.sort(function(a:any,b:any){
+            // Turn your strings into dates, and then subtract them
+            // to get a value that is either negative, positive, or zero.
+            return new Date(b.date_time).getTime() + new Date(a.date_time).getTime();
+          });
+
+        var theta = Math.PI * (3 - Math.sqrt(5)),
+            spacing = 5,
+            size = spacing - 1,
+            speed = 1,
+            index = 0,
+            total = (radius * radius) / (spacing * spacing);
+        let new_time = [];
+
+        // For every side, step around and away from center.
+        for (let i = 0; i < data.length; i++) {
+            var radius = spacing * Math.sqrt(++index),
+                angle = index * theta;
+
+            let x = centerX + radius * Math.cos(angle);
+            let y = centerY + radius * Math.sin(angle);
+
+            new_time.push({ x: x, y: y, data: data[i] });
         }
 
         return new_time
