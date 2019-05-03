@@ -427,31 +427,23 @@ export class SetCube implements PolyCube {
     }
 
     dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
+        if(!startDate) startDate = this.dm.getMinDate();
+        if(!endDate) endDate = this.dm.getMaxDate();
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
-    filterDataByCategory(cat: string): void {
+    filterData(cat: string, start: Date, end: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if (child.type !== 'Group') return;
+            if(child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if (grandChild.type !== 'DATA_POINT') return;
+                if(grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if (grandChild.data.category_1 !== cat) grandChild.visible = false;
+                if(!(this.dateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ?  true : grandChild.data.category_1 === cat))) {
+                    grandChild.visible = false;
+                }
             });
         });
-    }
-
-    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if (child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if (grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-                if (!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
-            });
-        })
     }
 
 

@@ -466,27 +466,16 @@ export class GeoCube implements PolyCube {
         });
     }
 
-    filterDataByCategory(cat: string): void {
+    filterData(cat: string, start: Date, end: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if(child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
                 if(grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
-            });
-        });
-    }
-
-
-    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-                if(!this.dateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
+                if(!(this.dateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ?  true : grandChild.data.category_1 === cat))) {
+                    grandChild.visible = false;
+                }
             });
         });
     }

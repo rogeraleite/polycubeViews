@@ -210,24 +210,17 @@ export class NetCube implements PolyCube {
         return isFirstDate && isSecondDate;
     }
 
-    filterDataByCategory(cat: string): void {
+    filterData(cat: string, start: Date, end: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if(child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
                 if(grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if(grandChild.data.category_1 !== cat) grandChild.visible = false;
+                if(!(this.isDateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ?  true : grandChild.data.category_1 === cat))) {
+                    grandChild.visible = false;
+                }
             });
-        });
-
-        this.links.children.forEach((e: THREE.Group) => {
-            e.visible = true;
-            
-            let source = this.dm.dataMap[e.name.split('_')[0]];
-            let target = this.dm.dataMap[e.name.split('_')[1]];
-
-            if(source.category_1 !== cat || target.category_1 !== cat) e.visible = false;
         });
     }
 

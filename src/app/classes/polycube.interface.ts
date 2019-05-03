@@ -9,8 +9,7 @@ export interface PolyCube {
     createObjects: Function,
     assembleData: Function,
     render: Function,
-    filterDataByDatePeriod: Function,
-    filterDataByCategory: Function,
+    filterData: Function,
     resetSelection: Function,
     resetCateogrySelection: Function,
 
