@@ -34,6 +34,9 @@ export class AppComponent implements AfterViewInit {
 
    processingChange: boolean = false;
 
+   currentlySelectedCategory: string;
+   currentlySelectedDateExtent: Array<Date>;
+
    /**
   * PolyCube main controller
   * - loads and parses data
@@ -81,6 +84,9 @@ export class AppComponent implements AfterViewInit {
       this.categories = new Array<string>();
       this.categoriesAndColors = new Map<string, string>();
       this.duration = CUBE_CONFIG.DURATION ? CUBE_CONFIG.DURATION : 2000;
+
+      this.currentlySelectedCategory = '';
+      this.currentlySelectedDateExtent = new Array<Date>();
    }
 
    /**
@@ -141,10 +147,11 @@ export class AppComponent implements AfterViewInit {
          this.dataManager.data = success;
          this.loadingDataset = false;
          this.dataLoaded = true;
+         // default date extent for filtering
+         this.currentlySelectedDateExtent.push(this.dataManager.getMinDate());
+         this.currentlySelectedDateExtent.push(this.dataManager.getMaxDate());
 
-         Array.from(this.dataManager.categories.keys()).forEach((c: any) => {
-            c === '' ? this.categories.push('No Category') : this.categories.push(c);
-         });
+         this.categories = Array.from(this.dataManager.categories.keys());
 
          this.categoriesAndColors = this.dataManager.categories;
          this.initScene();
@@ -221,19 +228,6 @@ export class AppComponent implements AfterViewInit {
             this.tooltip.nativeElement.style.opacity = '0';
          }
       });
-   }
-
-   clearCategoryFilter(): void {
-      this.gCube.resetCateogrySelection();
-      this.sCube.resetCateogrySelection();
-      this.nCube.resetCateogrySelection();
-   }
-
-   filterDataByCategory(cat: string): void {
-
-      this.gCube.filterDataByCategory(cat);
-      this.sCube.filterDataByCategory(cat);
-      this.nCube.filterDataByCategory(cat);
    }
 
    getClickedItem = ($event) =>{
@@ -490,9 +484,31 @@ export class AppComponent implements AfterViewInit {
    }
 
    filterDataWithTimeSlider($event: any): void {
-      this.gCube.filterDataByDatePeriod($event[0], $event[1]);
-      this.sCube.filterDataByDatePeriod($event[0], $event[1]);
-      this.nCube.filterDataByDatePeriod($event[0], $event[1]);
+     this.currentlySelectedDateExtent[0] = $event[0];
+     this.currentlySelectedDateExtent[1] = $event[1];
+
+     this.applyFilter();
+   }
+
+   clearCategoryFilter(): void {
+      this.gCube.resetCateogrySelection();
+      this.sCube.resetCateogrySelection();
+      this.nCube.resetCateogrySelection();
+   }
+
+   filterDataByCategory(cat: string): void {
+     this.currentlySelectedCategory = cat;
+     this.applyFilter();
+   }
+
+   applyFilter(): void {
+      this.gCube.filterData(this.currentlySelectedCategory, this.currentlySelectedDateExtent[0], this.currentlySelectedDateExtent[1]);
+      this.sCube.filterData(this.currentlySelectedCategory, this.currentlySelectedDateExtent[0], this.currentlySelectedDateExtent[1]);
+      this.nCube.filterData(this.currentlySelectedCategory, this.currentlySelectedDateExtent[0], this.currentlySelectedDateExtent[1]);
+   }
+
+   formatDate(date: Date): string {
+      return moment(date).format('DD/MM/YYYY');
    }
 
    /**
