@@ -28,6 +28,7 @@ export class GoogleDriveProvider {
                     data.forEach((item: any) => {
                         item.date_time = moment(item.date_time).toDate();
                         item.target_nodes = item.target_nodes.split(';').map(Number);
+                        item.category_1 = item.category_1 === "" ? "No Category" : item.category_1;
                         item.label = item.label.split(';').map(Number);
                         // TODO: data.date_range, data.range
                     });
