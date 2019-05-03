@@ -34,7 +34,7 @@
             </div>
 
             <div class="preview-item" *ngIf="previewItem">
-                <h2 class="preview-title">{{ previewItem.title }} </h2>
+                <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
                 <img class="preview-picture" [src]="previewItem.mediaURL">
                 <div *ngFor="let cat of previewItem.categories" class="categories">
                     <span class="badge badge-secondary">{{ cat }}</span>
