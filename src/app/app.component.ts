@@ -43,6 +43,8 @@ export class AppComponent implements AfterViewInit {
    webGLScene: THREE.Scene;
    cssScene: THREE.Scene;
    camera: THREE.Camera; //PerspectiveCamera or OrthographicCamera;
+   perspectiveCamera: THREE.PerspectiveCamera;
+   orthographicCamera: THREE.OrthographicCamera;
    light: THREE.Light;
    controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
@@ -109,8 +111,10 @@ export class AppComponent implements AfterViewInit {
 
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
      
-      this.camera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
-      // this.camera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.orthographicCamera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
+      this.perspectiveCamera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+
+      this.camera = this.orthographicCamera;
       this.camera.up.set(0, 1, 0);
       this.camera.position.set(0, 0, 1000);
       this.camera.lookAt(this.webGLScene.position.x, this.webGLScene.position.y, this.webGLScene.position.z);
@@ -321,6 +325,33 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionSI();
          this.nCube.transitionSI();
       });
+   }
+
+   usePerspectiveCamera(): void {
+      let cameraPosition = this.orthographicCamera.position.clone();
+      let cameraZoom = this.orthographicCamera.zoom;
+
+      this.camera = this.perspectiveCamera;
+
+      this.camera.zoom = cameraZoom;
+      this.camera.position.copy(cameraPosition);
+      this.camera.updateProjectionMatrix();
+
+      this.controls.object = this.camera;
+   }
+
+   useOrthographicCamera(): void {
+      let cameraPosition = this.perspectiveCamera.position.clone();
+      let cameraZoom = this.perspectiveCamera.zoom;
+
+      this.camera = this.orthographicCamera;
+      this.camera.zoom = cameraZoom;
+      
+      this.camera.position.copy(cameraPosition);
+      this.camera.updateProjectionMatrix();
+
+
+      this.controls.object = this.camera;
    }
 
    /**
