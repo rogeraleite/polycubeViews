@@ -54,16 +54,20 @@
     </div>
 </div>
 
-<div class="category-legend" *ngIf="showColorCodingLegend">
-    <label>Clickable Legend:</label>
-    <div *ngFor="let c of categories">
-        <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" [title]="c"
-            (click)="filterDataByCategory(c)"
-            [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
+<div class="category-legend">
+    <!-- <label>Clickable Legend:</label> -->
+    <div class="category-wrapper" *ngIf="showColorCodingLegend">
+        <div *ngFor="let c of categories">
+            <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" [title]="c"
+                (click)="filterDataByCategory(c)"
+                [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
+        </div>
     </div>
-    <div>
-        <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" title="Clear"
-            (click)="clearCategoryFilter()" style="background-color:#424242; font-size: 15px;">&times;</span>
+    <div class="category-wrapper">
+        <div>
+            <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" title="Clear"
+                (click)="clearCategoryFilter()" style="background-color:#424242; font-size: 15px;">&times;</span>
+        </div>
     </div>
 </div>
 
