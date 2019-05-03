@@ -639,11 +639,11 @@ export class SetCube implements PolyCube {
             let selectedObject = intersections[i].object;
             if (selectedObject.type !== 'DATA_POINT') continue;
             // get first intersect that is a data point
-            tooltip.nativeElement.style.display = 'block';
-            tooltip.nativeElement.style.opacity = '.9';
-            tooltip.nativeElement.style.top = `${$event.pageY}px`;
-            tooltip.nativeElement.style.left = `${$event.pageX}px`;
-            tooltip.nativeElement.innerHTML = selectedObject.data.description;
+            // tooltip.nativeElement.style.display = 'block';
+            // tooltip.nativeElement.style.opacity = '.9';
+            // tooltip.nativeElement.style.top = `${$event.pageY}px`;
+            // tooltip.nativeElement.style.left = `${$event.pageX}px`;
+            // tooltip.nativeElement.innerHTML = selectedObject.data.description;
             return selectedObject.data;
         }
         this.resetSelection();

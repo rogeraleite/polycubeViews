@@ -731,15 +731,15 @@ export class GeoCube implements PolyCube {
             if(selectedObject.type !== 'DATA_POINT') continue;
             // got intersect 
             // setup tootlip and return object
-            tooltip.nativeElement.style.display = 'block';
-            tooltip.nativeElement.style.opacity = '.9';
-            tooltip.nativeElement.style.top = `${$event.pageY}px`;
-            tooltip.nativeElement.style.left = `${$event.pageX}px`;
-            tooltip.nativeElement.innerHTML = `
-                                                <h2>${selectedObject.data.id}</h2>
-                                                <p>${selectedObject.data.description}</p>
-                                                <p>Photo taken on ${moment(selectedObject.data.date_time).format('DD/MM/YYYY')} @ ${selectedObject.data.location_name}</p>
-                                              `;
+            // tooltip.nativeElement.style.display = 'block';
+            // tooltip.nativeElement.style.opacity = '.9';
+            // tooltip.nativeElement.style.top = `${$event.pageY}px`;
+            // tooltip.nativeElement.style.left = `${$event.pageX}px`;
+            // tooltip.nativeElement.innerHTML = `
+            //                                     <h2>${selectedObject.data.id}</h2>
+            //                                     <p>${selectedObject.data.description}</p>
+            //                                     <p>Photo taken on ${moment(selectedObject.data.date_time).format('DD/MM/YYYY')} @ ${selectedObject.data.location_name}</p>
+            //                                   `;
           
             return selectedObject.data;
         }
