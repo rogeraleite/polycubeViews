@@ -1,57 +1,52 @@
 <div class="wrapper">
     <div class="gui">
-            <div class="pc-tooltip" #tooltip></div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
-            </div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
-                <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
-                <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
-            </div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-secondary" id="stc-view-button">STC</button>
-                <button type="button" class="btn btn-secondary" id="jp-view-button">JP</button>
-                <button type="button" class="btn btn-secondary" id="si-view-button">SI</button>
-            </div>
-            <div class="btn-grop" role="group">
-                <button type="button" class="btn btn-secondary" (click)="usePerspectiveCamera()">Perspective</button>
-                <button type="button" class="btn btn-secondary" (click)="useOrthographicCamera()">Orthographic</button>
-            </div>
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
-                <div class="input-group-append">
-                    <div *ngIf="!loadingDataset">
-                        <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
-                    </div>
-                    <div *ngIf="loadingDataset">
-                        <button class="btn btn-secondary" type="button" disabled>
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            Loading...
-                        </button>
-                    </div>
+        <div class="pc-tooltip" #tooltip></div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-secondary" id="poly-view-button">PolyCube</button>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-secondary" id="geo-view-button">GeoCube</button>
+            <button type="button" class="btn btn-secondary" id="set-view-button">SetCube</button>
+            <button type="button" class="btn btn-secondary" id="net-view-button">NetCube</button>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-secondary" id="stc-view-button">STC</button>
+            <button type="button" class="btn btn-secondary" id="jp-view-button">JP</button>
+            <button type="button" class="btn btn-secondary" id="si-view-button">SI</button>
+        </div>
+        <div class="btn-grop" role="group">
+            <button type="button" class="btn btn-secondary" (click)="usePerspectiveCamera()">Perspective</button>
+            <button type="button" class="btn btn-secondary" (click)="useOrthographicCamera()">Orthographic</button>
+        </div>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Spreadsheet Id" #spreadsheetInput>
+            <div class="input-group-append">
+                <div *ngIf="!loadingDataset">
+                    <button class="btn btn-secondary" type="button" (click)="updateDataset()">Load</button>
+                </div>
+                <div *ngIf="loadingDataset">
+                    <button class="btn btn-secondary" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <div class="preview-item" *ngIf="previewItem">
-                <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
-                <img (click)="openPicture(previewItem.mediaURL, previewItem.description)" class="preview-picture" [src]="previewItem.mediaURL">
-                <div *ngFor="let cat of previewItem.categories" class="categories">
-                    <span class="badge badge-secondary">{{ cat }}</span>
-                </div>
-                <p class="preview-metainfo">{{ previewItem.date }} @ {{ previewItem.location }}</p>
-                <br>
-                <p class="preview-description">{{ previewItem.description }}</p>
-                <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>
+        <div class="preview-item" *ngIf="previewItem">
+            <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
+            <img (click)="openPicture(previewItem.mediaURL, previewItem.description)" class="preview-picture"
+                [src]="previewItem.mediaURL">
+            <div *ngFor="let cat of previewItem.categories" class="categories">
+                <span class="badge badge-secondary">{{ cat }}</span>
             </div>
-            <app-timeslider 
-                *ngIf="dataLoaded" 
-                [minDate]="getMinDate()" 
-                [maxDate]="getMaxDate()" 
-                [width]="60" 
-                [height]="getWindowInnerHeight()"
-                (onSelect)="filterDataWithTimeSlider($event)"
-            ></app-timeslider>
+            <p class="preview-metainfo">{{ previewItem.date }} @ {{ previewItem.location }}</p>
+            <br>
+            <p class="preview-description">{{ previewItem.description }}</p>
+            <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>
+        </div>
+        <app-timeslider *ngIf="dataLoaded" [minDate]="getMinDate()" [maxDate]="getMaxDate()" [width]="60"
+            [height]="getWindowInnerHeight()" (onSelect)="filterDataWithTimeSlider($event)"></app-timeslider>
     </div>
     <div class="canvases">
         <canvas id="webgl-canvas" #webGLCanvas></canvas>
@@ -62,21 +57,31 @@
 <div class="category-legend" *ngIf="showColorCodingLegend">
     <label>Clickable Legend:</label>
     <div *ngFor="let c of categories">
-        <span class="badge badge-secondary"  data-toggle="tooltip" data-placement="bottom" [title]="c" (click)="filterDataByCategory(c)" [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
+        <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" [title]="c"
+            (click)="filterDataByCategory(c)"
+            [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
     </div>
     <div>
-        <span class="badge badge-secondary"  data-toggle="tooltip" data-placement="bottom" title="Clear" (click)="clearCategoryFilter()" style="background-color:#424242; font-size: 15px;">&times;</span>
-    </div> 
+        <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" title="Clear"
+            (click)="clearCategoryFilter()" style="background-color:#424242; font-size: 15px;">&times;</span>
+    </div>
 </div>
 
 <div class="modal" #modal>
-  <span class="close" (click)="closePicture()">&times;</span>
-  <img class="modal-content" id="img01" #img>
-  <div id="caption" #caption></div>
+    <span class="close" (click)="closePicture()">&times;</span>
+    <img class="modal-content" id="img01" #img>
+    <div id="caption" #caption></div>
+</div>
+
+<div class="processing-change" *ngIf="processingChange">
+    <div class="spinner-border text-info" role="status">
+        <span class="sr-only"></span>
+    </div>
+    <p>Processing new configuration...</p>
 </div>
 
 <div *ngIf="errorOccurred" class="alert alert-danger error">
     <a href="#" class="close" data-dismiss="alert" aria-label="close" (click)="errorOccurred = false">&times;</a>
-    <strong>Error</strong> 
+    <strong>Error</strong>
     <p>{{ errorMessage }}</p>
 </div>

@@ -32,6 +32,8 @@ export class AppComponent implements AfterViewInit {
    title = 'polycubeViews';
    previewItem: any;
 
+   processingChange: boolean = false;
+
    /**
   * PolyCube main controller
   * - loads and parses data
@@ -251,6 +253,10 @@ export class AppComponent implements AfterViewInit {
    initGUI = () => {
       this.gui = new GUI();
       // general settings
+      this.gui.pCubeConfigEmitter.on('processing', (change: any) => {
+         this.processingChange = change;
+      });
+
       this.gui.pCubeConfigEmitter.on('change', (change: any) => {
          if(change.backgroundColor) {
             this.compRef.nativeElement.ownerDocument.body.style.backgroundColor = change.backgroundColor;
@@ -268,6 +274,7 @@ export class AppComponent implements AfterViewInit {
             this.gCube.updateNumSlices(change.numSlices);
             this.sCube.updateNumSlices(change.numSlices);
             this.nCube.updateNumSlices(change.numSlices);
+            // this.processingChange = false;
          }
 
          if(change.nodeSize) {
@@ -286,6 +293,9 @@ export class AppComponent implements AfterViewInit {
 
          if(change.dataSet) {
          }
+
+         // we should be done processing changes
+         this.processingChange = false;
       });
       // geocube settings
       this.gui.gCubeConfigEmitter.on('change', (change: any) => {

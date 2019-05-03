@@ -50,7 +50,11 @@ export class GUI {
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
         
-        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(50).step(1).onFinishChange(() => {
+        pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(50).step(1)
+        .onChange(() => {
+            this.pCubeConfigEmitter.emit('processing', true);
+        })
+        .onFinishChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 numSlices: Math.floor(pCubeParams.numSlices)
             });
