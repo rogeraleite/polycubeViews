@@ -24,6 +24,9 @@ export class AppComponent implements AfterViewInit {
    @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
    @ViewChild('webGLCanvas') webGLContainer: ElementRef;
    @ViewChild('cssCanvas') cssContainer: ElementRef;
+   @ViewChild('modal') modalContainer: ElementRef;
+   @ViewChild('img') imgContainer: ElementRef;
+   @ViewChild('caption') captionContainer: ElementRef;
 
    @ViewChild('tooltip') tooltip: ElementRef;
    title = 'polycubeViews';
@@ -346,7 +349,7 @@ export class AppComponent implements AfterViewInit {
 
       this.camera = this.orthographicCamera;
       this.camera.zoom = cameraZoom;
-      
+
       this.camera.position.copy(cameraPosition);
       this.camera.updateProjectionMatrix();
 
@@ -407,6 +410,20 @@ export class AppComponent implements AfterViewInit {
          })
       });
    };
+
+   closePicture(): void {
+      this.modalContainer.nativeElement.style.display = 'none';
+      this.imgContainer.nativeElement.style.display = 'none';
+      this.imgContainer.nativeElement.src = '';
+      this.captionContainer.nativeElement.innerHTML = '';
+   }
+
+   openPicture(url: string, desc: string): void {
+      this.modalContainer.nativeElement.style.display = 'block';
+      this.imgContainer.nativeElement.style.display = 'block';
+      this.imgContainer.nativeElement.src = url;
+      this.captionContainer.nativeElement.innerHTML = desc;
+   }
 
    /**
     * Updates which cubes are shown based on user selection

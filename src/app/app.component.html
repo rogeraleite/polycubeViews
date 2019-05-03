@@ -35,7 +35,7 @@
 
             <div class="preview-item" *ngIf="previewItem">
                 <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
-                <img class="preview-picture" [src]="previewItem.mediaURL">
+                <img (click)="openPicture(previewItem.mediaURL, previewItem.description)" class="preview-picture" [src]="previewItem.mediaURL">
                 <div *ngFor="let cat of previewItem.categories" class="categories">
                     <span class="badge badge-secondary">{{ cat }}</span>
                 </div>
@@ -67,6 +67,12 @@
     <div>
             <span class="badge badge-secondary"  data-toggle="tooltip" data-placement="bottom" title="Clear" (click)="clearCategoryFilter()" [ngStyle]="{ 'background-color' : '#424242' }">&nbsp;</span>
     </div> 
+</div>
+
+<div class="modal" #modal>
+  <span class="close" (click)="closePicture()">&times;</span>
+  <img class="modal-content" id="img01" #img>
+  <div id="caption" #caption></div>
 </div>
 
 <div *ngIf="errorOccurred" class="alert alert-danger error">
