@@ -378,6 +378,7 @@ export class GeoCube implements PolyCube {
 
     updateNodeSize(radius: number): void {
         let scale = 1 + radius * 0.1;
+
         let targetScale = {
             x: scale,
             y: scale,
@@ -403,11 +404,8 @@ export class GeoCube implements PolyCube {
                                         grandChild.scale.x = sourceScale.x;
                                         grandChild.scale.y = sourceScale.y;
                                         grandChild.scale.z = sourceScale.z;
-                        
                                     })
                                     .start();
-             
-                                    
             });
         });
     }

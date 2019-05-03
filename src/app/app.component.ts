@@ -258,8 +258,8 @@ export class AppComponent implements AfterViewInit {
 
          if(change.time) {
             this.gCube.updateTime(change.time);
-            this.gCube.updateTime(change.time);
-            this.gCube.updateTime(change.time);
+            this.sCube.updateTime(change.time);
+            this.nCube.updateTime(change.time);
          }
 
          if(change.numSlices) {

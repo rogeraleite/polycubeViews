@@ -85,13 +85,14 @@ export class NetCube implements PolyCube {
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
     }
 
-        updateTime(time: string): void {
+    updateTime(time: string): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if(child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
                 if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.position.y = time === 'aggregated' ?  this.findTimeSlice(grandChild.date_time).position.y : this.timeLinearScale(grandChild.data.date_time);
+                let sliceOffsetY = child.position.y;
+                grandChild.position.y = time === 'aggregated' ?  0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
             });
         });
     }
