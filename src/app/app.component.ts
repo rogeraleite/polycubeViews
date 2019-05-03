@@ -141,7 +141,11 @@ export class AppComponent implements AfterViewInit {
          this.dataManager.data = success;
          this.loadingDataset = false;
          this.dataLoaded = true;
-         this.categories = Array.from(this.dataManager.categories.keys());
+
+         Array.from(this.dataManager.categories.keys()).forEach((c: any) => {
+            c === '' ? this.categories.push('No Category') : this.categories.push(c);
+         });
+
          this.categoriesAndColors = this.dataManager.categories;
          this.initScene();
          this.initCubes();
