@@ -552,12 +552,11 @@ export class NetCube implements PolyCube {
             if (position) {
                 point.position.x = position.x;
                 point.position.z = position.z;
-                //sphere.position.y = this.timeLinearScale(dataItem.date_time);
+                
                 point.name = dataItem.id;
                 point.data = dataItem;
                 point.type = 'DATA_POINT';
 
-                //console.log(this.findTimeSlice(dataItem.date_time));
                 this.getTimeSliceByDate(dataItem.date_time).add(point);
             }//end if            
         }//end for
