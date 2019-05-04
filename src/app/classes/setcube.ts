@@ -89,6 +89,8 @@ export class SetCube implements PolyCube {
     updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'circle'): void {
 
         //clean function
+        this.circleGroup = []
+
         //clear scene of old objects
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
         this.slices = new Array<THREE.Group>();
@@ -340,7 +342,6 @@ export class SetCube implements PolyCube {
         });
     }
 
-
     updateView(currentViewState: VIEW_STATES): void {
         if (currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
             this.webGLScene.add(this.cubeGroupGL);
@@ -350,6 +351,8 @@ export class SetCube implements PolyCube {
     updateNumSlices(): void {
         const segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true)
+        //update hull 
+        this.hullState = false;
     }
 
     updateColorCoding(encoding: string): void {
@@ -782,6 +785,10 @@ export class SetCube implements PolyCube {
     }
 
     drawHull() {
+        //empty hull group
+        this.hullGroup.children = []
+        console.log(this.hullGroup)
+
         let categories = Array.from(this.setMap);
         categories.forEach((d) => {
             this.geometryConvex(d)
@@ -812,17 +819,6 @@ export class SetCube implements PolyCube {
                 this.addHullToScene(meshData)
             }
         });
-
-
-        // tempArr.forEach((d, i) => {
-        //     let meshData;
-        //     if (i !== tempArr.length - 1) { //if to deal with last component structure
-        //         meshData = tempArr[i].concat(tempArr[i + 1]);
-        //         addMeshToScene(meshData)
-        //     }
-        // });
-
-        // this.addHullToScene(vertices2)
     }
 
     addHullToScene(vertices) {
