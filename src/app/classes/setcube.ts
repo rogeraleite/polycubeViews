@@ -15,6 +15,9 @@ export class SetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
     cubeGroupCSS: THREE.Group;
     pointGroup: Array<THREE.Group>;
+    circleGroup: Array<THREE.Group>;
+    hullGroup: THREE.Group;
+    hullState: boolean
 
     // Data
     private dm: DataManager;
@@ -55,8 +58,13 @@ export class SetCube implements PolyCube {
         this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
         this.pointGroup = new Array<THREE.Group>();
+        this.circleGroup = new Array<THREE.Group>();
         // this.pointGroup.name = 'pointGroup'
         this.cubeGroupGL.pointGroup = this.pointGroup;
+
+        //hull
+        this.hullGroup = new THREE.Group();
+        this.hullState = false
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -70,6 +78,7 @@ export class SetCube implements PolyCube {
         this.boundingBox = new THREE.BoxHelper(placeholderBox, '#b5b5b5');
         this.boundingBox.name = 'BOX_HELPER';
         this.cubeGroupGL.add(this.boundingBox);
+        this.cubeGroupGL.add(this.hullGroup);
     }
 
     assembleData(): void {
@@ -155,33 +164,34 @@ export class SetCube implements PolyCube {
                     opacity: 0.7
                 });
                 const circle = new THREE.Mesh(geometry, material);
-                const circleStc = new THREE.Object3D();
 
                 circle.matrixWorldNeedsUpdate = true;
                 circle.name = category.key;
                 circle.rotation.x = Math.PI / 2;
-                circle.name = timeLayer.key + category.key;
+                // circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-
                 this.getLayouts(layout, category, circle)
 
-                // this.cubeGroupGL.add(circle)
+                circle.updateMatrixWorld();
+
+                //get circles into one group to use for hull later
+                this.circleGroup.push(circle)
                 slice.add(circle)
 
                 //add points after each category
-                let parentPos = circle.position;
+
 
                 //get this category points positions
                 // let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
 
-                let phyllotaxis = this.getPhyllotaxis(parentPos.x, parentPos.z, rad,category.values);
+                let phyllotaxis = this.getPhyllotaxis(circle.position.x, circle.position.z, rad, category.values);
 
                 phyllotaxis.forEach((points) => { //points group 
                     const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
                     const point = new THREE.Mesh(pointGeometry, material);
 
-                    point.position.y = parentPos.y;
+                    point.position.y = circle.position.y;
                     point.position.x = points.x;
                     point.position.z = points.y;
                     point.name = points.data.id;
@@ -325,7 +335,7 @@ export class SetCube implements PolyCube {
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
-                grandChild.position.y = time === 'aggregated' ?  0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
+                grandChild.position.y = time === 'aggregated' ? 0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
             });
         });
     }
@@ -427,19 +437,19 @@ export class SetCube implements PolyCube {
     }
 
     dateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
-        if(!startDate) startDate = this.dm.getMinDate();
-        if(!endDate) endDate = this.dm.getMaxDate();
+        if (!startDate) startDate = this.dm.getMinDate();
+        if (!endDate) endDate = this.dm.getMaxDate();
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
     }
 
     filterData(cat: string, start: Date, end: Date): void {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+                if (grandChild.type !== 'DATA_POINT') return;
                 grandChild.visible = true;
-                if(!(this.dateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ?  true : grandChild.data.category_1 === cat))) {
+                if (!(this.dateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ? true : grandChild.data.category_1 === cat))) {
                     grandChild.visible = false;
                 }
             });
@@ -490,9 +500,16 @@ export class SetCube implements PolyCube {
                 })
                 .start();
         });//end forEach
+
+        // show hull
+        this.showHull()
     }
 
     transitionJP(): void {
+
+        // hide hull
+        this.hideHull()
+
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -533,6 +550,9 @@ export class SetCube implements PolyCube {
 
     }
     transitionSI(): void {
+        // hide hull
+        this.hideHull()
+
         this.boundingBox.visible = false;
         let duration = 1000,
             tween;
@@ -733,11 +753,11 @@ export class SetCube implements PolyCube {
 
     getPhyllotaxis(centerX: number, centerY: number, radius: number, data: any) {
 
-        data.sort(function(a:any,b:any){
+        data.sort(function (a: any, b: any) {
             // Turn your strings into dates, and then subtract them
             // to get a value that is either negative, positive, or zero.
             return new Date(b.date_time).getTime() + new Date(a.date_time).getTime();
-          });
+        });
 
         var theta = Math.PI * (3 - Math.sqrt(5)),
             spacing = 5,
@@ -761,6 +781,73 @@ export class SetCube implements PolyCube {
         return new_time
     }
 
+    drawHull() {
+        let categories = Array.from(this.setMap);
+        categories.forEach((d) => {
+            this.geometryConvex(d)
+        })
+
+        //hull state
+        this.hullState = true;
+    }
+
+    geometryConvex(group = "Identification photographs") {
+        let vertices = [];
+        this.circleGroup.forEach((child: any) => {
+            if (child.name === group) {
+                var array_aux = [];
+                child.geometry.vertices.forEach((d) => {
+                    array_aux.push(child.localToWorld(d));
+                });
+                vertices.push(array_aux)
+            }
+        });
+
+        // console.log(vertices2[0]);
+
+        vertices.forEach((d, i) => {
+            let meshData;
+            if (i !== vertices.length - 1) { //if to deal with last component structure
+                meshData = vertices[i].concat(vertices[i + 1]);
+                this.addHullToScene(meshData)
+            }
+        });
+
+
+        // tempArr.forEach((d, i) => {
+        //     let meshData;
+        //     if (i !== tempArr.length - 1) { //if to deal with last component structure
+        //         meshData = tempArr[i].concat(tempArr[i + 1]);
+        //         addMeshToScene(meshData)
+        //     }
+        // });
+
+        // this.addHullToScene(vertices2)
+    }
+
+    addHullToScene(vertices) {
+        var wireFrameMat = new THREE.MeshBasicMaterial({
+            color: '#a2a2a2', transparent: true, opacity: 0.3,
+            // ***** Clipping setup (material): *****
+            clippingPlanes: [],
+            clipShadows: true
+        });
+        wireFrameMat.wireframe = true;
+
+        var meshGeometry = new THREE.ConvexBufferGeometry(vertices);
+
+        var mesh = new THREE.Mesh(meshGeometry, wireFrameMat);
+
+        //calibrate the cubleft border
+        mesh.position.set(-this.cubeLeftBoarder, 0, 0);
+        // this.cubeGroupGL.add(mesh);
+        this.hullGroup.add(mesh);
+    }
+
+    getHullState(): boolean {
+        return this.hullState;
+    }
+
     /**
  * Returns the corresponding timeslice to a given objects date (date_time property)
  * @param date Date object
@@ -778,4 +865,12 @@ export class SetCube implements PolyCube {
 
     hideBottomLayer(): void { }
     showBottomLayer(): void { }
+    hideHull() {
+        // hide hull
+        this.hullGroup.visible = false;
+    }
+    showHull() {
+        // show hull
+        this.hullGroup.visible = true;
+    }
 }
