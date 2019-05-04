@@ -305,6 +305,9 @@ export class SetCube implements PolyCube {
         } else {
             this.updateSetCube(segs, true, layout)
         }
+        
+          //update hull 
+          this.hullState = false;
     }
 
     getLayouts(layout: string, category: any, circle: THREE.Mesh) {
@@ -787,7 +790,6 @@ export class SetCube implements PolyCube {
     drawHull() {
         //empty hull group
         this.hullGroup.children = []
-        console.log(this.hullGroup)
 
         let categories = Array.from(this.setMap);
         categories.forEach((d) => {
