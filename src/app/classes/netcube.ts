@@ -7,6 +7,7 @@ import { ElementRef } from '@angular/core';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
+import { FaceNormalsHelper } from 'three';
 
 export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -26,7 +27,11 @@ export class NetCube implements PolyCube {
     private slices: Array<THREE.Group>;
     private colors: any;
     private timeLinearScale: D3.ScaleLinear<number, number>;
-    private links: THREE.Group;
+
+    private links_cube: THREE.Group;
+    private links_si: THREE.Group;
+    private links_jp: THREE.Group;
+    private linksPerNode = 1;
 
     private colorCoding: string = 'categorical';
     private cubeLeftBoarder: number;
@@ -40,7 +45,7 @@ export class NetCube implements PolyCube {
         this.cubeLeftBoarder = (CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER) * 2;
         this.createObjects();
         this.assembleData();
-        this.render();
+        this.render();        
     }
 
     createObjects(): void {
@@ -64,6 +69,7 @@ export class NetCube implements PolyCube {
 
         this.createNodes();
         this.createLinks();
+        this.showCubeLinks();
     }
 
     clearLabels(): void {
@@ -241,7 +247,7 @@ export class NetCube implements PolyCube {
     }
 
     hideLinksByDatePeriod(startDate: Date, endDate: Date): void {
-        this.links.children.forEach((e: THREE.Group) => {
+        this.links_cube.children.forEach((e: THREE.Group) => {
             let bothNodeDates = this.getLinkDates(e);
             e.visible = true;
             if(!this.areBothDatesWithinInterval(startDate, endDate, bothNodeDates)){
@@ -259,7 +265,7 @@ export class NetCube implements PolyCube {
     }
    
     transitionSTC(): void {
-        this.showLinks();
+        this.showCubeLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -300,9 +306,10 @@ export class NetCube implements PolyCube {
     }
 
     transitionJP(): void {
-        this.hideLinks();
+        this.showJPLinks();
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.boundingBox.visible = false;
+        let slices_amount = this.slices.length;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             //slice.position.z = (i*vertOffset) - (CUBE_CONFIG.WIDTH/2);
             //slice.position.y = 0;
@@ -325,6 +332,7 @@ export class NetCube implements PolyCube {
             label.position.z = targetCoords.z;
             label.rotation.set(-Math.PI/2, 0, 0);
 
+
             let tween = new TWEEN.Tween(sourceCoords)
                                  .to(targetCoords, 1000)
                                  .delay(i * 300)
@@ -335,39 +343,49 @@ export class NetCube implements PolyCube {
                                     slice.position.z = sourceCoords.z;
                                  })
                                  .start();
+            
+            // this.delay(slices_amount*300).then(any=>{
+            //     console.log("foi");                
+            //     this.updateLinks();
+            // });
+            
         });
     }
 
     transitionSI(): void {
-        this.hideLinks();
+        this.showSILinks();
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
-            let sourceCoords = {
-                x: slice.position.x,
-                y: slice.position.y,
-                z: slice.position.z
-            };
-
-            let targetCoords = {
-                x: CUBE_CONFIG.WIDTH / 2,
-                y: -CUBE_CONFIG.HEIGHT / 2,
-                z: CUBE_CONFIG.WIDTH / 2
-            };
-
-            let tween = new TWEEN.Tween(sourceCoords)
-                                 .to(targetCoords, 1000)
-                                 .delay(i * 300)
-                                 .easing(TWEEN.Easing.Cubic.InOut)
-                                 .onUpdate(() => {
-                                    slice.position.x = sourceCoords.x;
-                                    slice.position.y = sourceCoords.y,
-                                    slice.position.z = sourceCoords.z;
-                                 })
-                                 .onComplete(() => {
-                                    D3.selectAll('.time-slice-label').style('opacity', '0');
-                                 })
-                                 .start();
+            this.transitionAnimationSI(slice, i);
         });
+    }
+
+    transitionAnimationSI(slice: THREE.Group, index: number){
+        let sourceCoords = {
+            x: slice.position.x,
+            y: slice.position.y,
+            z: slice.position.z
+        };
+
+        let targetCoords = {
+            x: CUBE_CONFIG.WIDTH / 2,
+            y: -CUBE_CONFIG.HEIGHT / 2,
+            z: CUBE_CONFIG.WIDTH / 2
+        };
+
+        let tween = new TWEEN.Tween(sourceCoords)
+                             .to(targetCoords, 1000)
+                             .delay(index * 300)
+                             .easing(TWEEN.Easing.Cubic.InOut)
+                             .onUpdate(() => {
+                                slice.position.x = sourceCoords.x;
+                                slice.position.y = sourceCoords.y,
+                                slice.position.z = sourceCoords.z;
+                             })
+                             .onComplete(() => {
+                                D3.selectAll('.time-slice-label').style('opacity', '0');
+                             })
+                             .start();
     }
 
     transitionANI(): void { }
@@ -398,7 +416,7 @@ export class NetCube implements PolyCube {
             });
         });
 
-        this.links.children.forEach((e: THREE.Group) => { e.visible = true; });
+        this.links_cube.children.forEach((e: THREE.Group) => { e.visible = true; });
     }
 
     /**
@@ -537,47 +555,99 @@ export class NetCube implements PolyCube {
     }
 
     createLinks(): void {
-        this.links = new THREE.Group();
-        let lineMaterial = new THREE.LineBasicMaterial({ color: '#b5b5b5', transparent: true, opacity: 0.75 });
-        let linksPerNode = 1;
+        this.links_cube = new THREE.Group();
+        this.links_jp = new THREE.Group();
+        this.links_si = new THREE.Group();        
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
             let sourceNode_position = this.getNormalizedPositionById(dataItem.id);
             sourceNode_position.y = this.findTimeSlice(dataItem.date_time).position.y;
 
-            for (let a = 0; a < linksPerNode; a++) {//3 links for each nodes
-                let lineGeometry = new THREE.Geometry();
+            for (let a = 0; a < this.linksPerNode; a++) {
+                
                 let targetId = dataItem.target_nodes[a];
-                let targetNode_position = this.getNormalizedPositionById(targetId);
 
-                if (targetNode_position) {
-                    let position_fix = CUBE_CONFIG.WIDTH / 2;
-                    targetNode_position.y = this.findTimeSlice(this.dm.dataMap[targetId].date_time).position.y;
-                    lineGeometry.vertices.push(
-                        new THREE.Vector3(
-                            sourceNode_position.x + position_fix,
-                            sourceNode_position.y,
-                            sourceNode_position.z + position_fix
-                        )
-                    );
-                    lineGeometry.vertices.push(
-                        new THREE.Vector3(
-                            targetNode_position.x + position_fix,
-                            targetNode_position.y,
-                            targetNode_position.z + position_fix
-                        )
-                    );
-                    let line = new THREE.Line(lineGeometry, lineMaterial);
-                    line.name = dataItem.id + "_" + targetId;
-                    this.links.add(line);
+                if (this.doesTargetNodeHasPosition(targetId)) {
+                    //CUBE                    
+                    let line_forCube = this.createLineForCube(dataItem,sourceNode_position,a);      
+                    this.links_cube.add(line_forCube);   
+
+                    //SI
+                    let line_forSI = this.createLineForSI(dataItem,sourceNode_position,a);
+                    this.links_si.add(line_forSI);   
                 }//end if
             }//end for     
         }//end for
 
-        this.cubeGroupGL.add(this.links);
+        this.cubeGroupGL.add(this.links_cube);
+        this.cubeGroupGL.add(this.links_jp);
+        this.cubeGroupGL.add(this.links_si);
 
     }
+
+    createLineForSI(dataItem,sourceNode_position,targetIndex){
+        let targetId = dataItem.target_nodes[targetIndex];        
+        let targetNode_position = this.getNormalizedPositionById(targetId);
+
+        sourceNode_position.y = this.getSI_yBase();
+        targetNode_position.y = this.getSI_yBase();
+
+        let lineGeometry = this.createLineGeometry(sourceNode_position, targetNode_position);                    
+        let line = new THREE.Line(lineGeometry, this.getLineMaterial());
+        line.name = this.getLineName(dataItem,targetId);
+        return line;
+    }
+
+    getSI_yBase(){
+        return -CUBE_CONFIG.HEIGHT / 2;
+    }
+
+    createLineForCube(dataItem, sourceNode_position, targetIndex){
+        let targetId = dataItem.target_nodes[targetIndex];
+
+        let targetNode_position = this.getNormalizedPositionById(targetId);
+        targetNode_position.y = this.findTimeSlice(this.dm.dataMap[targetId].date_time).position.y;
+
+        let lineGeometry = this.createLineGeometry(sourceNode_position, targetNode_position);                    
+        let line = new THREE.Line(lineGeometry, this.getLineMaterial());
+        line.name = this.getLineName(dataItem,targetId);
+        return line;
+    }
+
+    getLineName(dataItem,targetId){
+        return dataItem.id + "_" + targetId;
+    }
+
+    doesTargetNodeHasPosition(targetId){
+        if(this.getNormalizedPositionById(targetId)) return true;
+        return false;
+    }
+
+    getLineMaterial(){
+        return new THREE.LineBasicMaterial({ color: '#b5b5b5', transparent: true, opacity: 0.75 });
+    }
+
+    createLineGeometry(sourceNode_position: THREE.Vector3, targetNode_position:THREE.Vector3){
+        let position_fix = CUBE_CONFIG.WIDTH / 2;
+        let lineGeometry = new THREE.Geometry();
+        lineGeometry.vertices.push(
+            new THREE.Vector3(
+                sourceNode_position.x + position_fix,
+                sourceNode_position.y,
+                sourceNode_position.z + position_fix
+            )
+        );
+        lineGeometry.vertices.push(
+            new THREE.Vector3(
+                targetNode_position.x + position_fix,
+                targetNode_position.y,
+                targetNode_position.z + position_fix
+            )
+        );
+        return lineGeometry;
+    }
+
 
     updateSlices(): void {
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
@@ -671,12 +741,41 @@ export class NetCube implements PolyCube {
 
     hideBottomLayer(): void { }
 
-    showLinks(): void {
-        this.links.visible = true;
+    hideAllLinks(): void {
+        this.hideCubeLinks();
+        this.hideSILinks();
+        this.hideJPLinks();
+    }
+    
+    showCubeLinks(): void {
+        this.hideAllLinks();
+        this.links_cube.visible = true;
     }
 
-    hideLinks(): void {
-        this.links.visible = false;
+    hideCubeLinks(): void {
+        this.links_cube.visible = false;
+    }
+
+    showSILinks(): void {
+        this.hideAllLinks();
+        this.links_si.visible = true;
+    }
+
+    hideSILinks(): void {
+        this.links_si.visible = false;
+    }
+
+    showJPLinks(): void {
+        this.hideAllLinks();
+        this.links_jp.visible = true;
+    }
+
+    hideJPLinks(): void {
+        this.links_jp.visible = false;
+    }
+
+    async delay(ms: number) {
+        await new Promise(resolve => setTimeout(()=>resolve(), ms));
     }
 
     //saving useful scripts for future usage
