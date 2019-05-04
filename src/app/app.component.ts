@@ -213,6 +213,7 @@ export class AppComponent implements AfterViewInit {
          let foundItem = this.getClickedItem($event);
          
          if(foundItem) {
+            console.log(foundItem);
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
                mediaURL: foundItem.external_url,
