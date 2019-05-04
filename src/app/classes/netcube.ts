@@ -30,7 +30,6 @@ export class NetCube implements PolyCube {
 
     private links_stc: THREE.Group;
     private links_si: THREE.Group;
-    private links_jp: THREE.Group;
     private linksPerNode = 1;
 
     private colorCoding: string = 'categorical';
@@ -309,7 +308,7 @@ export class NetCube implements PolyCube {
     }
 
     transitionJP(): void {
-        this.showJPLinks();
+        this.hideAllLinks();
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             this.transitionAnimationJP(slice,i);                       
@@ -566,7 +565,6 @@ export class NetCube implements PolyCube {
 
     createLinks(): void {
         this.links_stc = new THREE.Group();
-        this.links_jp = new THREE.Group();
         this.links_si = new THREE.Group();        
 
         for (let i = 0; i < this.dm.data.length; i++) {
@@ -597,7 +595,6 @@ export class NetCube implements PolyCube {
         }//end for
 
         this.cubeGroupGL.add(this.links_stc);
-        this.cubeGroupGL.add(this.links_jp);
         this.cubeGroupGL.add(this.links_si);
 
     }
@@ -633,8 +630,6 @@ export class NetCube implements PolyCube {
 
     parsePositionForJP(coordinate){
         return coordinate - CUBE_CONFIG.WIDTH/2;
-        // normalized_x = pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
-        // normalized_z = pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
     }
 
     createLineForSI(dataItem,sourceNode_position,targetIndex){
@@ -795,7 +790,6 @@ export class NetCube implements PolyCube {
     hideAllLinks(): void {
         this.hideCubeLinks();
         this.hideSILinks();
-        this.hideJPLinks();
     }
     
     showCubeLinks(): void {
@@ -816,14 +810,6 @@ export class NetCube implements PolyCube {
         this.links_si.visible = false;
     }
 
-    showJPLinks(): void {
-        this.hideAllLinks();
-        this.links_jp.visible = true;
-    }
-
-    hideJPLinks(): void {
-        this.links_jp.visible = false;
-    }
 
     async delay(ms: number) {
         await new Promise(resolve => setTimeout(()=>resolve(), ms));
