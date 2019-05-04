@@ -75,7 +75,6 @@ export class DataManager {
     }
 
     createCategories(): void {
-
         this._data.forEach((d: any) => { 
             if(this._categories.has(d.category_1)) return;
             this._categories.set(d.category_1, this._colors(d.category_1));
