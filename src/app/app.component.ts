@@ -310,6 +310,17 @@ export class AppComponent implements AfterViewInit {
                // console.log('layout change')
                (this.sCube as SetCube).updateLayout(change.sLayout)
             }
+
+            //hull button
+            if(change.hull == true){
+               if(!(this.sCube as SetCube).getHullState()){
+                  (this.sCube as SetCube).drawHull();
+               }else{
+                  (this.sCube as SetCube).showHull();
+               }
+            }else{
+               (this.sCube as SetCube).hideHull()
+            }
          });   
     
 
