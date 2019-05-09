@@ -103,7 +103,7 @@ export class DataManager {
     }
 
     set numSlices(slices: number) {
-        // set numSlices 
+        // set numSlices
         this._numSlices = slices;
 
         // update the timeRange and timeLinearScale

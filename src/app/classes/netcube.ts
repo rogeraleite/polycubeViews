@@ -13,6 +13,8 @@ export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
     cubeGroupCSS: THREE.Group;
 
+    readonly cube_id = 'NET_CUBE';
+
     private dm: DataManager;
     private camera: THREE.Camera;
     private webGLScene: THREE.Scene;
@@ -47,9 +49,9 @@ export class NetCube implements PolyCube {
         this.render();        
     }
 
-    createObjects(): void {
-        this.cubeGroupGL = new THREE.Group();
-        this.cubeGroupCSS = new THREE.Group();
+    createObjects(): void {    
+        this.resetCubeGroupGL(); 
+        this.resetCubeGroupCSS();
         this.colors = this.dm.colors;
 
         this.createSlices();
@@ -60,15 +62,27 @@ export class NetCube implements PolyCube {
         this.createBoundingBox();
     }
 
-    assembleData(): void {
+    assembleData(): void {    
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
-
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
 
         this.createNodes();
         this.createLinks();
         this.showCubeLinks();
+    }
+
+    resetCubeGroupCSS(){
+        this.cubeGroupCSS = new THREE.Group();
+        this.cubeGroupCSS.name = this.cube_id+'_CSS';
+        this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
+    }
+
+    resetCubeGroupGL(): void{
+        this.cubeGroupGL = new THREE.Group();
+        // group holding all webGl objects
+        this.cubeGroupGL.name = this.cube_id;
+        this.cubeGroupGL.position.set(this.cubeLeftBoarder, 0, 0);
     }
 
     clearLabels(): void {
@@ -80,13 +94,7 @@ export class NetCube implements PolyCube {
     }
 
     render(): void {
-        // group holding all webGl objects
-        this.cubeGroupGL.name = 'NET_CUBE';
-        this.cubeGroupGL.position.set(this.cubeLeftBoarder, 0, 0);
         this.webGLScene.add(this.cubeGroupGL);
-        // group holding all css objects
-        this.cubeGroupCSS.name = 'NET_CUBE_CSS';
-        this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
         this.cssScene.add(this.cubeGroupCSS); // add group to css scene
     }
 
@@ -111,13 +119,28 @@ export class NetCube implements PolyCube {
     }
 
     updateNumSlices(): void {
-        // TODO: Fix labels (remove and remake) -> would make it more fluid and less laggy (high effort)
-        // TODO: instead of recreating eveverything try to update the items and transition? (low prio)
-        // FIXME: D3 doesnt follow the user selection but returns the best way to split data
         this.timeLinearScale = this.dm.getTimeLinearScale();
-        this.clearLabels();
+        this.clearLabels();        
+        this.resetCubeGroupGL();
+
         this.updateSlices();
-        this.updateDataPoints();
+        this.assembleData();   
+
+        this.updateNetCubeFromScene();
+    }
+
+    updateNetCubeFromScene():void{
+        this.deleteNetCubeFromScene();
+        this.webGLScene.add(this.cubeGroupGL);
+        console.log(this.webGLScene);
+    }
+
+    deleteNetCubeFromScene():void{
+        this.webGLScene.children.forEach((cube,i)=>{
+            if(cube.name === this.cube_id){
+                this.webGLScene.children.splice(i,1);
+            }
+        });
     }
 
     updateColorCoding(encoding: string): void {
@@ -202,7 +225,6 @@ export class NetCube implements PolyCube {
     }
 
     updateData(): void {
-
     }
 
     isDateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
@@ -387,7 +409,6 @@ export class NetCube implements PolyCube {
 
     transitionANI(): void { }
 
-
     getCubePosition(): THREE.Vector3 {
         let positionInWorld = new THREE.Vector3();
         this.cubeGroupGL.getWorldPosition(positionInWorld);
@@ -412,7 +433,6 @@ export class NetCube implements PolyCube {
                 grandChild.visible = true;
             });
         });
-
         this.links_stc.children.forEach((e: THREE.Group) => { e.visible = true; });
     }
 
@@ -432,7 +452,6 @@ export class NetCube implements PolyCube {
             });
         });
     }
-
 
     onClick($event: any, tooltip: ElementRef, container: HTMLElement): any {
         $event.preventDefault();
@@ -501,7 +520,6 @@ export class NetCube implements PolyCube {
     }
 
     onDblClick($event: any): void {
-
     }
 
     getNormalizedPositionById(id) {
@@ -519,31 +537,7 @@ export class NetCube implements PolyCube {
         else return null;
     }
 
-    updateDataPoints(): void {
-        // TODO: clear previous geometries from scene / cubeGroupGL
-        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
-
-        for (let i = 0; i < this.dm.data.length; i++) {
-            let dataItem = this.dm.data[i];
-            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
-
-            let point = new THREE.Mesh(geometry, material);
-            let position = this.getNormalizedPositionById(dataItem.id);
-
-            if (position) {
-                point.position.x = position.x;
-                point.position.z = position.z;
-                //sphere.position.y = this.timeLinearScale(dataItem.date_time);
-                point.name = dataItem.id;
-                point.data = dataItem;
-                point.type = 'DATA_POINT';
-
-                //console.log(this.findTimeSlice(dataItem.date_time));
-                this.getTimeSliceByDate(dataItem.date_time).add(point);
-            }
-        }
-    }
-
+  
 
     createNodes(): void {
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
@@ -708,7 +702,6 @@ export class NetCube implements PolyCube {
         for(let i = 0; i < this.dm.timeRange.length; i++) {
             // TIME SLICES
             let slice = new THREE.Group();
-
             // name set to year -> we can now map objects to certain layers by checking their
             // this.dm.getTimeQuantile(date) and the slices name.
             slice.name = this.dm.timeRange[i].getFullYear();
@@ -736,11 +729,11 @@ export class NetCube implements PolyCube {
             // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
         }
-
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
 
     createSlices(): void {
+        
         this.slices = new Array<THREE.Group>();
         let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
         for (let i = 0; i < this.dm.timeRange.length; i++) {
