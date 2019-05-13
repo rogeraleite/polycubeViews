@@ -164,28 +164,23 @@ export class NetCube implements PolyCube {
 
     updateNodeColor(encoding: string): void {
         this.updateColorCoding(encoding);
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
 
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+            this.getAllNodes().forEach((node: any) => {
                 switch(encoding) {
                     case 'categorical' : 
-                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        node.material.color.set(this.colors(node.data.category_1));
                         break;
                     case 'temporal' :
-                        grandChild.material.color.set(this.colors(grandChild.data.date_time));
+                        node.material.color.set(this.colors(node.data.date_time));
                         break;
                     case 'monochrome' : 
-                        grandChild.material.color.set('#b5b5b5');
+                        node.material.color.set('#b5b5b5');
                         break;
                     default: 
-                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        node.material.color.set(this.colors(node.data.category_1));
                         break;
-                }
-                                    
+                }                                    
             });
-        });
     }
 
     updateNodeSize(radius: number): void {
