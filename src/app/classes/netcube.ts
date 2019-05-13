@@ -345,39 +345,10 @@ export class NetCube implements PolyCube {
         return target_node_category == target_category;
     }
 
-    
-
-    
-
     isDateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
         if (!startDate) startDate = this.dm.getMinDate();
         if (!endDate) endDate = this.dm.getMaxDate();
         return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
-    }
-
-    //DEPRECATED
-    hideLinksByDatePeriod(startDate: Date, endDate: Date): void {
-        this.hideMultipleLayerLinksByDatePeriod(startDate,endDate);
-        this.hideInnerLayerLinksByDatePeriod(startDate,endDate);        
-    }
-
-    hideMultipleLayerLinksByDatePeriod(startDate: Date, endDate: Date): void {
-        this.links_stc.children.forEach((link: THREE.Group) => {
-            let bothNodeDates = this.getLinkDates(link);
-            link.visible = this.areBothDatesWithinDateInterval(startDate, endDate, bothNodeDates);            
-        });
-    }
-
-    hideInnerLayerLinksByDatePeriod(startDate: Date, endDate: Date): void {
-        this.slices.forEach((slice: THREE.Group) => {
-            slice.children.forEach((element: THREE.Group) => {
-                if(element.type == "Line"){
-                    let link = element;
-                    let bothNodeDates = this.getLinkDates(link);
-                    link.visible = this.areBothDatesWithinDateInterval(startDate, endDate, bothNodeDates);
-                }//end if
-            });
-        });
     }
 
     getLinkDates(link_name: any): Array<Date>{
@@ -404,6 +375,8 @@ export class NetCube implements PolyCube {
        return [this.dm.dataMap[id1].category_1, this.dm.dataMap[id2].category_1];        
     }
    
+
+    //TRANSITIONS
     transitionSTC(): void {
         this.showCubeLinks();
         this.boundingBox.visible = true;
