@@ -608,7 +608,7 @@ export class SetCube implements PolyCube {
         }
     }
 
-    resetCateogrySelection(gray: boolean = false): void {
+    resetCategorySelection(gray: boolean = false): void {
         this.cubeGroupGL.children.forEach((child: any) => {
             if (child.type !== 'Group') return;
 

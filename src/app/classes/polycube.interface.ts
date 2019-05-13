@@ -11,7 +11,7 @@ export interface PolyCube {
     render: Function,
     filterData: Function,
     resetSelection: Function,
-    resetCateogrySelection: Function,
+    resetCategorySelection: Function,
 
     // updating settings / data
     updateView: Function,
