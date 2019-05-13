@@ -233,12 +233,12 @@ export class NetCube implements PolyCube {
 
     filterData(category: string, start: Date, end: Date): void {
         let query_byPeriod = this.filterNodesByDatePeriod(start, end);
-        let query_byCategory = this.filterNodesByCategory(category);
-        
+        let query_byCategory = this.filterNodesByCategory(category);        
         let intersection = this.getSimilarItems(query_byPeriod, query_byCategory);
         
         this.applyFilterToNodes(intersection);
     }
+
 
     getSimilarItems(array1: Array<string>, array2: Array<string>):Array<string>{
         return array1.filter(element => array2.includes(element));
@@ -517,16 +517,7 @@ export class NetCube implements PolyCube {
     }
 
     resetCategorySelection(gray: boolean = false): void {
-        this.filterNodesByCategory("");
-        // this.cubeGroupGL.children.forEach((child: any) => {
-        //     if(child.type !== 'Group') return;
-
-        //     child.children.forEach((grandChild: any) => {
-        //         if(grandChild.type !== 'DATA_POINT') return;
-        //         grandChild.visible = true;
-        //     });
-        // });
-        // this.links_stc.children.forEach((e: THREE.Group) => { e.visible = true; });
+        this.filterData("", this.dm.getMinDate(), this.dm.getMaxDate());
     }
 
     /**
