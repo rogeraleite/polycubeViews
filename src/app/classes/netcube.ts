@@ -251,48 +251,44 @@ export class NetCube implements PolyCube {
     }
 
     showNodes(nodes: Array<string>):void{
-        this.cubeGroupGL.children.forEach((group: THREE.Group) => {
-            if(group.type == 'Group'){
-                group.children.forEach((node: any) => {
-                    if(node.type == 'DATA_POINT'){
-                        node.visible = nodes.includes(""+node.name);
-                    }                
-                });
-            }
-        });
+        this.getAllNodes().forEach((node: any) => {  
+                node.visible = nodes.includes(""+node.name);
+            });            
     }
 
     filterNodesByCategory(category: string): Array<string> {
         let selected_nodes = new Array<string>();
 
-        this.cubeGroupGL.children.forEach((group: THREE.Group) => {
-            if(group.type == 'Group'){
-                group.children.forEach((node: any) => {
-                    if(node.type == 'DATA_POINT'){
-                        if(node.data.category_1 == category || category==""){
-                            selected_nodes.push(""+node.name);
-                        }
-                    }                
-                });
-            }
+        this.getAllNodes().forEach((node: any) => {            
+            if(node.data.category_1 == category || category==""){
+                selected_nodes.push(""+node.name);
+            }            
         });
 
         return selected_nodes;
     }
 
-    filterNodesByDatePeriod(startDate: Date, endDate: Date): Array<string> {
-        let selected_nodes = new Array<string>();   
-
+    getAllNodes(){
+        let all_nodes = new Array<any>();
         this.cubeGroupGL.children.forEach((group: THREE.Group) => {
             if(group.type == 'Group'){
                 group.children.forEach((node: any) => {
                     if(node.type == 'DATA_POINT'){
-                        if(this.isDateWithinInterval(startDate, endDate, node.data.date_time)){
-                            selected_nodes.push(""+node.name);
-                        }
+                        all_nodes.push(node);
                     }                
                 });
-            }             
+            }
+        });
+        return all_nodes;
+    }
+
+    filterNodesByDatePeriod(startDate: Date, endDate: Date): Array<string> {
+        let selected_nodes = new Array<string>();   
+
+        this.getAllNodes().forEach((node: any) => {
+            if(this.isDateWithinInterval(startDate, endDate, node.data.date_time)){
+                selected_nodes.push(""+node.name);
+            }
         });
         
         return selected_nodes;
