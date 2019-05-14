@@ -508,7 +508,6 @@ export class AppComponent implements AfterViewInit {
    }
 
 
-
    filterDataByCategory(category: string): void {
      this.currentlySelectedCategory = category;
      this.applyFilter();
