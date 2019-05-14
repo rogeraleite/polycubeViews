@@ -504,10 +504,10 @@ export class AppComponent implements AfterViewInit {
 
    clearCategoryFilter(): void {
       this.currentlySelectedCategory = "";
-      this.gCube.resetCategorySelection();
-      this.sCube.resetCategorySelection();
-      this.nCube.resetCategorySelection();
+      this.applyFilter();
    }
+
+
 
    filterDataByCategory(category: string): void {
      this.currentlySelectedCategory = category;
