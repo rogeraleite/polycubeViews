@@ -86,7 +86,7 @@ export class SetCube implements PolyCube {
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void {
+    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void { //pass object parameter to function
 
         //clean function
         this.circleGroup = []
@@ -194,9 +194,9 @@ export class SetCube implements PolyCube {
                 // console.log(circle.position)
 
 
-                if(i===0){
-                    this.getSetLabel(category.key, [circle.position.x, circle.position.z])
-                }
+                // if(i===0){
+                //     this.getSetLabel(category.key, [circle.position.x, circle.position.z])
+                // }
                 
                 //add points after each category
                 //get this category points positions
@@ -207,10 +207,9 @@ export class SetCube implements PolyCube {
                 phyllotaxis.forEach((points) => { //points group 
                     // console.log(points.data.category_1)
 
-                    let material2 = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
+                    let material2 = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) }); //FIXME: Color not found on SI
                     const point = new THREE.Mesh(pointGeometry, material2);
                     point.material.needsUpdate = true;
-
 
                     point.position.y = circle.position.y;
                     point.position.x = points.x;
@@ -659,6 +658,8 @@ export class SetCube implements PolyCube {
             D3.selectAll('.set-label').style('opacity', '0');
             // this.clearLabels()
         })
+
+        this.clearLabels()
 
     }
     transitionANI(): void { }
