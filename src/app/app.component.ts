@@ -57,6 +57,7 @@ export class AppComponent implements AfterViewInit {
    controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
+   
 
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
@@ -113,6 +114,7 @@ export class AppComponent implements AfterViewInit {
       const WIDTH = this.webGLContainer.nativeElement.offsetWidth;
       const HEIGHT = this.webGLContainer.nativeElement.offsetHeight;
 
+
       this.webGLRenderer = new THREE.WebGLRenderer({ canvas: this.webGLContainer.nativeElement as HTMLCanvasElement, alpha: true });
       this.webGLRenderer.setSize(WIDTH, HEIGHT);
       this.webGLRenderer.setClearColor(0xffffff, 0);
@@ -123,14 +125,18 @@ export class AppComponent implements AfterViewInit {
       this.cssContainer.nativeElement.appendChild(this.css3DRenderer.domElement);
      
       this.orthographicCamera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
-      this.perspectiveCamera = new THREE.PerspectiveCamera(60, WIDTH / HEIGHT, 1, 100000);
+      this.perspectiveCamera = new THREE.PerspectiveCamera(20, WIDTH / HEIGHT, 1, 100000);
 
       this.camera = this.orthographicCamera;
       this.camera.up.set(0, 1, 0);
-      this.camera.position.set(0, 0, 1000);
+      // this.camera.position.set(200, 200, 4800);
+      this.camera.position.set(1298, 450, 4744);
       this.camera.lookAt(this.webGLScene.position.x, this.webGLScene.position.y, this.webGLScene.position.z);
-      
+
       this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
+      this.controls.enableZoom = true;
+      this.controls.zoomSpeed = 1.2;
+      
    }
 
    /**
@@ -213,7 +219,10 @@ export class AppComponent implements AfterViewInit {
          let foundItem = this.getClickedItem($event);
          
          if(foundItem) {
-            console.log(foundItem);
+
+            console.log(this.camera.position)
+
+            // console.log(foundItem);
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
                mediaURL: foundItem.external_url,
