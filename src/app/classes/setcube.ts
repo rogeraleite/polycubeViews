@@ -122,10 +122,10 @@ export class SetCube implements PolyCube {
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
         let packLayout = this.getPackLayout()
-        let radExtent = D3.extent(this.getSetScale(), function(d:any) { 
-            return d.Value; 
-        } );
-        let radScale = D3.scaleLinear().domain(radExtent).range([10, 80]);
+        let radExtent = D3.extent(this.getSetScale(), function (d: any) {
+            return d.Value;
+        });
+        let radScale = D3.scaleLinear().domain(radExtent).range([5, 80]);
 
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
@@ -155,25 +155,26 @@ export class SetCube implements PolyCube {
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
             label.name = `LABEL_${i}`;
-            // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
+
+            
+
             // each category inside each time slice
             timeLayer.values.forEach((category) => { //slices group
-                // draw group geometries
 
                 //circle geometry
                 // const rad = category.values.length / 2;//ral: size of the big circles
 
-                const rad = radScale(category.values.length) 
+                const rad = radScale(category.values.length)
 
                 const geometry = new THREE.CircleGeometry(rad, 32);//hull resolution
-                const material = new THREE.MeshBasicMaterial({
+                const material1 = new THREE.MeshBasicMaterial({
                     color: '#d0d0d0',
                     side: THREE.DoubleSide,
                     transparent: true,
                     opacity: 0.7
                 });
-                const circle = new THREE.Mesh(geometry, material);
+                const circle = new THREE.Mesh(geometry, material1);
 
                 circle.matrixWorldNeedsUpdate = true;
                 circle.name = category.key;
@@ -188,17 +189,28 @@ export class SetCube implements PolyCube {
                 //get circles into one group to use for hull later
                 this.circleGroup.push(circle)
                 slice.add(circle)
+                
+                //add circle label
+                // console.log(circle.position)
 
+
+                if(i===0){
+                    this.getSetLabel(category.key, [circle.position.x, circle.position.z])
+                }
+                
                 //add points after each category
-
                 //get this category points positions
                 // let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
 
                 let phyllotaxis = this.getPhyllotaxis(circle.position.x, circle.position.z, rad, category.values);
 
                 phyllotaxis.forEach((points) => { //points group 
-                    const material = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
-                    const point = new THREE.Mesh(pointGeometry, material);
+                    // console.log(points.data.category_1)
+
+                    let material2 = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) });
+                    const point = new THREE.Mesh(pointGeometry, material2);
+                    point.material.needsUpdate = true;
+
 
                     point.position.y = circle.position.y;
                     point.position.x = points.x;
@@ -213,6 +225,28 @@ export class SetCube implements PolyCube {
             }) //slices group end
 
         }) //complete group end
+    }
+
+    getSetLabel(group:any, position:Array<number>) {
+        // CSS 3D SET LABELS
+        let element = document.createElement('div');
+        element.innerHTML = group;
+        element.className = 'set-label';
+        element.style.fontSize = 'smaller';
+        element.style.color = 'grey';
+
+        //CSS Object
+        // let label = new THREE.CSS3DObject(element);
+        let label = new THREE.CSS3DSprite(element);
+        // label.position.set(position[1], CUBE_CONFIG.HEIGHT, position[2]);
+        label.position.x = position[0] + CUBE_CONFIG.WIDTH / 2;
+        label.position.y = CUBE_CONFIG.HEIGHT/2 + 20;
+        label.position.z = position[1] + CUBE_CONFIG.WIDTH / 2;
+
+        // label.rotation.set(Math.PI);
+
+        label.name = `LABEL_${group}`;
+        this.cubeGroupCSS.add(label);
     }
 
     // Add force-directed layout
@@ -304,6 +338,17 @@ export class SetCube implements PolyCube {
         removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r));
     }
 
+    clearSetLabels(): void{
+        this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
+            if (child.name.includes('LABEL')){
+                child.visible = false;
+            }
+        });
+
+        D3.selectAll('.set-label')
+        .style('display', 'none')
+    }
+
     updateLayout(layout: string): void {
         const segs = this.dm.timeRange.length;
         if (layout === 'cluster') { //just for testing cluster force in UI
@@ -312,9 +357,9 @@ export class SetCube implements PolyCube {
         } else {
             this.updateSetCube(segs, true, layout)
         }
-        
-          //update hull 
-          this.hullState = false;
+
+        //update hull 
+        this.hullState = false;
     }
 
     getLayouts(layout: string, category: any, circle: THREE.Mesh) {
@@ -494,6 +539,7 @@ export class SetCube implements PolyCube {
 
             let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
             D3.selectAll('.time-slice-label').style('opacity', '1');
+            D3.selectAll('.set-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -521,7 +567,16 @@ export class SetCube implements PolyCube {
     transitionJP(): void {
 
         // hide hull
-        this.hideHull()
+        // this.hideHull()
+
+        //rerun scene and transition to JP
+        const segs = this.dm.timeRange.length;
+        this.updateSetCube(segs, true)
+        //update hull 
+        this.hullState = false;
+
+
+        // re run updateSet
 
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         this.boundingBox.visible = false;
@@ -538,12 +593,13 @@ export class SetCube implements PolyCube {
                 z: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
             };
 
-            //label
+            // label
             let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
-            console.log(label);
+            // console.log(label);
 
             D3.selectAll('.time-slice-label').style('opacity', '1');
-            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
+            D3.selectAll('.set-label').style('opacity', '0');
+            label.position.x = targetCoords.x - CUBE_CONFIG.HEIGHT / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
             label.rotation.set(-Math.PI / 2, 0, 0);
@@ -561,6 +617,7 @@ export class SetCube implements PolyCube {
 
         });
 
+        this.clearLabels()
     }
     transitionSI(): void {
         // hide hull
@@ -598,8 +655,11 @@ export class SetCube implements PolyCube {
         //on complete tweening, update setcube with flattened layers
         tween.onComplete(() => {
             this.updateSetCube(1)
-            this.clearLabels()
+            D3.selectAll('.time-slice-label').style('opacity', '0');
+            D3.selectAll('.set-label').style('opacity', '0');
+            // this.clearLabels()
         })
+
     }
     transitionANI(): void { }
 
@@ -716,7 +776,7 @@ export class SetCube implements PolyCube {
         const data = { name: "groups", children: groupedData };
         let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT])
 
-        var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; }).sort(function(a, b) { return b.value - a.value; });;
+        var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; }).sort(function (a, b) { return b.value - a.value; });;
 
         var vNodes = vRoot.descendants();
         let layout = vLayout(vRoot).children.map((d: any) => {
@@ -881,13 +941,13 @@ export class SetCube implements PolyCube {
         this.hullGroup.visible = true;
     }
 
-    getSetScale(){
+    getSetScale() {
         let groupedData = D3.nest()
-        .key((d: any) => { return d.category_1 })
-        .entries(this.dm.data)
-        .map(function (d) {
-            return { Category: d.key, Value: d.values.length };
-        });
+            .key((d: any) => { return d.category_1 })
+            .entries(this.dm.data)
+            .map(function (d) {
+                return { Category: d.key, Value: d.values.length };
+            });
 
         return groupedData;
     }
