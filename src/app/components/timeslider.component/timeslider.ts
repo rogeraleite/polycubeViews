@@ -221,8 +221,6 @@ export class TimeSliderComponent implements AfterViewInit {
         return currentY<step;
     }
 
-    
-
     pauseAnimation(){
         this.setPlayButtonLabel('play');
         clearInterval(this._interval);
