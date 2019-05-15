@@ -127,8 +127,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     resetTimeFilter():void{
-        //TODO
-        console.log("reset time filter");
+        this.onSelect.emit([this.minDate, this.maxDate]); 
     }
 
     getWholeTimePeriod(): Array<Date>{
@@ -143,9 +142,7 @@ export class TimeSliderComponent implements AfterViewInit {
         if (!this._brushMemory) {
             alert('Missing period - An animation will be played with standard brush. HOWEVER, the brush is FLEXIBLE and you can change its intervals the way you want it!!');            
             
-            this._brushMemory = [new Date(1939,1,1),new Date(1941,1,1)];            
-            console.log(this._brushMemory);
-
+            this._brushMemory = [new Date(1939,1,1),new Date(1941,1,1)];  
             this.showBrushAccordingToDateInterval();
             this.animateBasedOnPeriod();
         } 
@@ -156,6 +153,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }    
 
     showBrushAccordingToDateInterval(){
+        //TODO
         
         //this.brush.move(this._brushMemory);
         // call(brush.move,this._brushMemory.map(this.yScale));
