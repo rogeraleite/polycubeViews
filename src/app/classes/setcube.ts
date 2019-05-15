@@ -86,7 +86,7 @@ export class SetCube implements PolyCube {
     }
 
     //pass new slices numer and run the simulation again
-    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'circle'): void {
+    updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void {
 
         //clean function
         this.circleGroup = []
@@ -110,7 +110,10 @@ export class SetCube implements PolyCube {
             .key((d: any) => { return moment(d.groupDate).format('YYYY') })
             .key((d: any) => { return d.category_1 })
             .entries(this.dm.data)
-            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
+            // .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
+            .sort(function (a: any, b: any) {
+                return new Date(b.date_time).getTime() + new Date(a.date_time).getTime();
+            });
 
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
@@ -119,8 +122,10 @@ export class SetCube implements PolyCube {
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
         let packLayout = this.getPackLayout()
-
-
+        let radExtent = D3.extent(this.getSetScale(), function(d:any) { 
+            return d.Value; 
+        } );
+        let radScale = D3.scaleLinear().domain(radExtent).range([10, 80]);
 
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
@@ -157,7 +162,10 @@ export class SetCube implements PolyCube {
                 // draw group geometries
 
                 //circle geometry
-                const rad = category.values.length / 2;//ral: size of the big circles
+                // const rad = category.values.length / 2;//ral: size of the big circles
+
+                const rad = radScale(category.values.length) 
+
                 const geometry = new THREE.CircleGeometry(rad, 32);//hull resolution
                 const material = new THREE.MeshBasicMaterial({
                     color: '#d0d0d0',
@@ -182,7 +190,6 @@ export class SetCube implements PolyCube {
                 slice.add(circle)
 
                 //add points after each category
-
 
                 //get this category points positions
                 // let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
@@ -707,8 +714,10 @@ export class SetCube implements PolyCube {
                 return { Category: d.key, Value: d.values.length };
             });
         const data = { name: "groups", children: groupedData };
-        let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT]);
-        var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; });
+        let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT])
+
+        var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; }).sort(function(a, b) { return b.value - a.value; });;
+
         var vNodes = vRoot.descendants();
         let layout = vLayout(vRoot).children.map((d: any) => {
             return { cat: d.data.Category, x: d.x - CUBE_CONFIG.WIDTH / 2, y: d.y - CUBE_CONFIG.HEIGHT / 2, count: d.value, r: d.r };
@@ -766,7 +775,7 @@ export class SetCube implements PolyCube {
         });
 
         var theta = Math.PI * (3 - Math.sqrt(5)),
-            spacing = 5,
+            spacing = 3,
             size = spacing - 1,
             speed = 1,
             index = 0,
@@ -871,4 +880,16 @@ export class SetCube implements PolyCube {
         // show hull
         this.hullGroup.visible = true;
     }
+
+    getSetScale(){
+        let groupedData = D3.nest()
+        .key((d: any) => { return d.category_1 })
+        .entries(this.dm.data)
+        .map(function (d) {
+            return { Category: d.key, Value: d.values.length };
+        });
+
+        return groupedData;
+    }
+
 }
