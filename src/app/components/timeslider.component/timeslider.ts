@@ -147,7 +147,6 @@ export class TimeSliderComponent implements AfterViewInit {
             else this.pauseAnimation();
         } 
         else{
-            //alert('Missing period - An animation will be played with standard brush. HOWEVER, the brush is FLEXIBLE and you can change its intervals the way you want it!!');                        
             let standardPeriod = [new Date(1939,1,1),new Date(1941,1,1)];
             this.saveAndEmitFilterSelection(standardPeriod);
             this.drawBrushBasedOnTimePeriod(standardPeriod);
@@ -239,14 +238,6 @@ export class TimeSliderComponent implements AfterViewInit {
 
     setPlayButtonLabel(str: any){
         D3.select('text.playButton').text(str);
-    }
-
-    //DEPRICATED
-    switchPlayButtonLabel(){
-        let newLabel = '';
-        if(!this.isAnimationPlaying()) newLabel = 'pause';
-        else newLabel = 'play';
-        D3.select('text.playButton').text(newLabel);
     }
 
     brushEnd(): void {
