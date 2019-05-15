@@ -127,6 +127,9 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     resetTimeFilter():void{
+        if(this.isAnimationPlaying()) this.pauseAnimation();
+
+        this.drawBrushBasedOnPixelsCoordinates(null);
         this.onSelect.emit([this.minDate, this.maxDate]); 
     }
 
@@ -139,40 +142,31 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     animateBasedOnPeriod(){
-        if (!this._brushMemory) {
-            alert('Missing period - An animation will be played with standard brush. HOWEVER, the brush is FLEXIBLE and you can change its intervals the way you want it!!');            
-            
-            this._brushMemory = [new Date(1939,1,1),new Date(1941,1,1)];  
-            this.showBrushAccordingToDateInterval();
-            this.animateBasedOnPeriod();
-        } 
-        else{
+        if (this.hasBrushMemory()) {            
             if(!this.isAnimationPlaying()) this.animate();
             else this.pauseAnimation();
-        }        
+        } 
+        else{
+            //alert('Missing period - An animation will be played with standard brush. HOWEVER, the brush is FLEXIBLE and you can change its intervals the way you want it!!');                        
+            let standardPeriod = [new Date(1939,1,1),new Date(1941,1,1)];
+            this.saveAndEmitFilterSelection(standardPeriod);
+            this.drawBrushBasedOnTimePeriod(standardPeriod);
+            this.animateBasedOnPeriod();
+        }
     }    
 
-    showBrushAccordingToDateInterval(){
-        //TODO
-        
-        //this.brush.move(this._brushMemory);
-        // call(brush.move,this._brushMemory.map(this.yScale));
+    drawBrushBasedOnTimePeriod(timePeriod: Array<Date>) {    
+      var y0 = this.yScale(timePeriod[1]);
+      var y1 = this.yScale(timePeriod[0]);
+      this.drawBrushBasedOnPixelsCoordinates([y0,y1]);
+    }
 
-        // // north border
-        // let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
-        // currentY = this.yScale(this._brushMemory[1]);
-        // D3.select('g.brush rect.handle--n').attr('y',currentY).attr('style','');    
+    drawBrushBasedOnPixelsCoordinates(pixelCoordinates:Array<number>){
+        this._svg.select("g.brush").call(this.brush.move, pixelCoordinates);
+    }
 
-        // // center
-        // let height = (this.yScale(this._brushMemory[0]) - this.yScale(this._brushMemory[1]));
-        // currentY = D3.select('g.brush rect.selection').attr('y');        
-        // currentY = (height/2) + this.yScale(this._brushMemory[0]);        
-        // D3.select('g.brush rect.selection').attr('y',currentY).attr('height',height).attr('style','');        
-        
-        // // south border
-        // currentY = D3.select('g.brush rect.handle--s').attr('y');
-        // currentY = this.yScale(this._brushMemory[0]);
-        // D3.select('g.brush rect.handle--s').attr('y',currentY).attr('style','');    
+    hasBrushMemory(){
+        return (this._brushMemory && this._brushMemory.length>1);
     }
 
     animate() {   
@@ -189,12 +183,21 @@ export class TimeSliderComponent implements AfterViewInit {
 
     filterPeriodAccordingToNewBrushPositions(){
         let timePeriod = this.getTimePeriodFromSlider();
+        this.saveAndEmitFilterSelection(timePeriod);
+    }
+
+    saveAndEmitFilterSelection(timePeriod:Array<Date>){
         this.saveLastBrush(timePeriod);
-        this.onSelect.emit(timePeriod);        
+        this.onSelect.emit(timePeriod);  
+    }
+
+    isBrushNull():boolean{
+        if(D3.select('g.brush rect.handle--n').attr('y')) return true;
+        return false;
     }
 
     moveBrushPieces(step: number){
-        if (this.isBrushInUpLimit(step)) this.pauseAnimation();
+        if(this.isBrushInUpLimit(step)) this.pauseAnimation();
         else{
             // north border
             let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
@@ -219,10 +222,7 @@ export class TimeSliderComponent implements AfterViewInit {
         return currentY<step;
     }
 
-    saveAndEmitSelection(timePeriod:Array<Date>){
-        this.saveLastBrush(timePeriod);
-        this.onSelect.emit(timePeriod);  
-    }
+    
 
     pauseAnimation(){
         this.setPlayButtonLabel('play');
