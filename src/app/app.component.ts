@@ -512,13 +512,13 @@ export class AppComponent implements AfterViewInit {
    }
 
    clearCategoryFilter(): void {
-      this.gCube.resetCateogrySelection();
-      this.sCube.resetCateogrySelection();
-      this.nCube.resetCateogrySelection();
+      this.currentlySelectedCategory = "";
+      this.applyFilter();
    }
 
-   filterDataByCategory(cat: string): void {
-     this.currentlySelectedCategory = cat;
+
+   filterDataByCategory(category: string): void {
+     this.currentlySelectedCategory = category;
      this.applyFilter();
    }
 

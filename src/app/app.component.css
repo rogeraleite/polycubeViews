@@ -131,6 +131,10 @@
     cursor: pointer;
 }
 
+::ng-deep .resetButton,
+::ng-deep .resetButton text {
+    cursor: pointer;
+}
 
 /*DAT GUI*/
 ::ng-deep .dg.ac {

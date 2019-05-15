@@ -7,7 +7,7 @@ import { ElementRef } from '@angular/core';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
-import { FaceNormalsHelper } from 'three';
+import { FaceNormalsHelper, Line } from 'three';
 
 export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -164,28 +164,23 @@ export class NetCube implements PolyCube {
 
     updateNodeColor(encoding: string): void {
         this.updateColorCoding(encoding);
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
 
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
+            this.getAllNodes().forEach((node: any) => {
                 switch(encoding) {
                     case 'categorical' : 
-                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        node.material.color.set(this.colors(node.data.category_1));
                         break;
                     case 'temporal' :
-                        grandChild.material.color.set(this.colors(grandChild.data.date_time));
+                        node.material.color.set(this.colors(node.data.date_time));
                         break;
                     case 'monochrome' : 
-                        grandChild.material.color.set('#b5b5b5');
+                        node.material.color.set('#b5b5b5');
                         break;
                     default: 
-                        grandChild.material.color.set(this.colors(grandChild.data.category_1));
+                        node.material.color.set(this.colors(node.data.category_1));
                         break;
-                }
-                                    
+                }                                    
             });
-        });
     }
 
     updateNodeSize(radius: number): void {
@@ -218,8 +213,6 @@ export class NetCube implements PolyCube {
                         
                                     })
                                     .start();
-             
-                                    
             });
         });
     }
@@ -227,64 +220,154 @@ export class NetCube implements PolyCube {
     updateData(): void {
     }
 
-    isDateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
-        return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
-    }
-
-    areBothDatesWithinInterval(startDate: Date, endDate: Date, dates: Array<Date>): boolean {
+    areBothDatesWithinDateInterval(startDate: Date, endDate: Date, dates: Array<Date>): boolean {
         let isFirstDate = moment(dates[0]) >= moment(startDate) && moment(dates[0]) <= moment(endDate);
         let isSecondDate = moment(dates[1]) >= moment(startDate) && moment(dates[1]) <= moment(endDate);
         return isFirstDate && isSecondDate;
     }
 
-    filterData(cat: string, start: Date, end: Date): void {
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if(child.type !== 'Group') return;
+    filterData(category: string, start: Date, end: Date): void {
+        let query_byPeriod = this.filterNodesByDatePeriod(start, end);
+        let query_byCategory = this.filterNodesByCategory(category);        
+        let intersection = this.getSimilarItems(query_byPeriod, query_byCategory);
+        
+        this.applyFilterToNodes(intersection);
+    }
 
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-                if(!(this.isDateWithinInterval(start, end, grandChild.data.date_time) && (cat === "" ?  true : grandChild.data.category_1 === cat))) {
-                    grandChild.visible = false;
-                }
-            });
+
+    getSimilarItems(array1: Array<string>, array2: Array<string>):Array<string>{
+        return array1.filter(element => array2.includes(element));
+    }
+
+
+    applyFilterToNodes(nodes: Array<string>):void{        
+        this.showNodes(nodes);
+        this.showLinksToRemainingNodes(nodes);
+    }
+
+    showNodes(nodes: Array<string>):void{
+        this.getAllNodes().forEach((node: any) => {  
+                node.visible = nodes.includes(""+node.name);
+            });            
+    }
+
+    filterNodesByCategory(category: string): Array<string> {
+        let selected_nodes = new Array<string>();
+
+        this.getAllNodes().forEach((node: any) => {            
+            if(node.data.category_1 == category || category==""){
+                selected_nodes.push(""+node.name);
+            }            
         });
+
+        return selected_nodes;
     }
 
-    filterDataByDatePeriod(startDate: Date, endDate: Date): void {
-        this.hideNodesByDatePeriod(startDate, endDate);
-        this.hideLinksByDatePeriod(startDate, endDate);
-    }
-
-    hideNodesByDatePeriod(startDate: Date, endDate: Date): void {
-        this.cubeGroupGL.children.forEach((e: THREE.Group) => {
-            if(e.type !== 'Group') return;
-            e.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-                if(!this.isDateWithinInterval(startDate, endDate, grandChild.data.date_time)) grandChild.visible = false;
-            });
-        });
-    }
-
-    hideLinksByDatePeriod(startDate: Date, endDate: Date): void {
-        this.links_stc.children.forEach((e: THREE.Group) => {
-            let bothNodeDates = this.getLinkDates(e);
-            e.visible = true;
-            if(!this.areBothDatesWithinInterval(startDate, endDate, bothNodeDates)){
-                e.visible = false;
+    getAllNodes(){
+        let all_nodes = new Array<any>();
+        this.cubeGroupGL.children.forEach((group: THREE.Group) => {
+            if(group.type == 'Group'){
+                group.children.forEach((node: any) => {
+                    if(node.type == 'DATA_POINT'){
+                        all_nodes.push(node);
+                    }                
+                });
             }
         });
+        return all_nodes;
     }
 
-    getLinkDates(e: any): Array<Date>{
-        let couple_ids = e.name.split("_",2);
+    filterNodesByDatePeriod(startDate: Date, endDate: Date): Array<string> {
+        let selected_nodes = new Array<string>();   
+
+        this.getAllNodes().forEach((node: any) => {
+            if(this.isDateWithinInterval(startDate, endDate, node.data.date_time)){
+                selected_nodes.push(""+node.name);
+            }
+        });
+        
+        return selected_nodes;
+    }
+    
+    showLinksToRemainingNodes(nodes: Array<string>):void{
+        this.hideOutSlicerLinks(nodes);
+        this.hideInSlicerLinks(nodes);
+    }
+
+    hideOutSlicerLinks(nodes: Array<string>):void {
+        this.links_stc.children.forEach((link: THREE.Group) => {
+            link.visible = this.areBothSidesOfTheLinkSelected(link,nodes);            
+        });
+    }
+    
+    hideInSlicerLinks(nodes: Array<string>):void {
+        this.slices.forEach((slice: THREE.Group) => {
+            slice.children.forEach((element: THREE.Group) => {
+                if(element.type == "Line"){
+                    let link = element;
+                    link.visible = this.areBothSidesOfTheLinkSelected(link,nodes);
+                }//end if
+            });
+        });
+    }
+
+    areBothSidesOfTheLinkSelected(link:Line,nodes: Array<string>):boolean{
+        let nodeNames = this.getLinkBothNodesNames(link);
+        let result = (nodes.includes(nodeNames[0]) && nodes.includes(nodeNames[1]));
+        
+        return result;
+    }
+
+    areBothNodesFromSameTargetCategory(link:any, category:string):boolean{
+        let bothNodeCategories = this.getLinkBothNodesCategories(link.name);
+        if(this.areBothSameNodeCategory(bothNodeCategories) &&
+           this.isTargetCategory(bothNodeCategories[0], category)){            
+            return true;
+        } 
+        return false;
+    }
+
+    areBothSameNodeCategory(nodes_categories:Array<string>):boolean{
+        return nodes_categories[0] == nodes_categories[1];
+    }
+
+    isTargetCategory(target_node_category:string, target_category:string):boolean{
+        if(target_category=="") return true;        
+        return target_node_category == target_category;
+    }
+
+    isDateWithinInterval(startDate: Date, endDate: Date, pointDate: Date): boolean {
+        if (!startDate) startDate = this.dm.getMinDate();
+        if (!endDate) endDate = this.dm.getMaxDate();
+        return moment(pointDate) >= moment(startDate) && moment(pointDate) <= moment(endDate);
+    }
+
+    getLinkDates(link_name: any): Array<Date>{
+        let couple_ids = link_name.name.split("_",2);
         let id1 = couple_ids[0];
         let id2 = couple_ids[1];
         
        return [this.dm.dataMap[id1].date_time, this.dm.dataMap[id2].date_time];        
     }
+
+    getLinkBothNodesNames(link: any): Array<string>{
+        let couple_ids = link.name.split("_",2);
+        let id1 = couple_ids[0];
+        let id2 = couple_ids[1];
+        
+       return [id1, id2];        
+    }
+    
+    getLinkBothNodesCategories(link_name: any): Array<string>{
+        let couple_ids = link_name.split("_",2);
+        let id1 = couple_ids[0];
+        let id2 = couple_ids[1];
+        
+       return [this.dm.dataMap[id1].category_1, this.dm.dataMap[id2].category_1];        
+    }
    
+
+    //TRANSITIONS
     transitionSTC(): void {
         this.showCubeLinks();
         this.boundingBox.visible = true;
@@ -424,16 +507,8 @@ export class NetCube implements PolyCube {
         }
     }
 
-    resetCateogrySelection(gray: boolean = false): void {
-        this.cubeGroupGL.children.forEach((child: any) => {
-            if(child.type !== 'Group') return;
-
-            child.children.forEach((grandChild: any) => {
-                if(grandChild.type !== 'DATA_POINT') return;
-                grandChild.visible = true;
-            });
-        });
-        this.links_stc.children.forEach((e: THREE.Group) => { e.visible = true; });
+    resetCategorySelection(gray: boolean = false): void {
+        this.filterData("", this.dm.getMinDate(), this.dm.getMaxDate());
     }
 
     /**

@@ -34,16 +34,15 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-
         // define margin for timeline
         let margin = {
-            top: 0,
-            right: 0,
-            bottom: 20,
-            left: 0
+            top: 0, bottom: 0,
+            right: 0, left: 0
         };
+        let buttonYSize = 20;
         this.width = this.width - (margin.left + margin.right);
-        this.height = this.height - (margin.top + margin.bottom);
+        this.height = this.height - (margin.top + margin.bottom)-(2*buttonYSize);
+
 
         // define scales
         this.xScale = D3.scaleLinear().range([0, this.width]);
@@ -54,17 +53,14 @@ export class TimeSliderComponent implements AfterViewInit {
             .extent([[0, 0], [this.width, this.height]])
             .on('end', this.brushEnd.bind(this));
 
-
         this._svg = D3.select(this.timeSlider.nativeElement)
             .append('svg')
             .attr('width', this.width)
             .attr('height', this.height)
             .append('g')
-            .attr('transform', `translate(${margin.left}, ${margin.top - 15})`);
         // timeline y axis (not labels)
         this._svg.append('g')
             .attr('class', 'axis2 axis--y2')
-            .attr('transform', `translate(0, ${margin.top})`)
             .call(
                 D3.axisRight(this.yScale)
                 .ticks(D3.timeYear.every(1))
@@ -76,22 +72,39 @@ export class TimeSliderComponent implements AfterViewInit {
             .selectAll('.tick')
 
         //animate button
-        let button = this._svg.append('g')
-            .attr('transform', 'translate(' + 0 + ',' + (this.height) + ')')
+        let playButton = this._svg.append('g')
+            .attr('transform', 'translate(' + 0 + ',' + (this.height+buttonYSize) + ')')
             .attr('class', 'animateButton')
 
-        button.append('rect')
+        playButton.append('rect')
             .attr('width', this.width)
-            .attr('height', 40)
+            .attr('height', buttonYSize);
 
-        // for play text
-        button.append('text')
+        playButton.append('text')
             .attr('class','playButton')
             .attr('font-size', '1em')
             .attr('fill', 'white')
             .text('play')
-            .attr('transform', 'translate(8,28)')
-            .on('mouseup', this.animateBasedOnPeriod.bind(this));
+                .attr('transform', 'translate(8,16)')
+                .on('mouseup', this.animateBasedOnPeriod.bind(this));
+
+        //reset button
+        let resetFilterButton = this._svg.append('g')
+            .attr('transform', 'translate(' + 0 + ',' + (this.height) + ')')
+            .attr('class', 'resetButton')
+
+        resetFilterButton.append('rect')
+            .attr('width', this.width)
+            .attr('height', buttonYSize)
+            .attr('fill', 'gray');
+
+        resetFilterButton.append('text')
+            .attr('class','playButton')
+            .attr('font-size', '1em')
+            .attr('fill', 'white')
+            .text('reset')
+                .attr('transform', 'translate(8,16)')
+                .on('mouseup', this.resetTimeFilter.bind(this));
 
         // brush
         this._svg.append('g')
@@ -113,6 +126,11 @@ export class TimeSliderComponent implements AfterViewInit {
         return new Array<Date>(startDate,endDate);
     }
 
+    resetTimeFilter():void{
+        //TODO
+        console.log("reset time filter");
+    }
+
     getWholeTimePeriod(): Array<Date>{
         return new Array<Date>(this.minDate, this.maxDate);
     }
@@ -123,13 +141,41 @@ export class TimeSliderComponent implements AfterViewInit {
 
     animateBasedOnPeriod(){
         if (!this._brushMemory) {
-            alert('Missing period - Brush the vertical time line to define a period');
+            alert('Missing period - An animation will be played with standard brush. HOWEVER, the brush is FLEXIBLE and you can change its intervals the way you want it!!');            
+            
+            this._brushMemory = [new Date(1939,1,1),new Date(1941,1,1)];            
+            console.log(this._brushMemory);
+
+            this.showBrushAccordingToDateInterval();
+            this.animateBasedOnPeriod();
         } 
         else{
             if(!this.isAnimationPlaying()) this.animate();
             else this.pauseAnimation();
         }        
     }    
+
+    showBrushAccordingToDateInterval(){
+        
+        //this.brush.move(this._brushMemory);
+        // call(brush.move,this._brushMemory.map(this.yScale));
+
+        // // north border
+        // let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
+        // currentY = this.yScale(this._brushMemory[1]);
+        // D3.select('g.brush rect.handle--n').attr('y',currentY).attr('style','');    
+
+        // // center
+        // let height = (this.yScale(this._brushMemory[0]) - this.yScale(this._brushMemory[1]));
+        // currentY = D3.select('g.brush rect.selection').attr('y');        
+        // currentY = (height/2) + this.yScale(this._brushMemory[0]);        
+        // D3.select('g.brush rect.selection').attr('y',currentY).attr('height',height).attr('style','');        
+        
+        // // south border
+        // currentY = D3.select('g.brush rect.handle--s').attr('y');
+        // currentY = this.yScale(this._brushMemory[0]);
+        // D3.select('g.brush rect.handle--s').attr('y',currentY).attr('style','');    
+    }
 
     animate() {   
         this.setPlayButtonLabel('pause');
