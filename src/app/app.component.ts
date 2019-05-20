@@ -127,16 +127,18 @@ export class AppComponent implements AfterViewInit {
       this.orthographicCamera = new THREE.OrthographicCamera(WIDTH/-2, WIDTH/2, HEIGHT/2, HEIGHT/-2, -10000, 10000);
       this.perspectiveCamera = new THREE.PerspectiveCamera(20, WIDTH / HEIGHT, 1, 100000);
 
-      this.camera = this.orthographicCamera;
+      this.camera = this.perspectiveCamera;
+      // this.camera = this.orthographicCamera;
+
       this.camera.up.set(0, 1, 0);
-      // this.camera.position.set(200, 200, 4800);
-      this.camera.position.set(1298, 450, 4744);
+      // this.camera.position.set(200, 200, 4800); // for orthocamera
+      this.camera.position.set(803, 912, 4755)
       this.camera.lookAt(this.webGLScene.position.x, this.webGLScene.position.y, this.webGLScene.position.z);
 
       this.controls = new THREE.OrbitControls(this.camera, this.webGLRenderer.domElement);
+      this.controls.target = new THREE.Vector3(1000, 0, 0);
       this.controls.enableZoom = true;
       this.controls.zoomSpeed = 1.2;
-      
    }
 
    /**
@@ -219,8 +221,6 @@ export class AppComponent implements AfterViewInit {
          let foundItem = this.getClickedItem($event);
          
          if(foundItem) {
-
-            console.log(this.camera.position)
 
             // console.log(foundItem);
             this.previewItem = {
