@@ -297,6 +297,13 @@ export class AppComponent implements AfterViewInit {
             this.gCube.updateNodeColor(change.nodeColor);
             this.sCube.updateNodeColor(change.nodeColor);
             this.nCube.updateNodeColor(change.nodeColor);
+
+            //update timeline color
+            if(change.nodeColor === 'temporal'){
+               this.timelineColor(true)
+            }else{
+               this.timelineColor(false)
+            }
          }
 
          if(change.dataSet) {
@@ -344,12 +351,17 @@ export class AppComponent implements AfterViewInit {
          this.gCube.transitionSTC();
          this.sCube.transitionSTC();
          this.nCube.transitionSTC();
+         //update timeline color 
+         this.timelineColor(false)
       });
 
       this.gui.jpBtn.addEventListener('click', () => {
          this.gCube.transitionJP();
          this.sCube.transitionJP();
          this.nCube.transitionJP();
+
+         //update timeline color 
+         this.timelineColor(false)
       });
 
       this.gui.siBtn.addEventListener('click', () => {
@@ -358,10 +370,28 @@ export class AppComponent implements AfterViewInit {
          this.gCube.transitionSI();
          this.sCube.transitionSI();
          this.nCube.transitionSI();
-         // this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
+         //this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
+         //update timeline color 
+         this.timelineColor(true)
       });
    }
 
+   timelineColor(visible: boolean):void{
+      let colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dataManager.getMinDate(), this.dataManager.getMaxDate()]);
+      let labels =  D3.selectAll('.tick')
+      labels.nodes().forEach(function(d,i) {
+         let label = D3.select(d),
+         date = D3.select(d).data()[0];
+
+         if(visible == true){
+            label.select('text').attr('fill', colors(+date))
+         }
+         else{
+            label.select('text').attr('fill', 'grey')
+         }
+     })
+   }
+   
    usePerspectiveCamera(): void {
       let cameraPosition = this.orthographicCamera.position.clone();
       let cameraZoom = this.orthographicCamera.zoom;

@@ -662,7 +662,6 @@ export class SetCube implements PolyCube {
 
             //update node colors to temporal
             this.updateNodeColor('temporal');
-
         })
 
         this.clearLabels()
@@ -846,10 +845,10 @@ export class SetCube implements PolyCube {
 
         var theta = Math.PI * (3 - Math.sqrt(5)),
             spacing = 3,
-            size = spacing - 1,
-            speed = 1,
-            index = 0,
-            total = (radius * radius) / (spacing * spacing);
+            // size = spacing - 1,
+            // speed = 1,
+            index = 0;
+            // total = (radius * radius) / (spacing * spacing);
         let new_time = [];
 
         // For every side, step around and away from center.
