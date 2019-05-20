@@ -222,6 +222,9 @@ export class AppComponent implements AfterViewInit {
          
          if(foundItem) {
 
+            console.log(this.camera.position)
+            console.log(this.controls)
+
             // console.log(foundItem);
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
@@ -351,8 +354,12 @@ export class AppComponent implements AfterViewInit {
          this.gCube.transitionSTC();
          this.sCube.transitionSTC();
          this.nCube.transitionSTC();
-         //update timeline color 
+
+         //update timeline color as false
          this.timelineColor(false)
+
+          //rotate camera to STC
+          this.transitionSTCCamera();
       });
 
       this.gui.jpBtn.addEventListener('click', () => {
@@ -360,8 +367,11 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionJP();
          this.nCube.transitionJP();
 
-         //update timeline color 
+         //update timeline color as false 
          this.timelineColor(false)
+
+         //rotate camera to JP
+         this.transitionJPCamera();
       });
 
       this.gui.siBtn.addEventListener('click', () => {
@@ -371,11 +381,66 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionSI();
          this.nCube.transitionSI();
          //this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
-         //update timeline color 
-         this.timelineColor(true)
+
+         //update timeline color as true
+         this.timelineColor(true);
+
+         //rotate camera to SI
+         this.transitionSICamera();
+
       });
    }
 
+  /**
+    * Rotate Camera to SI view
+    */
+   transitionSICamera(): void{
+      //stop rotation
+      this.controls.noRotate = true;
+
+      let duration = 1000;
+      let targetVector = new THREE.Vector3();
+      let tweenPos = new TWEEN.Tween(this.camera.position);
+      targetVector.set(1006, 4826, 428);
+      tweenPos.to(targetVector, duration);
+      tweenPos.start().onComplete(() => {
+      });
+   }
+
+   /**
+    * Rotate Camera to STC view
+    */
+
+   transitionSTCCamera(): void{
+      //allow rotation
+      this.controls.noRotate = false;
+
+      let duration = 1000;
+      let targetVector = new THREE.Vector3();
+      let tweenPos = new TWEEN.Tween(this.camera.position);
+      targetVector.set(800, 912, 4755);
+      tweenPos.to(targetVector, duration);
+      tweenPos.start().onComplete(() => {
+      });
+   }
+
+   transitionJPCamera(): void{
+      //stop rotation
+      this.controls.noRotate = true;
+
+      let duration = 1000;
+      let targetVector = new THREE.Vector3();
+      let tweenPos = new TWEEN.Tween(this.camera.position);
+      targetVector.set(1006, 4826, 428);
+      tweenPos.to(targetVector, duration);
+      tweenPos.start().onComplete(() => {
+      });
+   }
+
+
+   /**
+    * This function is used to update brush timeline color
+    */
    timelineColor(visible: boolean):void{
       let colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dataManager.getMinDate(), this.dataManager.getMaxDate()]);
       let labels =  D3.selectAll('.tick')
