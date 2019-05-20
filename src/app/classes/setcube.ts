@@ -110,10 +110,7 @@ export class SetCube implements PolyCube {
             .key((d: any) => { return moment(d.groupDate).format('YYYY') })
             .key((d: any) => { return d.category_1 })
             .entries(this.dm.data)
-            // .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
-            .sort(function (a: any, b: any) {
-                return new Date(b.date_time).getTime() + new Date(a.date_time).getTime();
-            });
+            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
 
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
@@ -126,6 +123,13 @@ export class SetCube implements PolyCube {
             return d.Value;
         });
         let radScale = D3.scaleLinear().domain(radExtent).range([5, 80]);
+
+
+        // When its SI
+        if(segs == 1){
+            console.log('SI View')
+            // change color based on selection
+        }
 
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
@@ -193,11 +197,6 @@ export class SetCube implements PolyCube {
                 //add circle label
                 // console.log(circle.position)
 
-
-                // if(i===0){
-                //     this.getSetLabel(category.key, [circle.position.x, circle.position.z])
-                // }
-                
                 //add points after each category
                 //get this category points positions
                 // let spiralCategory = this.getSpiralPosition(parentPos.x, parentPos.z, rad, category.values)
@@ -205,9 +204,10 @@ export class SetCube implements PolyCube {
                 let phyllotaxis = this.getPhyllotaxis(circle.position.x, circle.position.z, rad, category.values);
 
                 phyllotaxis.forEach((points) => { //points group 
-                    // console.log(points.data.category_1)
 
+                    // this.updateColorCoding('temporal');
                     let material2 = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) }); //FIXME: Color not found on SI
+
                     const point = new THREE.Mesh(pointGeometry, material2);
                     point.material.needsUpdate = true;
 
@@ -520,6 +520,8 @@ export class SetCube implements PolyCube {
         this.updateSetCube();
 
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
+        let duration = 1000,
+            tween;
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let sourceCoords = {
@@ -544,8 +546,8 @@ export class SetCube implements PolyCube {
             label.position.z = targetCoords.z;
             label.rotation.set(0, 0, 0);
 
-            let tween = new TWEEN.Tween(sourceCoords)
-                .to(targetCoords, 1000)
+            tween = new TWEEN.Tween(sourceCoords)
+                .to(targetCoords, duration)
                 .delay(i * 300)
                 .easing(TWEEN.Easing.Cubic.InOut)
                 .onUpdate(() => {
@@ -553,12 +555,13 @@ export class SetCube implements PolyCube {
                     slice.position.y = sourceCoords.y,
                         slice.position.z = sourceCoords.z;
                 })
-                .onComplete(() => {
-                    //something if needed
-                })
                 .start();
         });//end forEach
 
+        tween.onComplete(() => {
+            //update nodecolor to categorical
+            this.updateNodeColor('categorical');
+        })
         // show hull
         this.showHull()
     }
@@ -656,7 +659,10 @@ export class SetCube implements PolyCube {
             this.updateSetCube(1)
             D3.selectAll('.time-slice-label').style('opacity', '0');
             D3.selectAll('.set-label').style('opacity', '0');
-            // this.clearLabels()
+
+            //update node colors to temporal
+            this.updateNodeColor('temporal');
+
         })
 
         this.clearLabels()
@@ -829,11 +835,14 @@ export class SetCube implements PolyCube {
 
     getPhyllotaxis(centerX: number, centerY: number, radius: number, data: any) {
 
-        data.sort(function (a: any, b: any) {
-            // Turn your strings into dates, and then subtract them
-            // to get a value that is either negative, positive, or zero.
-            return new Date(b.date_time).getTime() + new Date(a.date_time).getTime();
-        });
+        data.sort((a: any, b: any) => { 
+
+            a = Date.parse(a.date_time),
+            b = Date.parse(b.date_time);
+
+            return a == b ? 0 : +(a > b) || -1; }
+            )
+
 
         var theta = Math.PI * (3 - Math.sqrt(5)),
             spacing = 3,

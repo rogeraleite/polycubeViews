@@ -354,11 +354,11 @@ export class AppComponent implements AfterViewInit {
 
       this.gui.siBtn.addEventListener('click', () => {
          this.gCube.updateNodeColor('temporal');
-         this.sCube.updateNodeColor('temporal');
          this.nCube.updateNodeColor('temporal');
          this.gCube.transitionSI();
          this.sCube.transitionSI();
          this.nCube.transitionSI();
+         // this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
       });
    }
 
