@@ -560,7 +560,7 @@ export class SetCube implements PolyCube {
 
         tween.onComplete(() => {
             //update nodecolor to categorical
-            this.updateNodeColor('categorical');
+            // this.updateNodeColor('categorical');
         })
         // show hull
         this.showHull()

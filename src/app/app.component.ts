@@ -309,8 +309,16 @@ export class AppComponent implements AfterViewInit {
             }
          }
 
-         if(change.dataSet) {
+         // camera switch 
+         if(change.cameraType) {
+
+            if(change.cameraType === 'Perspective'){
+               this.usePerspectiveCamera();
+            } else if (change.cameraType === 'Orthographic'){
+               this.useOrthographicCamera();
+            }
          }
+         
 
          // we should be done processing changes
          this.processingChange = false;
@@ -396,7 +404,7 @@ export class AppComponent implements AfterViewInit {
     */
    transitionSICamera(): void{
       //stop rotation
-      this.controls.noRotate = true;
+      // this.controls.noRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -404,6 +412,7 @@ export class AppComponent implements AfterViewInit {
       targetVector.set(1006, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
+         this.controls.update();
       });
    }
 
@@ -413,7 +422,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionSTCCamera(): void{
       //allow rotation
-      this.controls.noRotate = false;
+      // this.controls.noRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -421,12 +430,13 @@ export class AppComponent implements AfterViewInit {
       targetVector.set(800, 912, 4755);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
+         this.controls.update();
       });
    }
 
    transitionJPCamera(): void{
       //stop rotation
-      this.controls.noRotate = true;
+      // this.controls.noRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -434,6 +444,7 @@ export class AppComponent implements AfterViewInit {
       targetVector.set(1006, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
+         this.controls.update();
       });
    }
 

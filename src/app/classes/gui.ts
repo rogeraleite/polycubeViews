@@ -39,6 +39,9 @@ export class GUI {
     }
 
     createDATGUI(): void {
+
+        //camera
+
         // polycube
         let pCubeParams = {
             numSlices: 10,
@@ -46,10 +49,11 @@ export class GUI {
             nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
             time: 'aggregated',
             nodeSize: CUBE_CONFIG.NODE_SIZE,
-            dataSet: CUBE_CONFIG.DATA_SET.name
+            dataSet: CUBE_CONFIG.DATA_SET.name,
+            cameraType: 'Perspective', 
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
-        
+
         pCubeFolder.add(pCubeParams, 'numSlices').min(1).max(50).step(1)
         .onChange(() => {
             this.pCubeConfigEmitter.emit('processing', true);
@@ -85,6 +89,12 @@ export class GUI {
             });
         });
         
+        pCubeFolder.add(pCubeParams, 'cameraType', ['Perspective', 'Orthographic']).onChange(() => {
+            this.pCubeConfigEmitter.emit('change', {
+                cameraType: pCubeParams.cameraType
+            });
+        });
+
         
         // GeoCube settings
         let gCubeParams = {
@@ -121,7 +131,7 @@ export class GUI {
 
         // NetCube settings
         let nCubeFolder = this.gui.addFolder('NetCube');
-        
+
     }
     
 }
