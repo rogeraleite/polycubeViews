@@ -8,7 +8,7 @@ import * as D3 from 'd3';
 import * as moment from 'moment';
 import { ElementRef } from '@angular/core';
 import { mouse } from 'd3';
-import { forceCluster } from 'd3-force-cluster'
+import { forceCluster } from 'd3-force-cluster';
 
 
 export class SetCube implements PolyCube {
@@ -17,7 +17,7 @@ export class SetCube implements PolyCube {
     pointGroup: Array<THREE.Group>;
     circleGroup: Array<THREE.Group>;
     hullGroup: THREE.Group;
-    hullState: boolean
+    hullState: boolean;
 
     // Data
     private dm: DataManager;
@@ -55,14 +55,14 @@ export class SetCube implements PolyCube {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
         this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
-        this.colors = this.dm.colors; //D3.scaleOrdinal(D3.schemePaired);
+        this.colors = this.dm.colors; // D3.scaleOrdinal(D3.schemePaired);
         this.slices = new Array<THREE.Group>();
         this.pointGroup = new Array<THREE.Group>();
         this.circleGroup = new Array<THREE.Group>();
         // this.pointGroup.name = 'pointGroup'
         this.cubeGroupGL.pointGroup = this.pointGroup;
 
-        //hull
+        // hull
         this.hullGroup = new THREE.Group();
         this.hullState = false
 
@@ -70,7 +70,7 @@ export class SetCube implements PolyCube {
         this.mouse = new THREE.Vector2();
 
 
-        let placeholderBox = new THREE.Mesh(
+        const placeholderBox = new THREE.Mesh(
             new THREE.BoxGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH),
             new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         );
@@ -88,10 +88,10 @@ export class SetCube implements PolyCube {
     //pass new slices numer and run the simulation again
     updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void { //pass object parameter to function
 
-        //clean function
-        this.circleGroup = []
+        // clean function
+        this.circleGroup = [];
 
-        //clear scene of old objects
+        // clear scene of old objects
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.remove(slice); });
         this.slices = new Array<THREE.Group>();
         this.clearLabels();
@@ -516,7 +516,7 @@ export class SetCube implements PolyCube {
 
     transitionSTC(): void {
         this.boundingBox.visible = true;
-        //TODO:on STC, update setcube with stacked layers
+        // TODO:on STC, update setcube with stacked layers
         this.updateSetCube();
 
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
@@ -866,59 +866,66 @@ export class SetCube implements PolyCube {
     }
 
     drawHull() {
-        //empty hull group
+        // empty hull group
         this.hullGroup.children = []
 
-        let categories = Array.from(this.setMap);
+        const categories = Array.from(this.setMap);
         categories.forEach((d) => {
-            this.geometryConvex(d)
-        })
+            this.geometryConvex(d);
+        });
 
-        //hull state
+        // hull state
         this.hullState = true;
+
+        this.uncertainHull();
     }
 
-    geometryConvex(group = "Identification photographs") {
-        let vertices = [];
+    geometryConvex(group = 'Identification photographs') {
+        const vertices = [];
         this.circleGroup.forEach((child: any) => {
             if (child.name === group) {
-                var array_aux = [];
+                const array_aux = [];
                 child.geometry.vertices.forEach((d) => {
                     array_aux.push(child.localToWorld(d));
                 });
-                vertices.push(array_aux)
+                vertices.push(array_aux);
             }
         });
-
-        // console.log(vertices2[0]);
 
         vertices.forEach((d, i) => {
-            let meshData;
-            if (i !== vertices.length - 1) { //if to deal with last component structure
-                meshData = vertices[i].concat(vertices[i + 1]);
-                this.addHullToScene(meshData)
-            }
-        });
+                let meshData;
+                if (i !== vertices.length - 1) { // if to deal with last component structure
+                    meshData = vertices[i].concat(vertices[i + 1]);
+
+                    // const top = Math.abs(meshData[0].y);
+                    // const bottom = Math.abs(meshData[meshData.length - 1].y);
+                    // const gap = Math.abs(top - bottom);
+
+                    this.addHullToScene(meshData);
+
+                }
+            });
     }
 
     addHullToScene(vertices) {
-        var wireFrameMat = new THREE.MeshBasicMaterial({
+        const wireFrameMat = new THREE.MeshBasicMaterial({
             color: '#a2a2a2', transparent: true, opacity: 0.3,
             // ***** Clipping setup (material): *****
             clippingPlanes: [],
-            clipShadows: true
+            clipShadows: true,
+            wireframe: true
         });
-        wireFrameMat.wireframe = true;
 
-        var meshGeometry = new THREE.ConvexBufferGeometry(vertices);
+        const meshGeometry = new THREE.ConvexBufferGeometry(vertices);
 
-        var mesh = new THREE.Mesh(meshGeometry, wireFrameMat);
+        const mesh = new THREE.Mesh(meshGeometry, wireFrameMat);
 
-        //calibrate the cubleft border
+        // calibrate the cubleft border
         mesh.position.set(-this.cubeLeftBoarder, 0, 0);
         // this.cubeGroupGL.add(mesh);
         this.hullGroup.add(mesh);
     }
+
 
     getHullState(): boolean {
         return this.hullState;
@@ -949,6 +956,22 @@ export class SetCube implements PolyCube {
         // show hull
         this.hullGroup.visible = true;
     }
+
+    uncertainHull() {
+        const vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
+        this.hullGroup.children.forEach((mesh: THREE.Mesh) => {
+
+            const box = new THREE.Box3().setFromObject( mesh );
+            const size = box.getSize(new THREE.Vector3( ))
+
+            // console.log( mesh);
+
+            if (size.y > (vertOffset + 5) ) {
+                mesh.visible = false;
+            }
+        });
+    }
+
 
     getSetScale() {
         let groupedData = D3.nest()
