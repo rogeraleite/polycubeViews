@@ -32,7 +32,10 @@ export class AppComponent implements AfterViewInit {
    title = 'polycubeViews';
    previewItem: any;
 
-   processingChange: boolean = false;
+   processingChange: boolean = true;
+   processingMessage: string = 'Loading dataset...';
+
+   previewPanel: boolean = false;
 
    currentlySelectedCategory: string;
    currentlySelectedDateExtent: Array<Date>;
@@ -153,8 +156,13 @@ export class AppComponent implements AfterViewInit {
       // parse it when done and pass to datamanager
       this.google.load(_id).then((success: any) => {
          this.dataManager.data = success;
+
+         this.processingChange = false;
+         this.processingMessage = '';
+         
          this.loadingDataset = false;
          this.dataLoaded = true;
+         
          // default date extent for filtering
          this.currentlySelectedDateExtent.push(this.dataManager.getMinDate());
          this.currentlySelectedDateExtent.push(this.dataManager.getMaxDate());
@@ -221,11 +229,6 @@ export class AppComponent implements AfterViewInit {
          let foundItem = this.getClickedItem($event);
          
          if(foundItem) {
-
-            console.log(this.camera.position)
-            console.log(this.controls)
-
-            // console.log(foundItem);
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
                mediaURL: foundItem.external_url,
@@ -235,10 +238,13 @@ export class AppComponent implements AfterViewInit {
                externalURL: foundItem.media_url,
                categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
             };
+
+            this.openPreview();
          } else {
             this.previewItem = null;
             this.tooltip.nativeElement.style.display = 'none';
             this.tooltip.nativeElement.style.opacity = '0';
+            this.closePreview();
          }
       });
    }
@@ -259,11 +265,23 @@ export class AppComponent implements AfterViewInit {
    }
 
    /**
+    * Open / Close the preview panel (details on the side)
+    */
+   openPreview(): void {
+      this.previewPanel = true;
+   }
+
+   closePreview(): void {
+      this.previewPanel = false;
+   }
+
+   /**
     * Initializes the GUI elements including button event listeners
     */
    initGUI = () => {
       this.gui = new GUI();
       // general settings
+      this.processingMessage = 'Processing new configuration...';
       this.gui.pCubeConfigEmitter.on('processing', (change: any) => {
          this.processingChange = change;
       });
@@ -356,7 +374,6 @@ export class AppComponent implements AfterViewInit {
       this.gui.geoBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.GEO_CUBE); });
       this.gui.setBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.SET_CUBE); });
       this.gui.netBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.NET_CUBE); });
-      this.gui.polyBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.POLY_CUBE); });
 
       this.gui.stcBtn.addEventListener('click', () => {
          this.gCube.transitionSTC();

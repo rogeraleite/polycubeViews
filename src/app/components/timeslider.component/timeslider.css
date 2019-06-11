@@ -2,7 +2,7 @@
     position: absolute;
     z-index: 999;
     top: 0em;
-    left: 25vw; /* this is offset defined by gui class in app.component.css */
+    /* left: 25vw; this is offset defined by gui class in app.component.css */
 }
 
 ::ng-deep .time-slider svg {

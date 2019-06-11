@@ -28,7 +28,6 @@ export class GUI {
         this.geoBtn = document.getElementById('geo-view-button');
         this.setBtn = document.getElementById('set-view-button');
         this.netBtn = document.getElementById('net-view-button');
-        this.polyBtn = document.getElementById('poly-view-button');
         
         this.stcBtn = document.getElementById('stc-view-button');
         this.jpBtn = document.getElementById('jp-view-button');
@@ -44,6 +43,7 @@ export class GUI {
 
         // polycube
         let pCubeParams = {
+            
             numSlices: 10,
             backgroundColor: '#ffffff',
             nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
