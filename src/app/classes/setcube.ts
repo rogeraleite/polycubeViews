@@ -71,7 +71,7 @@ export class SetCube implements PolyCube {
 
 
         const placeholderBox = new THREE.Mesh(
-            new THREE.BoxGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH),
+            new THREE.BoxGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, CUBE_CONFIG.WIDTH),
             new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         );
         placeholderBox.position.set(CUBE_CONFIG.WIDTH / 2, 0, CUBE_CONFIG.WIDTH / 2);
@@ -114,7 +114,7 @@ export class SetCube implements PolyCube {
 
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
-        let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
+        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
 
         //layouts
         let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
@@ -134,7 +134,7 @@ export class SetCube implements PolyCube {
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
             // flat planes for JP
-            const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
+            const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
             let material = new THREE.LineBasicMaterial({ color: '#b5b5b5' });
             let plane = new THREE.LineSegments(edgeGeometry, material);
@@ -145,7 +145,7 @@ export class SetCube implements PolyCube {
             let slice = new THREE.Group();
             slice.name = timeLayer.key; // we need to decide either to use full date or
             slice.add(plane);
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
             // slice.position.set(CUBE_CONFIG.WIDTH / 2, - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for updates
             this.slices.push(slice);
             this.cubeGroupGL.add(slice)
@@ -157,7 +157,7 @@ export class SetCube implements PolyCube {
 
             //CSS Object
             let label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2), CUBE_CONFIG.WIDTH / 2);
             label.name = `LABEL_${i}`;
             this.cubeGroupCSS.add(label);
 
@@ -532,7 +532,7 @@ export class SetCube implements PolyCube {
 
             let targetCoords = {
                 x: CUBE_CONFIG.WIDTH / 2,
-                y: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2),
+                y: (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2),
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
@@ -592,7 +592,7 @@ export class SetCube implements PolyCube {
             let targetCoords = {
                 x: slice.position.x,
                 y: -CUBE_CONFIG.HEIGHT / 2,
-                z: (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
+                z: (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2)
             };
 
             // label
