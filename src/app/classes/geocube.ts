@@ -35,6 +35,11 @@ export class GeoCube implements PolyCube {
     private _jitter: number = 0;
     private colorCoding: string = 'categorical';
 
+    private _cubeToggle: boolean = true;
+
+    get cubeToggle(): boolean {
+        return this._cubeToggle;
+    }
     /**
      * 
      * @param dm DataManager
@@ -308,11 +313,15 @@ export class GeoCube implements PolyCube {
      * @param currentViewState 
      */
     updateView(currentViewState: VIEW_STATES): void {
-        if (currentViewState.valueOf() === VIEW_STATES.GEO_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
+        if (this._cubeToggle) {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
             this.showBottomLayer();
         }
+    }
+    
+    toggleDisplayCube(): void {
+        this._cubeToggle = !this._cubeToggle;
     }
 
     updateColorCoding(encoding: string): void {

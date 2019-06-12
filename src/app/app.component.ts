@@ -20,36 +20,46 @@ import * as moment from'moment';
    styleUrls: ['./app.component.css', './bootstrap.min.css']
 })
 
+/**
+ * PolyCube main controller
+ * - loads and parses data
+ * - initializes threejs scene
+ * - initializes cube components
+ */
 export class AppComponent implements AfterViewInit {
-   @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
+   // Canvases
    @ViewChild('webGLCanvas') webGLContainer: ElementRef;
    @ViewChild('cssCanvas') cssContainer: ElementRef;
+
+   // spreadsheet input field
+   @ViewChild('spreadsheetInput') spreadsheetId: ElementRef;
+
+   // detail panel
    @ViewChild('modal') modalContainer: ElementRef;
    @ViewChild('img') imgContainer: ElementRef;
    @ViewChild('caption') captionContainer: ElementRef;
+   // toggle buttons for cubes
+   @ViewChild('geobtn') gBtn: ElementRef;
+   @ViewChild('setbtn') sBtn: ElementRef;
+   @ViewChild('netbtn') nBtn: ElementRef;
 
+   // tooltip html element for d3
    @ViewChild('tooltip') tooltip: ElementRef;
-   title = 'polycubeViews';
-   previewItem: any;
 
+   title = 'PolyCube';
+
+   
+   // processing & updating
    processingChange: boolean = true;
    processingMessage: string = 'Loading dataset...';
-
+   
    previewPanel: boolean = false;
+   previewItem: any;
 
    currentlySelectedCategory: string;
    currentlySelectedDateExtent: Array<Date>;
 
-   /**
-  * PolyCube main controller
-  * - loads and parses data
-  * - initializes threejs scene
-  * - initializes cube components
-  */
-
-   /**
-    * init function
-    */
+   // ThreeJS things
    gui: GUI;
    webGLScene: THREE.Scene;
    cssScene: THREE.Scene;
@@ -61,7 +71,6 @@ export class AppComponent implements AfterViewInit {
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
    
-
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
 
@@ -69,8 +78,11 @@ export class AppComponent implements AfterViewInit {
    currentViewState: VIEW_STATES = VIEW_STATES.POLY_CUBE;
    dataManager: DataManager;
 
+   // data management
    loadingDataset: boolean = true;
    dataLoaded: boolean = false;
+
+   // error management
    errorOccurred: boolean = false;
    errorMessage: string;
 
@@ -97,6 +109,11 @@ export class AppComponent implements AfterViewInit {
     * Lifecycle hook called when the DOM is initialized
     */
    ngAfterViewInit() {
+      // set initial classses
+      this.gBtn.nativeElement.className = 'btn  btn-secondary';
+      this.sBtn.nativeElement.className = 'btn  btn-secondary';
+      this.nBtn.nativeElement.className = 'btn  btn-secondary';
+      
       setTimeout(() => {
          this.initDataset();
       })
@@ -687,10 +704,19 @@ export class AppComponent implements AfterViewInit {
     */
    setCubeView(view: string): void {
       switch (view) {
-         case 'GEO_CUBE': this.currentViewState = VIEW_STATES.GEO_CUBE; break;
-         case 'SET_CUBE': this.currentViewState = VIEW_STATES.SET_CUBE; break;
-         case 'NET_CUBE': this.currentViewState = VIEW_STATES.NET_CUBE; break;
-         case 'POLY_CUBE': this.currentViewState = VIEW_STATES.POLY_CUBE; break;
+         case 'GEO_CUBE': 
+            this.gCube.toggleDisplayCube(); 
+            this.gBtn.nativeElement.className = this.gCube.cubeToggle ? 'btn  btn-secondary' : 'btn  btn-outline-secondary';
+            break;
+         case 'SET_CUBE': 
+            this.sCube.toggleDisplayCube(); 
+            this.sBtn.nativeElement.className = this.sCube.cubeToggle ? 'btn  btn-secondary' : 'btn  btn-outline-secondary';
+            break;
+         case 'NET_CUBE': 
+            this.nCube.toggleDisplayCube(); 
+            this.nBtn.nativeElement.className = this.nCube.cubeToggle ? 'btn  btn-secondary' : 'btn  btn-outline-secondary';
+            break;
+         // case 'POLY_CUBE': this.currentViewState = VIEW_STATES.POLY_CUBE; break; -- doesn't exist
          default:
             return;
       }

@@ -38,6 +38,12 @@ export class SetCube implements PolyCube {
     private colorCoding: string = 'categorical';
     private cubeLeftBoarder: number;
 
+    private _cubeToggle: boolean = true;
+
+    get cubeToggle(): boolean {
+        return this._cubeToggle;
+    }
+
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
@@ -390,8 +396,12 @@ export class SetCube implements PolyCube {
         });
     }
 
+    toggleDisplayCube(): void {
+        this._cubeToggle = !this._cubeToggle;
+    }
+
     updateView(currentViewState: VIEW_STATES): void {
-        if (currentViewState.valueOf() === VIEW_STATES.SET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
+        if (this._cubeToggle) {
             this.webGLScene.add(this.cubeGroupGL);
         }
     }

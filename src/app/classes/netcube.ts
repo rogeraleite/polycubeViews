@@ -37,6 +37,12 @@ export class NetCube implements PolyCube {
     private colorCoding: string = 'categorical';
     private cubeLeftBoarder: number;
 
+    private _cubeToggle: boolean = true;
+    
+    get cubeToggle(): boolean {
+        return this._cubeToggle;
+    }
+
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
@@ -111,7 +117,7 @@ export class NetCube implements PolyCube {
     }
 
     updateView(currentViewState: VIEW_STATES): void {
-        if (currentViewState.valueOf() === VIEW_STATES.NET_CUBE || currentViewState.valueOf() === VIEW_STATES.POLY_CUBE) {
+        if (this._cubeToggle) {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
             this.showBottomLayer();
@@ -140,6 +146,10 @@ export class NetCube implements PolyCube {
                 this.webGLScene.children.splice(i,1);
             }
         });
+    }
+
+    toggleDisplayCube(): void {
+        this._cubeToggle = !this._cubeToggle;
     }
 
     updateColorCoding(encoding: string): void {

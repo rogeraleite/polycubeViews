@@ -12,6 +12,8 @@ export interface PolyCube {
     filterData: Function,
     resetSelection: Function,
     resetCategorySelection: Function,
+    toggleDisplayCube: Function,
+    cubeToggle: Boolean,
 
     // updating settings / data
     updateView: Function,
