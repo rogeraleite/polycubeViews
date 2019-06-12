@@ -33,7 +33,7 @@
                     <p>Related pictures:</p>
                     <ul class="list-group">
                         <li class="list-group-item" *ngFor="let r of previewItem.related">
-                            <a href="javascript:void(0)" (click)="selectNode(r)">{{ getRelatedNode(r).description }}</a>
+                            <a href="javascript:void(0)" (click)="selectNode(r)">{{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }}</a>
                         </li>
                     </ul>
                 </div>
