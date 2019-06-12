@@ -618,7 +618,7 @@ export class NetCube implements PolyCube {
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
-            console.log(dataItem);
+
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
             let point = new THREE.Mesh(geometry, material);
