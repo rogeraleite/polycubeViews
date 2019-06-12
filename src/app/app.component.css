@@ -12,14 +12,16 @@
 
 .options {
     position: absolute !important;
-    z-index: 9999;
+    z-index: 1048;
     bottom: 1em;
     left: 5em;
 }
 
 ::ng-deep .side-bar {
     padding: 1em;
+    background-color: #fff;
     border-right: 2px dashed #f3f3f3;
+    z-index: 1049 !important;
 }
 
 ::ng-deep .side-bar-content {
@@ -117,7 +119,8 @@ button:focus {
 
 .preview-item {
     margin-top: 2em;
-    max-width: calc(25vw - 2em);
+    margin-bottom: 2em;
+    max-width: 25vw;
 }
 
 .preview-title {
@@ -249,6 +252,29 @@ button:focus {
 
 .processing-change p {
     color: white;
+}
+
+/*navigation buttons*/
+
+#next,
+#previous {
+    position: relative;
+    top: -55%;
+    font-size: 2em;
+    color: white;
+    text-shadow: 0 1px 0 #fff;
+    opacity: .5;
+    display: inline;
+}
+
+#next {
+    float: right;   
+    margin-right: 5em;
+}
+
+#previous {
+    float: left;
+    margin-left: 5em;
 }
 
 

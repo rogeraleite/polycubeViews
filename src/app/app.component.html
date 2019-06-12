@@ -1,26 +1,43 @@
+<div class="modal" #modal>
+        <span class="close" (click)="closePicture()">&times;</span>
+        <img class="modal-content" id="img01" #img (load)="imageLoaded()">
+        <div id="caption" #caption></div>
+        <button id="previous" type="button" class="btn btn-default" aria-label="Left Align" (click)="getPrevious()">
+            <i class="fa fa-chevron-left"></i>
+        </button>
+        <button id="next" type="button" class="btn btn-default" aria-label="Right Align" (click)="getNext()">
+            <i class="fa fa-chevron-right"></i>
+        </button>
+</div>
+
 <div class="wrapper">
     <ng-sidebar-container>
         <!-- Preview Panel Side Bar -->
         <ng-sidebar [(opened)]="previewPanel" mode="push" animate="false" sidebarClass="side-bar">
             <div class="pc-tooltip" #tooltip></div>
-            <div class="modal" #modal>
-                <span class="close" (click)="closePicture()">&times;</span>
-                <img class="modal-content" id="img01" #img>
-                <div id="caption" #caption></div>
-            </div>
+            
             <div class="preview-item" *ngIf="previewItem">
                 <button id="close-preview" type="button" class="close" aria-label="Close Preview" (click)="closePreview()">
                     <span>&times;</span>
                 </button>
                 <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
                 <img (click)="openPicture(previewItem.mediaURL, previewItem.description)" class="preview-picture"
-                    [src]="previewItem.mediaURL">
+                    [src]="previewItem.mediaURL" (load)="imageLoaded()">
                 <div *ngFor="let cat of previewItem.categories" class="categories">
                     <span class="badge badge-secondary">{{ cat }}</span>
                 </div>
                 <p class="preview-metainfo">{{ previewItem.date }} @ {{ previewItem.location }}</p>
                 <br>
                 <p class="preview-description">{{ previewItem.description }}</p>
+                <div class="related">
+                    <p>Related pictures:</p>
+                    <ul class="list-group">
+                        <li class="list-group-item" *ngFor="let r of previewItem.related">
+                            <a href="javascript:void(0)" (click)="selectNode(r)">{{ getRelatedNode(r).description }}</a>
+                        </li>
+                    </ul>
+                </div>
+                <br>
                 <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>
             </div>
         </ng-sidebar>

@@ -227,15 +227,16 @@ export class AppComponent implements AfterViewInit {
       this.webGLContainer.nativeElement.addEventListener('click', ($event) => {
          $event.preventDefault();
          let foundItem = this.getClickedItem($event);
-         
          if(foundItem) {
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
+               id: foundItem.id,
                mediaURL: foundItem.external_url,
                date: moment(foundItem.date_time).format('DD-MM-YYYY'),
                location: foundItem.location_name,
                description: foundItem.description,
                externalURL: foundItem.media_url,
+               related: foundItem.target_nodes,
                categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
             };
 
@@ -273,6 +274,76 @@ export class AppComponent implements AfterViewInit {
 
    closePreview(): void {
       this.previewPanel = false;
+   }
+
+   /**
+    * Return details about related nodes
+    * @param id Node ID
+    */
+   getRelatedNode(id: number): any {
+      let found = this.dataManager.data.find((d: any) => {
+         return d.id === id;
+      });
+
+      return found;
+   }
+
+   selectNode(id: number): void {
+      console.log('clicked ' + id);
+   }
+
+   getPrevious(): void {
+      this.processingChange = true;
+      this.processingMessage = 'Loading image...';
+      let currentItem = this.previewItem;
+
+      let foundIdx = this.dataManager.data.map((d: any) => { return d.id; }).indexOf(currentItem.id); 
+
+      let foundItem = this.dataManager.data[(foundIdx - 1) % this.dataManager.data.length];
+
+      this.previewItem = {
+         title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
+         id: foundItem.id,
+         mediaURL: foundItem.external_url,
+         date: moment(foundItem.date_time).format('DD-MM-YYYY'),
+         location: foundItem.location_name,
+         description: foundItem.description,
+         externalURL: foundItem.media_url,
+         categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
+      };
+
+      this.imgContainer.nativeElement.src = this.previewItem.mediaURL;
+      this.captionContainer.nativeElement.innerHTML = this.previewItem.description;
+   }
+
+   getNext(): void {
+      this.processingChange = true;
+      this.processingMessage = 'Loading image...';
+      let currentItem = this.previewItem;
+      let foundIdx = this.dataManager.data.map((d: any) => { return d.id; }).indexOf(currentItem.id); 
+
+      let foundItem = this.dataManager.data[(foundIdx + 1) % this.dataManager.data.length];
+
+      this.previewItem = {
+         title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
+         id: foundItem.id,
+         mediaURL: foundItem.external_url,
+         date: moment(foundItem.date_time).format('DD-MM-YYYY'),
+         location: foundItem.location_name,
+         description: foundItem.description,
+         externalURL: foundItem.media_url,
+         categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
+      };
+
+      this.imgContainer.nativeElement.src = this.previewItem.mediaURL;
+      this.captionContainer.nativeElement.innerHTML = this.previewItem.description;
+
+   }
+
+   imageLoaded(): void {
+      this.processingChange = false;
+      this.processingMessage = '';
+      console.log('image loaded');
    }
 
    /**
