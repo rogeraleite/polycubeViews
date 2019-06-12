@@ -125,12 +125,6 @@ export class SetCube implements PolyCube {
         let radScale = D3.scaleLinear().domain(radExtent).range([5, 80]);
 
 
-        // When its SI
-        if(segs == 1){
-            console.log('SI View')
-            // change color based on selection
-        }
-
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
             // flat planes for JP
@@ -206,7 +200,7 @@ export class SetCube implements PolyCube {
                 phyllotaxis.forEach((points) => { //points group 
 
                     // this.updateColorCoding('temporal');
-                    let material2 = new THREE.MeshBasicMaterial({ color: this.colors(points.data.category_1) }); //FIXME: Color not found on SI
+                    let material2 = new THREE.MeshBasicMaterial({ color: this.getCurrentColor(points) }); //FIXME: Color not found on SI
 
                     const point = new THREE.Mesh(pointGeometry, material2);
                     point.material.needsUpdate = true;
@@ -517,6 +511,7 @@ export class SetCube implements PolyCube {
     transitionSTC(): void {
         this.boundingBox.visible = true;
         // TODO:on STC, update setcube with stacked layers
+        this.updateColorCoding('categorical');
         this.updateSetCube();
 
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
