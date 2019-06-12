@@ -132,7 +132,6 @@ export class NetCube implements PolyCube {
     updateNetCubeFromScene():void{
         this.deleteNetCubeFromScene();
         this.webGLScene.add(this.cubeGroupGL);
-        console.log(this.webGLScene);
     }
 
     deleteNetCubeFromScene():void{
@@ -619,6 +618,7 @@ export class NetCube implements PolyCube {
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
+            console.log(dataItem);
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
             let point = new THREE.Mesh(geometry, material);
@@ -653,17 +653,15 @@ export class NetCube implements PolyCube {
                 if (this.doesTargetNodeHasPosition(targetId)) {
                     //STC                    
                     let line_forSTC = this.createLineForSTC(dataItem,sourceNode_position,a);      
-                    this.links_stc.add(line_forSTC);   
+                    if(line_forSTC) this.links_stc.add(line_forSTC);   
 
                     //SI
                     let line_forSI = this.createLineForSI(dataItem,sourceNode_position,a);
-                    this.links_si.add(line_forSI);   
+                    if(line_forSI) this.links_si.add(line_forSI);   
 
                     //JP
                     let line_forJP = this.createLineForJP(dataItem,sourceNode_position,a);
-                    if(line_forJP) {
-                        this.getTimeSliceByDate(dataItem.date_time).add(line_forJP);
-                    }
+                    if(line_forJP) this.getTimeSliceByDate(dataItem.date_time).add(line_forJP);
                 }//end if
             }//end for     
         }//end for
@@ -675,7 +673,7 @@ export class NetCube implements PolyCube {
 
     createLineForJP(dataItem,sourceNode_position,targetIndex){
         let targetId = dataItem.target_nodes[targetIndex];
-
+        if(!this.dm.dataMap[targetId]) return;
         let targetNode_position = this.getNormalizedPositionById(targetId);
         targetNode_position.y = this.getTimeSliceByDate(this.dm.dataMap[targetId].date_time).position.y;
 
@@ -725,6 +723,7 @@ export class NetCube implements PolyCube {
 
     createLineForSTC(dataItem, sourceNode_position, targetIndex){
         let targetId = dataItem.target_nodes[targetIndex];
+        if(!this.dm.dataMap[targetId]) return;
 
         let targetNode_position = this.getNormalizedPositionById(targetId);
         targetNode_position.y = this.getTimeSliceByDate(this.dm.dataMap[targetId].date_time).position.y;
