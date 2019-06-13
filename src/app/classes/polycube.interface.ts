@@ -23,6 +23,13 @@ export interface PolyCube {
     updateNumSlices: Function,
     updateTime: Function,
 
+    // hide cube
+    hideCube: Function,
+
+    hideLabels: Function,
+    showLabels: Function,
+    clearLabels: Function,
+
     // temporal encodings
     transitionSTC: Function,
     transitionSI: Function,

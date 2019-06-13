@@ -28,6 +28,8 @@ export class GeoCube implements PolyCube {
     private colors: any; //D3.Scale<string, string>;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
+    private hiddenLabels: Array<THREE.CSS3DObject>;
+
     private map: mapboxgl.Map;
     private mapBounds: mapboxgl.LngLatBounds;
     private mapCenter: { lat: number, lng: number };
@@ -50,16 +52,28 @@ export class GeoCube implements PolyCube {
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
+
         if (cssScene) { this.cssScene = cssScene; }
+        
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
+
         this.setMap = new Set<string>();
         this.mapBounds = new mapboxgl.LngLatBounds();
         this.camera = camera;
         
         // https://stackoverflow.com/questions/44332290/mapbox-gl-typing-wont-allow-accesstoken-assignment
         (mapboxgl as typeof mapboxgl).accessToken = environment.MAPBOX_KEY;
+        
         this.createObjects();
         this.assembleData();
         this.render();
+    }
+
+    hideCube(): void {
+        this.webGLScene.remove(this.webGLScene.getObjectByName('GEO_CUBE'));
+        this.cssScene.remove(this.cssScene.getObjectByName('GEO_CUBE_CSS'));
+        this.hideBottomLayer();
+        this.hideLabels();
     }
 
     updateSlices(): void {
@@ -94,7 +108,7 @@ export class GeoCube implements PolyCube {
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-            label.name = `LABEL_${i}`;
+            label.name = `GEO_LABEL_${i}`;
             // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
         }
@@ -130,6 +144,25 @@ export class GeoCube implements PolyCube {
             if(child.name.includes('LABEL')) removed.push(child);
         });
         removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
+    }
+
+    hideLabels(): void {
+        this.cubeGroupCSS.traverse((object: THREE.Object3D) => {
+            if (object.name.includes('GEO_LABEL')) {
+                this.hiddenLabels.push(object);
+            }
+        });
+        this.hiddenLabels.forEach((r: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.remove(r);
+        });
+    }
+
+    showLabels(): void {
+        this.hiddenLabels.forEach((object: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.add(object);
+        });
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
     }
 
     /**
@@ -170,7 +203,7 @@ export class GeoCube implements PolyCube {
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-            label.name = `LABEL_${i}`;
+            label.name = `GEO_LABEL_${i}`;
             // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
         }
@@ -316,6 +349,7 @@ export class GeoCube implements PolyCube {
         if (this._cubeToggle) {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
+            this.showLabels();
             this.showBottomLayer();
         }
     }
@@ -509,7 +543,7 @@ export class GeoCube implements PolyCube {
                 z: CUBE_CONFIG.WIDTH/2
             };
 
-            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            let label = this.cubeGroupCSS.getObjectByName(`GEO_LABEL_${i}`);
             D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
             label.position.y = targetCoords.y;
@@ -577,7 +611,7 @@ export class GeoCube implements PolyCube {
                 z: (i*vertOffset) - (CUBE_CONFIG.WIDTH/2)
             };
 
-            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            let label = this.cubeGroupCSS.getObjectByName(`GEO_LABEL_${i}`);
             D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
             label.position.y = targetCoords.y;

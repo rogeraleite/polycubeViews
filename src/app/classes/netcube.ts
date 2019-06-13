@@ -30,6 +30,8 @@ export class NetCube implements PolyCube {
     private colors: any;
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
+    private hiddenLabels: Array<THREE.CSS3DObject>;
+
     private links_stc: THREE.Group;
     private links_si: THREE.Group;
     private linksPerNode = 1;
@@ -46,10 +48,15 @@ export class NetCube implements PolyCube {
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene?: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
+        
         if (cssScene) this.cssScene = cssScene;
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
+        
         this.setMap = new Set<string>();
         this.camera = camera;
         this.cubeLeftBoarder = (CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER) * 2;
+        
         this.createObjects();
         this.assembleData();
         this.render();        
@@ -91,12 +98,38 @@ export class NetCube implements PolyCube {
         this.cubeGroupGL.position.set(this.cubeLeftBoarder, 0, 0);
     }
 
+    hideCube(): void {
+        this.webGLScene.remove(this.webGLScene.getObjectByName('NET_CUBE'));
+        this.cssScene.remove(this.cssScene.getObjectByName('NET_CUBE_CSS'));
+        this.hideBottomLayer();
+        this.hideLabels();
+    }
+
     clearLabels(): void {
         let removed = new Array<THREE.CSS3DObject>();
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
-            if(child.name.includes('LABEL')) removed.push(child);
+            if(child.name.includes('NET_LABEL')) removed.push(child);
         });
         removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
+    }
+
+    hideLabels(): void {
+        this.cubeGroupCSS.traverse((object: THREE.Object3D) => {
+            if (object.name.includes('NET_LABEL')) {
+                this.hiddenLabels.push(object);
+            }
+        });
+        this.hiddenLabels.forEach((r: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.remove(r);
+        });
+    }
+
+    showLabels(): void {
+        this.hiddenLabels.forEach((object: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.add(object);
+        });
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
     }
 
     render(): void {
@@ -121,6 +154,7 @@ export class NetCube implements PolyCube {
             this.webGLScene.add(this.cubeGroupGL);
             this.cssScene.add(this.cubeGroupCSS);
             this.showBottomLayer();
+            this.showLabels();
         }
     }
 
@@ -399,7 +433,7 @@ export class NetCube implements PolyCube {
             z: CUBE_CONFIG.WIDTH / 2
         };
 
-        let label = this.cubeGroupCSS.getObjectByName(`LABEL_${index}`);
+        let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         D3.selectAll('.time-slice-label').style('opacity', '1');
         label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
         label.position.y = targetCoords.y;
@@ -443,7 +477,7 @@ export class NetCube implements PolyCube {
             z: (index * vertOffset) - (CUBE_CONFIG.WIDTH / 2)
         };
 
-        let label = this.cubeGroupCSS.getObjectByName(`LABEL_${index}`);
+        let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         D3.selectAll('.time-slice-label').style('opacity', '1');
         label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
         label.position.y = targetCoords.y;
@@ -809,7 +843,7 @@ export class NetCube implements PolyCube {
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-            label.name = `LABEL_${i}`;
+            label.name = `NET_LABEL_${i}`;
             // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
         }
@@ -848,7 +882,7 @@ export class NetCube implements PolyCube {
             // CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
-            label.name = `LABEL_${i}`;
+            label.name = `NET_LABEL_${i}`;
             this.cubeGroupCSS.add(label);
         }//end for
     }

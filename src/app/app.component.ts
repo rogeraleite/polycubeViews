@@ -604,15 +604,9 @@ export class AppComponent implements AfterViewInit {
     * Clears the current (webGL) scene from all cube groups
     */
    removeAllCubeViews = (): void => {
-      this.webGLScene.remove(this.webGLScene.getObjectByName('GEO_CUBE'));
-      this.cssScene.remove(this.cssScene.getObjectByName('GEO_CUBE_CSS'));
-      this.gCube.hideBottomLayer();
-      this.webGLScene.remove(this.webGLScene.getObjectByName('SET_CUBE'));
-      this.cssScene.remove(this.cssScene.getObjectByName('SET_CUBE_CSS'));
-      this.sCube.hideBottomLayer();
-      this.webGLScene.remove(this.webGLScene.getObjectByName('NET_CUBE'));
-      this.cssScene.remove(this.cssScene.getObjectByName('NET_CUBE_CSS'));
-      this.nCube.hideBottomLayer();
+      this.gCube.hideCube();
+      this.sCube.hideCube();
+      this.nCube.hideCube();
    }
 
    /**

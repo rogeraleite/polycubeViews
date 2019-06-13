@@ -40,6 +40,8 @@ export class SetCube implements PolyCube {
 
     private _cubeToggle: boolean = true;
 
+    private hiddenLabels: Array<THREE.CSS3DObject>;
+
     get cubeToggle(): boolean {
         return this._cubeToggle;
     }
@@ -47,14 +49,27 @@ export class SetCube implements PolyCube {
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
+        
         if (cssScene) { this.cssScene = cssScene; }
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
+
         this.data = new Array<any>();
         this.setMap = new Set<any>();
         this.camera = camera;
+        
         this.cubeLeftBoarder = (CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER) * 1;
+        
         this.createObjects();
         this.assembleData();
         this.render();
+    }
+
+    hideCube(): void {
+        this.webGLScene.remove(this.webGLScene.getObjectByName('SET_CUBE'));
+        this.cssScene.remove(this.cssScene.getObjectByName('SET_CUBE_CSS'));
+        this.hideBottomLayer();
+        this.hideLabels();
     }
 
     createObjects(): void {
@@ -158,7 +173,7 @@ export class SetCube implements PolyCube {
             //CSS Object
             let label = new THREE.CSS3DObject(element);
             label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2), CUBE_CONFIG.WIDTH / 2);
-            label.name = `LABEL_${i}`;
+            label.name = `SET_LABEL_${i}`;
             this.cubeGroupCSS.add(label);
 
             
@@ -227,6 +242,9 @@ export class SetCube implements PolyCube {
     }
 
     getSetLabel(group:any, position:Array<number>) {
+        // FIXME: This function duplicates the label construction in the constructor and is never called
+        // Can we safely remove it ?
+
         // CSS 3D SET LABELS
         let element = document.createElement('div');
         element.innerHTML = group;
@@ -332,14 +350,34 @@ export class SetCube implements PolyCube {
     clearLabels(): void {
         let removed = new Array<THREE.CSS3DObject>();
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
-            if (child.name.includes('LABEL')) removed.push(child);
+            if(child.name.includes('SET_LABEL')) removed.push(child);
         });
-        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r));
+        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
     }
+
+    hideLabels(): void {
+        this.cubeGroupCSS.traverse((object: THREE.Object3D) => {
+            if (object.name.includes('SET_LABEL')) {
+                this.hiddenLabels.push(object);
+            }
+        });
+        this.hiddenLabels.forEach((r: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.remove(r);
+        });
+    }
+
+    showLabels(): void {
+        this.hiddenLabels.forEach((object: THREE.CSS3DObject) => {
+            this.cubeGroupCSS.add(object);
+        });
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
+    }
+
 
     clearSetLabels(): void{
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
-            if (child.name.includes('LABEL')){
+            if (child.name.includes('SET_LABEL')){
                 child.visible = false;
             }
         });
@@ -403,6 +441,8 @@ export class SetCube implements PolyCube {
     updateView(currentViewState: VIEW_STATES): void {
         if (this._cubeToggle) {
             this.webGLScene.add(this.cubeGroupGL);
+            this.showBottomLayer();
+            this.showLabels();
         }
     }
 
@@ -543,9 +583,9 @@ export class SetCube implements PolyCube {
 
             //labels
 
-            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            let label = this.cubeGroupCSS.getObjectByName(`SET_LABEL_${i}`);
             D3.selectAll('.time-slice-label').style('opacity', '1');
-            D3.selectAll('.set-label').style('opacity', '1');
+            D3.selectAll('.set-label').style('opacity', '1'); // FIXME: This selection is empty because we have no elements with .set-label class
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -601,11 +641,11 @@ export class SetCube implements PolyCube {
             };
 
             // label
-            let label = this.cubeGroupCSS.getObjectByName(`LABEL_${i}`);
+            let label = this.cubeGroupCSS.getObjectByName(`SET_LABEL_${i}`);
             // console.log(label);
 
             D3.selectAll('.time-slice-label').style('opacity', '1');
-            D3.selectAll('.set-label').style('opacity', '0');
+            D3.selectAll('.set-label').style('opacity', '0'); // FIXME: This selection is empty because we have no elements with the set-label class
             label.position.x = targetCoords.x - CUBE_CONFIG.HEIGHT / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -624,8 +664,9 @@ export class SetCube implements PolyCube {
 
         });
 
-        this.clearLabels()
+        this.hideLabels();
     }
+
     transitionSI(): void {
         // hide hull
         this.hideHull()
@@ -663,13 +704,13 @@ export class SetCube implements PolyCube {
         tween.onComplete(() => {
             this.updateSetCube(1)
             D3.selectAll('.time-slice-label').style('opacity', '0');
-            D3.selectAll('.set-label').style('opacity', '0');
+            D3.selectAll('.set-label').style('opacity', '0'); // FIXME: Doesnt exist
 
             //update node colors to temporal
             this.updateNodeColor('temporal');
         })
 
-        this.clearLabels()
+        this.hideLabels()
 
     }
     transitionANI(): void { }
