@@ -22,7 +22,6 @@ export class SetCube implements PolyCube {
     // Data
     private dm: DataManager;
     private camera: THREE.Camera;
-    private data: Array<any>;
     private setMap: Set<string>;
 
     // THREE
@@ -54,7 +53,6 @@ export class SetCube implements PolyCube {
 
         this.hiddenLabels = new Array<THREE.CSS3DObject>();
 
-        this.data = new Array<any>();
         this.setMap = new Set<any>();
         this.camera = camera;
         
@@ -91,16 +89,17 @@ export class SetCube implements PolyCube {
 
         // hull
         this.hullGroup = new THREE.Group();
-        this.hullState = false
+        this.hullState = false;
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
 
-        const placeholderBox = new THREE.Mesh(
+        let placeholderBox = new THREE.Mesh(
             new THREE.BoxGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, CUBE_CONFIG.WIDTH),
             new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         );
+
         placeholderBox.position.set(CUBE_CONFIG.WIDTH / 2, 0, CUBE_CONFIG.WIDTH / 2);
         this.boundingBox = new THREE.BoxHelper(placeholderBox, '#b5b5b5');
         this.boundingBox.name = 'BOX_HELPER';
@@ -126,7 +125,7 @@ export class SetCube implements PolyCube {
         this.dm.data.forEach((d: any) => {
             this.setMap.add(d.category_1); //TODO: pass the count size of each category
             //store quantized time 
-            d.groupDate = moment((this.dm.getCustomTimeQuantile(d.date_time, segs)), 'YYYY').toDate()
+            d.groupDate = moment((this.dm.getCustomTimeQuantile(d.date_time, segs)), 'YYYY').toDate();
         });
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
@@ -137,15 +136,16 @@ export class SetCube implements PolyCube {
             .key((d: any) => { return moment(d.groupDate).format('YYYY') })
             .key((d: any) => { return d.category_1 })
             .entries(this.dm.data)
-            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; })
+            .sort((a: any, b: any) => { return a.key == b.key ? 0 : +(a.key > b.key) || -1; });
 
         //add geometry points
         let pointGeometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
 
         //layouts
-        let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180)
-        let packLayout = this.getPackLayout()
+        let circleLayout = this.getCircleLayout(this.setMap, 0, 0, 180);
+        let packLayout = this.getPackLayout();
+
         let radExtent = D3.extent(this.getSetScale(), function (d: any) {
             return d.Value;
         });
@@ -155,7 +155,7 @@ export class SetCube implements PolyCube {
         groupedData.forEach((timeLayer: any, i: number) => { // complete group
 
             // flat planes for JP
-            const geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, 32);
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.WIDTH, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
             let material = new THREE.LineBasicMaterial({ color: '#b5b5b5' });
             let plane = new THREE.LineSegments(edgeGeometry, material);
@@ -169,7 +169,7 @@ export class SetCube implements PolyCube {
             slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
             // slice.position.set(CUBE_CONFIG.WIDTH / 2, - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for updates
             this.slices.push(slice);
-            this.cubeGroupGL.add(slice)
+            this.cubeGroupGL.add(slice);
 
             // CSS 3D TIME SLICE LABELS
             let element = document.createElement('div');
@@ -185,21 +185,21 @@ export class SetCube implements PolyCube {
             
 
             // each category inside each time slice
-            timeLayer.values.forEach((category) => { //slices group
+            timeLayer.values.forEach((category: any) => { //slices group
 
                 //circle geometry
                 // const rad = category.values.length / 2;//ral: size of the big circles
 
-                const rad = radScale(category.values.length)
+                let rad = radScale(category.values.length);
 
-                const geometry = new THREE.CircleGeometry(rad, 32);//hull resolution
-                const material1 = new THREE.MeshBasicMaterial({
+                let geometry = new THREE.CircleGeometry(rad, 32);//hull resolution
+                let material1 = new THREE.MeshBasicMaterial({
                     color: '#d0d0d0',
                     side: THREE.DoubleSide,
                     transparent: true,
                     opacity: 0.7
                 });
-                const circle = new THREE.Mesh(geometry, material1);
+                let circle = new THREE.Mesh(geometry, material1);
 
                 circle.matrixWorldNeedsUpdate = true;
                 circle.name = category.key;
@@ -207,13 +207,13 @@ export class SetCube implements PolyCube {
                 // circle.name = timeLayer.key + category.key;
 
                 //apply group positions
-                this.getLayouts(layout, category, circle)
+                this.getLayouts(layout, category, circle);
 
                 circle.updateMatrixWorld();
 
                 //get circles into one group to use for hull later
-                this.circleGroup.push(circle)
-                slice.add(circle)
+                this.circleGroup.push(circle);
+                slice.add(circle);
                 
                 //add circle label
                 // console.log(circle.position)
@@ -229,7 +229,7 @@ export class SetCube implements PolyCube {
                     // this.updateColorCoding('temporal');
                     let material2 = new THREE.MeshBasicMaterial({ color: this.getCurrentColor(points) }); //FIXME: Color not found on SI
 
-                    const point = new THREE.Mesh(pointGeometry, material2);
+                    let point = new THREE.Mesh(pointGeometry, material2);
                     point.material.needsUpdate = true;
 
                     point.position.y = circle.position.y;
@@ -240,11 +240,11 @@ export class SetCube implements PolyCube {
                     point.type = 'DATA_POINT'; //data point identifier
                     this.pointGroup.push(point)
                     slice.add(point)
-                }) //points groups end
+                }); //points groups end
 
-            }) //slices group end
+            }); //slices group end
 
-        }) //complete group end
+        }); //complete group end
     }
 
     getSetLabel(group:any, position:Array<number>) {
@@ -309,7 +309,7 @@ export class SetCube implements PolyCube {
             return d;
         });
 
-        const layout = D3.forceSimulation()
+        let layout = D3.forceSimulation()
             .nodes(d3Nodes)
             .force('charge', D3.forceManyBody().strength(20))
             .force('center', D3.forceCenter(0, 0))
@@ -320,7 +320,7 @@ export class SetCube implements PolyCube {
         for (let i = 0; i < state.warmUpTicks; i++) { layout.tick(); } // Initial ticks before starting to render
 
         let cntTicks = 0;
-        const startTickTime = new Date().getTime();
+        let startTickTime = new Date().getTime();
         layout.on("tick", layoutTick).restart();
 
         function layoutTick() {
@@ -332,7 +332,7 @@ export class SetCube implements PolyCube {
             // Update nodes position
             d3Nodes.forEach(node => {
 
-                const sphere = node;
+                let sphere = node;
                 // sphere.position.x = node.x || 0;
                 // // sphere.position.y = node.y || 0;
                 // sphere.position.z = node.y || 0;
@@ -393,7 +393,7 @@ export class SetCube implements PolyCube {
     }
 
     updateLayout(layout: string): void {
-        const segs = this.dm.timeRange.length;
+        let segs = this.dm.timeRange.length;
         if (layout === 'cluster') { //just for testing cluster force in UI
             // console.log('cluster')
             this.forceClusterGraph();
@@ -453,7 +453,7 @@ export class SetCube implements PolyCube {
     }
 
     updateNumSlices(): void {
-        const segs = this.dm.timeRange.length;
+        let segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true)
         //update hull 
         this.hullState = false;
@@ -614,7 +614,7 @@ export class SetCube implements PolyCube {
             // this.updateNodeColor('categorical');
         })
         // show hull
-        this.showHull()
+        this.showHull();
     }
 
     transitionJP(): void {
@@ -623,7 +623,7 @@ export class SetCube implements PolyCube {
         // this.hideHull()
 
         //rerun scene and transition to JP
-        const segs = this.dm.timeRange.length;
+        let segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true)
         //update hull 
         this.hullState = false;
@@ -722,7 +722,7 @@ export class SetCube implements PolyCube {
     transitionANI(): void { }
 
     getCubePosition(): THREE.Vector3 {
-        const positionInWorld = new THREE.Vector3();
+        let positionInWorld = new THREE.Vector3();
         this.cubeGroupGL.getWorldPosition(positionInWorld);
         return positionInWorld;
     }
@@ -831,7 +831,7 @@ export class SetCube implements PolyCube {
             .map(function (d) {
                 return { Category: d.key, Value: d.values.length };
             });
-        const data = { name: "groups", children: groupedData };
+        let data = { name: "groups", children: groupedData };
         let vLayout = D3.pack().size([CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT])
 
         var vRoot = D3.hierarchy(data).sum(function (d: any) { return d.Value; }).sort(function (a, b) { return b.value - a.value; });;
@@ -921,7 +921,7 @@ export class SetCube implements PolyCube {
         // empty hull group
         this.hullGroup.children = []
 
-        const categories = Array.from(this.setMap);
+        let categories = Array.from(this.setMap);
         categories.forEach((d) => {
             this.geometryConvex(d);
         });
@@ -933,10 +933,10 @@ export class SetCube implements PolyCube {
     }
 
     geometryConvex(group = 'Identification photographs') {
-        const vertices = [];
+        let vertices = [];
         this.circleGroup.forEach((child: any) => {
             if (child.name === group) {
-                const array_aux = [];
+                let array_aux = [];
                 child.geometry.vertices.forEach((d) => {
                     array_aux.push(child.localToWorld(d));
                 });
@@ -960,7 +960,7 @@ export class SetCube implements PolyCube {
     }
 
     addHullToScene(vertices) {
-        const wireFrameMat = new THREE.MeshBasicMaterial({
+        let wireFrameMat = new THREE.MeshBasicMaterial({
             color: '#a2a2a2', transparent: true, opacity: 0.3,
             // ***** Clipping setup (material): *****
             clippingPlanes: [],
@@ -968,9 +968,9 @@ export class SetCube implements PolyCube {
             wireframe: true
         });
 
-        const meshGeometry = new THREE.ConvexBufferGeometry(vertices);
+        let meshGeometry = new THREE.ConvexBufferGeometry(vertices);
 
-        const mesh = new THREE.Mesh(meshGeometry, wireFrameMat);
+        let mesh = new THREE.Mesh(meshGeometry, wireFrameMat);
 
         // calibrate the cubleft border
         mesh.position.set(-this.cubeLeftBoarder, 0, 0);
@@ -999,22 +999,25 @@ export class SetCube implements PolyCube {
     }
 
     hideBottomLayer(): void { }
+    
     showBottomLayer(): void { }
+
     hideHull() {
         // hide hull
         this.hullGroup.visible = false;
     }
+    
     showHull() {
         // show hull
         this.hullGroup.visible = true;
     }
 
     uncertainHull() {
-        const vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
+        let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
         this.hullGroup.children.forEach((mesh: THREE.Mesh) => {
 
-            const box = new THREE.Box3().setFromObject( mesh );
-            const size = box.getSize(new THREE.Vector3( ))
+            let box = new THREE.Box3().setFromObject( mesh );
+            let size = box.getSize(new THREE.Vector3( ))
 
             // console.log( mesh);
 
