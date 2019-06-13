@@ -62,6 +62,12 @@ export class SetCube implements PolyCube {
         
         this.createObjects();
         this.assembleData();
+        // artificial timeout to process all data before drawing hull
+        // TODO: Could be improved using promises, callbacks, or after the layout completes
+        setTimeout(() => { 
+            this.drawHull();
+            this.showHull();
+        }, 1000);
         this.render();
     }
 
