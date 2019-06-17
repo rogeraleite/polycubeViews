@@ -485,6 +485,7 @@ export class AppComponent implements AfterViewInit {
 
          //rotate camera to JP
          this.transitionJPCamera();
+
       });
 
       this.gui.siBtn.addEventListener('click', () => {
@@ -527,7 +528,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionSTCCamera(): void{
       //allow rotation
-      // this.controls.noRotate = false;
+      this.controls.noRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -541,7 +542,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionJPCamera(): void{
       //stop rotation
-      // this.controls.noRotate = true;
+      this.controls.noRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();

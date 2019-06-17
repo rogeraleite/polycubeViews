@@ -620,14 +620,13 @@ export class SetCube implements PolyCube {
     transitionJP(): void {
 
         // hide hull
-        // this.hideHull()
+        this.hideHull()
 
         //rerun scene and transition to JP
         let segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true)
         //update hull 
         this.hullState = false;
-
 
         // re run updateSet
 
