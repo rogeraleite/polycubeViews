@@ -73,11 +73,6 @@ export class GUI {
                 time: pCubeParams.time
             });
         });
-        pCubeFolder.addColor(pCubeParams, 'backgroundColor').onChange(() => {
-            this.pCubeConfigEmitter.emit('change', {
-                backgroundColor: pCubeParams.backgroundColor
-            });
-        });
         pCubeFolder.add(pCubeParams, 'nodeColor', ['categorical', 'temporal', 'monochrome']).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 nodeColor: pCubeParams.nodeColor
@@ -95,6 +90,11 @@ export class GUI {
             });
         });
 
+        pCubeFolder.addColor(pCubeParams, 'backgroundColor').onChange(() => {
+            this.pCubeConfigEmitter.emit('change', {
+                backgroundColor: pCubeParams.backgroundColor
+            });
+        });
         
         // GeoCube settings
         let gCubeParams = {
