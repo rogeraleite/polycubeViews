@@ -600,16 +600,15 @@ export class NetCube implements PolyCube {
     highlightObject(id: string): void {
         this.resetSelection(true);
 
-        let highlighted_source = this.cubeGroupGL.getObjectByName(id);
-        
+        let highlighted_source = this.cubeGroupGL.getObjectByName(id);        
 
         if(highlighted_source) {
             highlighted_source.material.color.setHex(0xff0000);
             highlighted_source.scale.set(2, 2, 2);
 
-            let highlighted_target = this.cubeGroupGL.getObjectByName(highlighted_source.data.target_nodes[0]);
-            highlighted_target.material.color.setHex(0xff6666);
-            highlighted_target.scale.set(2, 2, 2);            
+            // let highlighted_target = this.cubeGroupGL.getObjectByName(highlighted_source.data.target_nodes[0]);
+            // highlighted_target.material.color.setHex(0xff6666);
+            // highlighted_target.scale.set(2, 2, 2);            
         }
 
     }
