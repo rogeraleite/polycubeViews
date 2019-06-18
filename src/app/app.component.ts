@@ -306,9 +306,28 @@ export class AppComponent implements AfterViewInit {
    }
 
    selectNode(id: number): void {
-      console.log('clicked ' + id);
-   }
+      let selected = this.dataManager.data.find((d: any) => {
+         return d.id === id;
+      });
 
+      // update this.preview
+      this.previewItem = {
+         title: `Picture #${selected.id}`, // selected.title is empty so just use ID
+         id: selected.id,
+         mediaURL: selected.external_url,
+         date: moment(selected.date_time).format('DD-MM-YYYY'),
+         related: selected.target_nodes,
+         location: selected.location_name,
+         description: selected.description,
+         externalURL: selected.media_url,
+         categories: [selected.category_1, selected.category_2, selected.category_3, selected.category_4, selected.category_5]
+      };
+
+      // highlight in cubes
+      this.gCube.highlightObject(selected.id);
+      this.sCube.highlightObject(selected.id);
+      this.nCube.highlightObject(selected.id);
+   }
    getPrevious(): void {
       this.processingChange = true;
       this.processingMessage = 'Loading image...';
@@ -324,6 +343,7 @@ export class AppComponent implements AfterViewInit {
          mediaURL: foundItem.external_url,
          date: moment(foundItem.date_time).format('DD-MM-YYYY'),
          location: foundItem.location_name,
+         related: foundItem.target_nodes,
          description: foundItem.description,
          externalURL: foundItem.media_url,
          categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
@@ -346,6 +366,7 @@ export class AppComponent implements AfterViewInit {
          id: foundItem.id,
          mediaURL: foundItem.external_url,
          date: moment(foundItem.date_time).format('DD-MM-YYYY'),
+         related: foundItem.target_nodes,
          location: foundItem.location_name,
          description: foundItem.description,
          externalURL: foundItem.media_url,
@@ -510,7 +531,7 @@ export class AppComponent implements AfterViewInit {
     */
    transitionSICamera(): void{
       //stop rotation
-      // this.controls.noRotate = true;
+      // this.controls.enableRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -528,7 +549,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionSTCCamera(): void{
       //allow rotation
-      this.controls.noRotate = false;
+      this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -542,7 +563,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionJPCamera(): void{
       //stop rotation
-      this.controls.noRotate = true;
+      this.controls.enableRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
