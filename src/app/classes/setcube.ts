@@ -110,7 +110,7 @@ export class SetCube implements PolyCube {
     assembleData(): void {
         this.updateSetCube(this.dm.timeRange.length, true);
     }
-
+    
     //pass new slices numer and run the simulation again
     updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void { //pass object parameter to function
 
@@ -358,18 +358,15 @@ export class SetCube implements PolyCube {
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
             if(child.name.includes('SET_LABEL')) removed.push(child);
         });
-        removed.forEach((r: THREE.CSS3DObject) => this.cubeGroupCSS.remove(r) );
+        removed.forEach((r: THREE.CSS3DObject) => { this.cubeGroupCSS.remove(r); });
     }
 
     hideLabels(): void {
         this.cubeGroupCSS.traverse((object: THREE.Object3D) => {
-            if (object.name.includes('SET_LABEL')) {
-                this.hiddenLabels.push(object);
-            }
+            if (object.name.includes('SET_LABEL')) this.hiddenLabels.push(object);
         });
-        this.hiddenLabels.forEach((r: THREE.CSS3DObject) => {
-            this.cubeGroupCSS.remove(r);
-        });
+
+        this.hiddenLabels.forEach((r: THREE.CSS3DObject) => { this.cubeGroupCSS.remove(r); });
     }
 
     showLabels(): void {
@@ -620,11 +617,11 @@ export class SetCube implements PolyCube {
     transitionJP(): void {
 
         // hide hull
-        this.hideHull()
+        this.hideHull();
 
         //rerun scene and transition to JP
         let segs = this.dm.timeRange.length;
-        this.updateSetCube(segs, true)
+        this.updateSetCube(segs, true);
         //update hull 
         this.hullState = false;
 
@@ -647,10 +644,7 @@ export class SetCube implements PolyCube {
 
             // label
             let label = this.cubeGroupCSS.getObjectByName(`SET_LABEL_${i}`);
-            // console.log(label);
 
-            D3.selectAll('.time-slice-label').style('opacity', '1');
-            D3.selectAll('.set-label').style('opacity', '0'); // FIXME: This selection is empty because we have no elements with the set-label class
             label.position.x = targetCoords.x - CUBE_CONFIG.HEIGHT / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -666,15 +660,12 @@ export class SetCube implements PolyCube {
                         slice.position.z = sourceCoords.z;
                 })
                 .start();
-
         });
-
-        this.hideLabels();
     }
 
     transitionSI(): void {
         // hide hull
-        this.hideHull()
+        this.hideHull();
 
         this.boundingBox.visible = false;
         let duration = 1000,
@@ -707,17 +698,13 @@ export class SetCube implements PolyCube {
 
         //on complete tweening, update setcube with flattened layers
         tween.onComplete(() => {
-            this.updateSetCube(1)
-            D3.selectAll('.time-slice-label').style('opacity', '0');
-            D3.selectAll('.set-label').style('opacity', '0'); // FIXME: Doesnt exist
-
+            this.updateSetCube(1);
             //update node colors to temporal
             this.updateNodeColor('temporal');
-        })
-
-        this.hideLabels()
-
+            this.hideLabels();
+        });
     }
+
     transitionANI(): void { }
 
     getCubePosition(): THREE.Vector3 {

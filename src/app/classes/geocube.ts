@@ -29,6 +29,7 @@ export class GeoCube implements PolyCube {
     private timeLinearScale: D3.ScaleLinear<number, number>;
 
     private hiddenLabels: Array<THREE.CSS3DObject>;
+    private hiddenMapImages: Array<THREE.CSS3DObject>;
 
     private map: mapboxgl.Map;
     private mapBounds: mapboxgl.LngLatBounds;
@@ -56,6 +57,7 @@ export class GeoCube implements PolyCube {
         if (cssScene) { this.cssScene = cssScene; }
         
         this.hiddenLabels = new Array<THREE.CSS3DObject>();
+        this.hiddenMapImages = new Array<THREE.CSS3DObject>();
 
         this.setMap = new Set<string>();
         this.mapBounds = new mapboxgl.LngLatBounds();
@@ -74,6 +76,25 @@ export class GeoCube implements PolyCube {
         this.cssScene.remove(this.cssScene.getObjectByName('GEO_CUBE_CSS'));
         this.hideBottomLayer();
         this.hideLabels();
+        this.hideMapImages();
+    }
+
+    showMapImages(): void {
+        this.hiddenLabels.forEach((image: THREE.CSS3DObject) => { this.cubeGroupCSS.add(image); });
+
+        this.hiddenLabels = new Array<THREE.CSS3DObject>();
+    }
+
+    hideMapImages(): void {
+        this.cubeGroupCSS.traverse((object: THREE.CSS3DObject) => {
+            if(object.name.includes('MAP_CONTAINER')) this.hiddenMapImages.push(object);
+        });
+        
+        // black voodooo magic.
+        let mapImages = D3.selectAll('.map-object');
+        mapImages.remove();
+
+        this.hiddenLabels.forEach((image: THREE.CSS3DObject) => { this.cubeGroupCSS.remove(image); });
     }
 
     updateSlices(): void {
@@ -292,7 +313,7 @@ export class GeoCube implements PolyCube {
 
         this.map = new mapboxgl.Map({
             container: name ? name.toLowerCase() : 'map_container',
-            style: 'mapbox://styles/velitchko/cjefo9eu118qd2rodaoq3cpj1',
+            style: 'mapbox://styles/velitchko/cjx1tktdx18jt1cpv3sc35l0w',
             zoom: 13,
             center: this.mapCenter ? [this.mapCenter.lng, this.mapCenter.lat] : [0, 0],
             preserveDrawingBuffer: true // needed to use map.getCanvas().toDataURL();
@@ -351,6 +372,7 @@ export class GeoCube implements PolyCube {
             this.cssScene.add(this.cubeGroupCSS);
             this.showLabels();
             this.showBottomLayer();
+            this.showMapImages();
         }
     }
     
@@ -858,13 +880,15 @@ export class GeoCube implements PolyCube {
      * Shows the bottom layer of the geocube (map)
      */
     showBottomLayer(): void {
-        document.getElementById('map_container').style.opacity = '1';
+        let bottomLayer = document.getElementById('map_container');
+        if(bottomLayer) bottomLayer.style.opacity = '1';
     }
 
     /**
      * Hides the bottom layer of the geocube (map)
      */
     hideBottomLayer(): void {
-        document.getElementById('map_container').style.opacity = '0';
+        let bottomLayer = document.getElementById('map_container');
+        if(bottomLayer) bottomLayer.style.opacity = '0';
     }
 }
