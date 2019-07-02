@@ -531,7 +531,7 @@ export class AppComponent implements AfterViewInit {
     */
    transitionSICamera(): void{
       //stop rotation
-      // this.controls.enableRotate = true;
+      this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -549,7 +549,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionSTCCamera(): void{
       //allow rotation
-      this.controls.enableRotate = false;
+      this.controls.enableRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -563,7 +563,7 @@ export class AppComponent implements AfterViewInit {
 
    transitionJPCamera(): void{
       //stop rotation
-      this.controls.enableRotate = true;
+      this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
@@ -580,19 +580,23 @@ export class AppComponent implements AfterViewInit {
     * This function is used to update brush timeline color
     */
    timelineColor(visible: boolean):void{
-      let colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dataManager.getMinDate(), this.dataManager.getMaxDate()]);
-      let labels =  D3.selectAll('.tick')
-      labels.nodes().forEach(function(d,i) {
-         let label = D3.select(d),
-         date = D3.select(d).data()[0];
 
-         if(visible == true){
-            label.select('text').attr('fill', colors(+date))
-         }
-         else{
-            label.select('text').attr('fill', 'grey')
-         }
-     })
+      // hide or show the side color legend
+      
+   //    let colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dataManager.getMinDate(), this.dataManager.getMaxDate()]);
+   //    let labels =  D3.selectAll('.tick')
+   //    labels.nodes().forEach(function(d,i) {
+   //       let label = D3.select(d),
+   //       date = D3.select(d).data()[0];
+
+   //       if(visible == true){
+   //          label.select('text').attr('fill', colors(+date))
+   //       }
+   //       else{
+   //          label.select('text').attr('fill', 'grey')
+   //       }
+   //   })
+
    }
    
    usePerspectiveCamera(): void {
