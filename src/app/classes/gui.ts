@@ -43,14 +43,15 @@ export class GUI {
 
         // polycube
         let pCubeParams = {
-            
+            reset: function(){ 
+            },
             numSlices: 10,
             backgroundColor: '#ffffff',
             nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
             time: 'aggregated',
             nodeSize: CUBE_CONFIG.NODE_SIZE,
             dataSet: CUBE_CONFIG.DATA_SET.name,
-            cameraType: 'Perspective', 
+            cameraType: 'Perspective'
         };
         let pCubeFolder = this.gui.addFolder('Global Settings');
 
@@ -95,6 +96,13 @@ export class GUI {
                 backgroundColor: pCubeParams.backgroundColor
             });
         });
+
+        pCubeFolder.add(pCubeParams, 'reset').onChange(()=>{
+            this.pCubeConfigEmitter.emit('change', {
+                reset: pCubeParams.reset
+            });
+        });
+
         
         // GeoCube settings
         let gCubeParams = {

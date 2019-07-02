@@ -445,7 +445,13 @@ export class AppComponent implements AfterViewInit {
                this.useOrthographicCamera();
             }
          }
-         
+
+         // reset scene
+         if(change.reset) {
+            this.resetScene()
+         }
+
+
 
          // we should be done processing changes
          this.processingChange = false;
@@ -476,8 +482,7 @@ export class AppComponent implements AfterViewInit {
                (this.sCube as SetCube).hideHull()
             }
          });   
-    
-
+   
 
       // button event listeners
       this.gui.geoBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.GEO_CUBE); });
@@ -540,7 +545,9 @@ export class AppComponent implements AfterViewInit {
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
+         this.camera.lookAt(targetVector);
       });
+
    }
 
    /**
@@ -558,23 +565,38 @@ export class AppComponent implements AfterViewInit {
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
+         this.camera.lookAt(targetVector);
       });
    }
 
    transitionJPCamera(): void{
+
       //stop rotation
       this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
+      
       targetVector.set(1006, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
+         this.camera.lookAt(targetVector);
       });
+
    }
 
+   resetScene(): void{
+
+      this.gCube.transitionSTC();
+      this.sCube.transitionSTC();
+      this.nCube.transitionSTC();
+
+       //rotate camera to STC
+      this.transitionSTCCamera();
+
+   }
 
    /**
     * This function is used to update brush timeline color
