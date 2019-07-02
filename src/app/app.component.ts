@@ -70,6 +70,7 @@ export class AppComponent implements AfterViewInit {
    controls: THREE.OrbitControls;
    webGLRenderer: THREE.WebGLRenderer;
    css3DRenderer: any;
+   camToSave: any;
    
    // Cubes
    gCube: PolyCube; sCube: PolyCube; nCube: PolyCube;
@@ -159,6 +160,12 @@ export class AppComponent implements AfterViewInit {
       this.controls.target = new THREE.Vector3(1000, 0, 0);
       this.controls.enableZoom = true;
       this.controls.zoomSpeed = 1.2;
+
+      //hold initial camera and position values
+      this.camToSave = {};
+      this.camToSave.position = this.camera.position.clone();
+      this.camToSave.rotation = this.camera.rotation.clone();
+      this.camToSave.controlCenter = this.controls.target.clone();
    }
 
    /**
@@ -535,6 +542,8 @@ export class AppComponent implements AfterViewInit {
     * Rotate Camera to SI view
     */
    transitionSICamera(): void{
+      this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
+
       //stop rotation
       this.controls.enableRotate = false;
 
@@ -555,6 +564,8 @@ export class AppComponent implements AfterViewInit {
     */
 
    transitionSTCCamera(): void{
+      this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
+
       //allow rotation
       this.controls.enableRotate = true;
 
@@ -571,32 +582,42 @@ export class AppComponent implements AfterViewInit {
 
    transitionJPCamera(): void{
 
+      this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
+
       //stop rotation
       this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
-      
+
       targetVector.set(1006, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
          this.camera.lookAt(targetVector);
       });
+      
 
    }
 
    resetScene(): void{
-
+      this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
       this.gCube.transitionSTC();
       this.sCube.transitionSTC();
       this.nCube.transitionSTC();
 
        //rotate camera to STC
       this.transitionSTCCamera();
-
    }
+
+   restoreCamera(position:THREE.Vector3, rotation:THREE.Euler, controlCenter:THREE.Vector3){
+      this.camera.position.set(position.x, position.y, position.z);
+      this.camera.rotation.set(rotation.x, rotation.y, rotation.z);
+  
+      this.controls.target.set(controlCenter.x, controlCenter.y, controlCenter.z);
+      this.controls.update();  
+  }
 
    /**
     * This function is used to update brush timeline color
