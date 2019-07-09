@@ -204,6 +204,9 @@ export class SetCube implements PolyCube {
                 circle.matrixWorldNeedsUpdate = true;
                 circle.name = category.key;
                 circle.rotation.x = Math.PI / 2;
+
+                //hide the circle layer in SI view
+                (segs == 1) ? circle.visible = false: circle.visible = true;
                 // circle.name = timeLayer.key + category.key;
 
                 //apply group positions
@@ -992,7 +995,7 @@ export class SetCube implements PolyCube {
         // hide hull
         this.hullGroup.visible = false;
     }
-    
+
     showHull() {
         // show hull
         this.hullGroup.visible = true;
