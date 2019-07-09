@@ -501,8 +501,6 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionSTC();
          this.nCube.transitionSTC();
 
-         //update timeline color as false
-         this.timelineColor(false)
 
           //rotate camera to STC
           this.transitionSTCCamera();
@@ -513,8 +511,6 @@ export class AppComponent implements AfterViewInit {
          this.sCube.transitionJP();
          this.nCube.transitionJP();
 
-         //update timeline color as false 
-         this.timelineColor(false)
 
          //rotate camera to JP
          this.transitionJPCamera();
@@ -529,12 +525,9 @@ export class AppComponent implements AfterViewInit {
          this.nCube.transitionSI();
          //this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
 
-         //update timeline color as true
-         this.timelineColor(true);
 
          //rotate camera to SI
          this.transitionSICamera();
-
       });
    }
 
@@ -542,6 +535,10 @@ export class AppComponent implements AfterViewInit {
     * Rotate Camera to SI view
     */
    transitionSICamera(): void{
+
+      //update timeline color as true
+      this.timelineColor(true);
+
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       //stop rotation
@@ -564,6 +561,8 @@ export class AppComponent implements AfterViewInit {
     */
 
    transitionSTCCamera(): void{
+      //update timeline color as false
+      this.timelineColor(false)
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       //allow rotation
@@ -581,7 +580,8 @@ export class AppComponent implements AfterViewInit {
    }
 
    transitionJPCamera(): void{
-
+      //update timeline color
+      this.timelineColor(false)
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       //stop rotation
@@ -623,23 +623,13 @@ export class AppComponent implements AfterViewInit {
     * This function is used to update brush timeline color
     */
    timelineColor(visible: boolean):void{
-
-      // hide or show the side color legend
-      
-   //    let colors = D3.scaleSequential(D3.interpolateViridis).domain([this.dataManager.getMinDate(), this.dataManager.getMaxDate()]);
-   //    let labels =  D3.selectAll('.tick')
-   //    labels.nodes().forEach(function(d,i) {
-   //       let label = D3.select(d),
-   //       date = D3.select(d).data()[0];
-
-   //       if(visible == true){
-   //          label.select('text').attr('fill', colors(+date))
-   //       }
-   //       else{
-   //          label.select('text').attr('fill', 'grey')
-   //       }
-   //   })
-
+      if(visible == true){
+         // D3.select('#timeLegend').classed('hide', false)
+         D3.select('#timeLegend').style('display','block')
+      } else{
+         // D3.select('#timeLegend').classed('hide', true)
+         D3.select('#timeLegend').style('display','none')
+      }
    }
    
    usePerspectiveCamera(): void {

@@ -1,3 +1,6 @@
+.hide{
+    display: none !important;
+}
 .wrapper {
     width: 100vw;
     height: 100vh;
