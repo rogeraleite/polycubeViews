@@ -549,6 +549,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to STC
      */
     transitionSTC(): void { 
+        this.updateNodeColor('categorical');
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
