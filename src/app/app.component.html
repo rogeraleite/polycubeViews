@@ -31,11 +31,21 @@
                 <p class="preview-description">{{ previewItem.description }}</p>
                 <div class="related">
                     <p>Related pictures:</p>
-                    <ul class="list-group">
+                    <div class="image-grid">
+                        <div class="image-grid-cell" *ngFor="let r of previewItem.related">
+                            <a href="javascript:void(0)" (click)="selectNode(r)">
+                                <img class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
+                                <!-- {{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }} -->
+                            </a>
+                        </div>
+                    </div>
+                    <!-- <ul class="list-group">
                         <li class="list-group-item" *ngFor="let r of previewItem.related">
-                            <a href="javascript:void(0)" (click)="selectNode(r)">{{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }}</a>
+                            <a href="javascript:void(0)" (click)="selectNode(r)">
+                                <img class="list-group-item-thumbnail" [src]="getRelatedNode(r).external_url" [alt]="getRelatedNode(r).description">
+                            </a>
                         </li>
-                    </ul>
+                    </ul> -->
                 </div>
                 <br>
                 <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>

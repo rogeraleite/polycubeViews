@@ -129,6 +129,26 @@ button:focus {
     transition: all 0.25s ease-in-out;
 }
 
+/** Image grid for related pics **/
+.image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.image-grid-cell {
+    width: 50%;
+    /* margin: .125em; */
+}
+
+.image-grid-image {
+    max-width: 100%;
+}
+
+.list-group-item-thumbnail {
+    max-width: 50%;
+}
+
 .preview-item {
     margin-top: 2em;
     margin-bottom: 2em;
