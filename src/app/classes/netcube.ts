@@ -269,7 +269,7 @@ export class NetCube implements PolyCube {
         return isFirstDate && isSecondDate;
     }
 
-    filterData(category: string, start: Date, end: Date): void {
+    filterData(category: string, start: Date, end: Date): void {        
         let query_byPeriod = this.filterNodesByDatePeriod(start, end);
         let query_byCategory = this.filterNodesByCategory(category);        
         let intersection = this.getSimilarItems(query_byPeriod, query_byCategory);
@@ -283,7 +283,7 @@ export class NetCube implements PolyCube {
     }
 
 
-    applyFilterToNodes(nodes: Array<string>):void{        
+    applyFilterToNodes(nodes: Array<string>):void{     
         this.showNodes(nodes);
         this.showLinksToRemainingNodes(nodes);
     }
@@ -338,7 +338,12 @@ export class NetCube implements PolyCube {
     }
 
     hideOutSlicerLinks(nodes: Array<string>):void {
+        //stc links (cube)
         this.links_stc.children.forEach((link: THREE.Group) => {
+            link.visible = this.areBothSidesOfTheLinkSelected(link,nodes);            
+        });
+        //SI links
+        this.links_si.children.forEach((link: THREE.Group) => {
             link.visible = this.areBothSidesOfTheLinkSelected(link,nodes);            
         });
     }
