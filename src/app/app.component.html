@@ -61,13 +61,12 @@
             
             <div class="category-legend" *ngIf="dataLoaded">
                 <!-- <label>Clickable Legend:</label> -->
-                <p [ngStyle]="{ 'color' : categoriesAndColors.get(currentlySelectedCategory) }">
-                    Selected: {{ currentlySelectedCategory ? currentlySelectedCategory : 'none' }}
-                </p>
+                <span class="category-selection">Selected: {{ currentlySelectedCategory ? currentlySelectedCategory : 'none' }}</span>
                 <div class="category-wrapper" *ngIf="showColorCodingLegend">
                     <div *ngFor="let c of categories">
-                        <span class="badge badge-secondary" data-toggle="tooltip" data-placement="bottom" [title]="c"
+                        <span data-toggle="tooltip" data-placement="bottom" [title]="c"
                             (click)="filterDataByCategory(c)"
+                            [className]="c === currentlySelectedCategory ? 'badge badge-secondary active' : 'badge badge-secondary inactive'"
                             [ngStyle]="{ 'background-color' : categoriesAndColors.get(c) }">&nbsp;</span>
                     </div>
                 </div>
