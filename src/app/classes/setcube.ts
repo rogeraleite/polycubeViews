@@ -48,21 +48,21 @@ export class SetCube implements PolyCube {
     constructor(dm: DataManager, camera: THREE.Camera, webGLScene: THREE.Scene, cssScene: THREE.Scene) {
         this.dm = dm;
         this.webGLScene = webGLScene;
-        
+
         if (cssScene) { this.cssScene = cssScene; }
 
         this.hiddenLabels = new Array<THREE.CSS3DObject>();
 
         this.setMap = new Set<any>();
         this.camera = camera;
-        
+
         this.cubeLeftBoarder = (CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER) * 1;
-        
+
         this.createObjects();
         this.assembleData();
         // artificial timeout to process all data before drawing hull
         // TODO: Could be improved using promises, callbacks, or after the layout completes
-        setTimeout(() => { 
+        setTimeout(() => {
             this.drawHull();
             this.showHull();
         }, 1000);
@@ -109,8 +109,26 @@ export class SetCube implements PolyCube {
 
     assembleData(): void {
         this.updateSetCube(this.dm.timeRange.length, true);
+        this.cubeGroupCSS.add(this.createBottomLayer());
     }
-    
+
+    createBottomLayer(color?: string): void {
+        let divContainer = document.createElement('div');
+
+        divContainer.id = 'div_container_setcube';
+        divContainer.style.width = CUBE_CONFIG.WIDTH + 'px';
+        divContainer.style.height = CUBE_CONFIG.HEIGHT + 'px';
+        divContainer.style.backgroundColor = color ? color : '#d3d3d3';
+        document.getElementById('css-canvas').appendChild(divContainer);
+
+        let divObject = new THREE.CSS3DObject(divContainer);
+        divObject.name = 'DIV_CONTAINER_SETCUBE';
+        divObject.position.set(CUBE_CONFIG.WIDTH / 2, -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2);
+        divObject.rotation.set(-Math.PI / 2, 0, 0);
+
+        return divObject;
+    }
+
     //pass new slices numer and run the simulation again
     updateSetCube(segs: number = this.dm.timeRange.length, initial: boolean = false, layout: string = 'pack'): void { //pass object parameter to function
 
@@ -182,7 +200,7 @@ export class SetCube implements PolyCube {
             label.name = `SET_LABEL_${i}`;
             this.cubeGroupCSS.add(label);
 
-            
+
 
             // each category inside each time slice
             timeLayer.values.forEach((category: any) => { //slices group
@@ -206,7 +224,7 @@ export class SetCube implements PolyCube {
                 circle.rotation.x = Math.PI / 2;
 
                 //hide the circle layer in SI view
-                (segs == 1) ? circle.visible = false: circle.visible = true;
+                (segs == 1) ? circle.visible = false : circle.visible = true;
                 // circle.name = timeLayer.key + category.key;
 
                 //apply group positions
@@ -217,7 +235,7 @@ export class SetCube implements PolyCube {
                 //get circles into one group to use for hull later
                 this.circleGroup.push(circle);
                 slice.add(circle);
-                
+
                 //add circle label
                 // console.log(circle.position)
 
@@ -250,7 +268,7 @@ export class SetCube implements PolyCube {
         }); //complete group end
     }
 
-    getSetLabel(group:any, position:Array<number>) {
+    getSetLabel(group: any, position: Array<number>) {
         // FIXME: This function duplicates the label construction in the constructor and is never called
         // Can we safely remove it ?
 
@@ -266,7 +284,7 @@ export class SetCube implements PolyCube {
         let label = new THREE.CSS3DSprite(element);
         // label.position.set(position[1], CUBE_CONFIG.HEIGHT, position[2]);
         label.position.x = position[0] + CUBE_CONFIG.WIDTH / 2;
-        label.position.y = CUBE_CONFIG.HEIGHT/2 + 20;
+        label.position.y = CUBE_CONFIG.HEIGHT / 2 + 20;
         label.position.z = position[1] + CUBE_CONFIG.WIDTH / 2;
 
         // label.rotation.set(Math.PI);
@@ -359,7 +377,7 @@ export class SetCube implements PolyCube {
     clearLabels(): void {
         let removed = new Array<THREE.CSS3DObject>();
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
-            if(child.name.includes('SET_LABEL')) removed.push(child);
+            if (child.name.includes('SET_LABEL')) removed.push(child);
         });
         removed.forEach((r: THREE.CSS3DObject) => { this.cubeGroupCSS.remove(r); });
     }
@@ -381,15 +399,15 @@ export class SetCube implements PolyCube {
     }
 
 
-    clearSetLabels(): void{
+    clearSetLabels(): void {
         this.cubeGroupCSS.children.forEach((child: THREE.CSS3DObject) => {
-            if (child.name.includes('SET_LABEL')){
+            if (child.name.includes('SET_LABEL')) {
                 child.visible = false;
             }
         });
 
         D3.selectAll('.set-label')
-        .style('display', 'none')
+            .style('display', 'none')
     }
 
     updateLayout(layout: string): void {
@@ -565,6 +583,7 @@ export class SetCube implements PolyCube {
 
 
     transitionSTC(): void {
+        this.showBottomLayer();
         this.boundingBox.visible = true;
         // TODO:on STC, update setcube with stacked layers
         this.updateColorCoding('categorical');
@@ -621,7 +640,7 @@ export class SetCube implements PolyCube {
 
         // hide hull
         this.hideHull();
-
+        this.hideBottomLayer();
         //rerun scene and transition to JP
         let segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true);
@@ -669,7 +688,7 @@ export class SetCube implements PolyCube {
     transitionSI(): void {
         // hide hull
         this.hideHull();
-
+        this.hideBottomLayer();
         this.boundingBox.visible = false;
         let duration = 1000,
             tween;
@@ -875,13 +894,14 @@ export class SetCube implements PolyCube {
 
     getPhyllotaxis(centerX: number, centerY: number, radius: number, data: any) {
 
-        data.sort((a: any, b: any) => { 
+        data.sort((a: any, b: any) => {
 
             a = Date.parse(a.date_time),
-            b = Date.parse(b.date_time);
+                b = Date.parse(b.date_time);
 
-            return a == b ? 0 : +(a > b) || -1; }
-            )
+            return a == b ? 0 : +(a > b) || -1;
+        }
+        )
 
 
         var theta = Math.PI * (3 - Math.sqrt(5)),
@@ -889,7 +909,7 @@ export class SetCube implements PolyCube {
             // size = spacing - 1,
             // speed = 1,
             index = 0;
-            // total = (radius * radius) / (spacing * spacing);
+        // total = (radius * radius) / (spacing * spacing);
         let new_time = [];
 
         // For every side, step around and away from center.
@@ -934,18 +954,18 @@ export class SetCube implements PolyCube {
         });
 
         vertices.forEach((d, i) => {
-                let meshData;
-                if (i !== vertices.length - 1) { // if to deal with last component structure
-                    meshData = vertices[i].concat(vertices[i + 1]);
+            let meshData;
+            if (i !== vertices.length - 1) { // if to deal with last component structure
+                meshData = vertices[i].concat(vertices[i + 1]);
 
-                    // const top = Math.abs(meshData[0].y);
-                    // const bottom = Math.abs(meshData[meshData.length - 1].y);
-                    // const gap = Math.abs(top - bottom);
+                // const top = Math.abs(meshData[0].y);
+                // const bottom = Math.abs(meshData[meshData.length - 1].y);
+                // const gap = Math.abs(top - bottom);
 
-                    this.addHullToScene(meshData);
+                this.addHullToScene(meshData);
 
-                }
-            });
+            }
+        });
     }
 
     addHullToScene(vertices) {
@@ -987,9 +1007,15 @@ export class SetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    hideBottomLayer(): void { }
-    
-    showBottomLayer(): void { }
+    hideBottomLayer(): void {
+        let bottomLayer = document.getElementById('div_container_setcube');
+        if (bottomLayer) bottomLayer.style.opacity = '0';
+    }
+
+    showBottomLayer(): void {
+        let bottomLayer = document.getElementById('div_container_setcube');
+        if (bottomLayer) bottomLayer.style.opacity = '1';
+    }
 
     hideHull() {
         // hide hull
@@ -1005,12 +1031,12 @@ export class SetCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
         this.hullGroup.children.forEach((mesh: THREE.Mesh) => {
 
-            let box = new THREE.Box3().setFromObject( mesh );
-            let size = box.getSize(new THREE.Vector3( ))
+            let box = new THREE.Box3().setFromObject(mesh);
+            let size = box.getSize(new THREE.Vector3())
 
             // console.log( mesh);
 
-            if (size.y > (vertOffset + 5) ) {
+            if (size.y > (vertOffset + 5)) {
                 mesh.visible = false;
             }
         });
