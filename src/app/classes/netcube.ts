@@ -412,6 +412,7 @@ export class NetCube implements PolyCube {
 
     //TRANSITIONS
     transitionSTC(): void {
+        this.updateNodeColor('categorical');
         this.showCubeLinks();
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
