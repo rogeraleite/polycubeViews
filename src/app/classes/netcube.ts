@@ -288,7 +288,7 @@ export class NetCube implements PolyCube {
         return isFirstDate && isSecondDate;
     }
 
-    filterData(category: string, start: Date, end: Date): void {
+    filterData(category: string, start: Date, end: Date): void {        
         let query_byPeriod = this.filterNodesByDatePeriod(start, end);
         let query_byCategory = this.filterNodesByCategory(category);
         let intersection = this.getSimilarItems(query_byPeriod, query_byCategory);
@@ -302,7 +302,7 @@ export class NetCube implements PolyCube {
     }
 
 
-    applyFilterToNodes(nodes: Array<string>): void {
+    applyFilterToNodes(nodes: Array<string>):void{     
         this.showNodes(nodes);
         this.showLinksToRemainingNodes(nodes);
     }
@@ -357,8 +357,13 @@ export class NetCube implements PolyCube {
     }
 
     hideOutSlicerLinks(nodes: Array<string>): void {
+        //stc links (cube)
         this.links_stc.children.forEach((link: THREE.Group) => {
             link.visible = this.areBothSidesOfTheLinkSelected(link, nodes);
+        });
+        //SI links
+        this.links_si.children.forEach((link: THREE.Group) => {
+            link.visible = this.areBothSidesOfTheLinkSelected(link,nodes);            
         });
     }
 
@@ -455,11 +460,13 @@ export class NetCube implements PolyCube {
         };
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
-        D3.selectAll('.time-slice-label').style('opacity', '1');
-        label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
-        label.position.y = targetCoords.y;
-        label.position.z = targetCoords.z;
-        label.rotation.set(0, 0, 0);
+        if(label){
+            D3.selectAll('.time-slice-label').style('opacity', '1');
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
+            label.position.y = targetCoords.y;
+            label.position.z = targetCoords.z;
+            label.rotation.set(0, 0, 0);
+        }
 
         let tween = new TWEEN.Tween(sourceCoords)
             .to(targetCoords, 1000)
@@ -500,14 +507,13 @@ export class NetCube implements PolyCube {
         };
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
-        if (label) {
+        if(label){
             D3.selectAll('.time-slice-label').style('opacity', '1');
-            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
+            label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH/2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
-            label.rotation.set(-Math.PI / 2, 0, 0);
+            label.rotation.set(-Math.PI/2, 0, 0);
         }
-
 
         let tween = new TWEEN.Tween(sourceCoords)
             .to(targetCoords, 1000)
@@ -560,6 +566,7 @@ export class NetCube implements PolyCube {
 
     transitionANI(): void { }
 
+    /////////
     getCubePosition(): THREE.Vector3 {
         let positionInWorld = new THREE.Vector3();
         this.cubeGroupGL.getWorldPosition(positionInWorld);
@@ -609,12 +616,6 @@ export class NetCube implements PolyCube {
         for (let i = 0; i < intersections.length; i++) {
             let selectedObject = intersections[i].object;
             if (selectedObject.type !== 'DATA_POINT') continue;
-            // get first intersect that is a data point
-            // tooltip.nativeElement.style.display = 'block';
-            // tooltip.nativeElement.style.opacity = '.9';
-            // tooltip.nativeElement.style.top = `${$event.pageY}px`;
-            // tooltip.nativeElement.style.left = `${$event.pageX}px`;
-            // tooltip.nativeElement.innerHTML = selectedObject.data.description;
 
             return selectedObject.data;
         }
@@ -629,11 +630,7 @@ export class NetCube implements PolyCube {
 
         if (highlighted_source) {
             highlighted_source.material.color.setHex(0xff0000);
-            highlighted_source.scale.set(2, 2, 2);
-
-            // let highlighted_target = this.cubeGroupGL.getObjectByName(highlighted_source.data.target_nodes[0]);
-            // highlighted_target.material.color.setHex(0xff6666);
-            // highlighted_target.scale.set(2, 2, 2);            
+            highlighted_source.scale.set(2, 2, 2);       
         }
 
     }
@@ -678,8 +675,6 @@ export class NetCube implements PolyCube {
         if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
         else return null;
     }
-
-
 
     createNodes(): void {
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
@@ -866,10 +861,11 @@ export class NetCube implements PolyCube {
 
             //CSS Object
             let label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
-            label.name = `NET_LABEL_${i}`;
-            // label.rotation.set(Math.PI);
-            this.cubeGroupCSS.add(label);
+            if(label){
+                label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+                label.name = `NET_LABEL_${i}`;
+                this.cubeGroupCSS.add(label);
+            }
         }
         this.slices.forEach((slice: THREE.Group) => { this.cubeGroupGL.add(slice); });
     }
@@ -905,9 +901,11 @@ export class NetCube implements PolyCube {
 
             // CSS Object
             let label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
-            label.name = `NET_LABEL_${i}`;
-            this.cubeGroupCSS.add(label);
+            if(label){
+                label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+                label.name = `NET_LABEL_${i}`;
+                this.cubeGroupCSS.add(label);
+            }
         }//end for
     }
 
