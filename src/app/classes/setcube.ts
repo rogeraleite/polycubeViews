@@ -583,6 +583,7 @@ export class SetCube implements PolyCube {
 
 
     transitionSTC(): void {
+        if(!this._cubeToggle) return;
         this.showBottomLayer();
         this.boundingBox.visible = true;
         // TODO:on STC, update setcube with stacked layers
@@ -637,7 +638,7 @@ export class SetCube implements PolyCube {
     }
 
     transitionJP(): void {
-
+        if(!this._cubeToggle) return;
         // hide hull
         this.hideHull();
         this.hideBottomLayer();
@@ -687,6 +688,7 @@ export class SetCube implements PolyCube {
 
     transitionSI(): void {
         // hide hull
+        if(!this._cubeToggle) return;
         this.hideHull();
         this.hideBottomLayer();
         this.boundingBox.visible = false;

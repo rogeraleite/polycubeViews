@@ -695,15 +695,31 @@ export class AppComponent implements AfterViewInit {
          default: break;
       }
 
+      let currentXPos = 0;
+      if(this.gCube.cubeToggle) {
+         // pos gCube
+         this.gCube.cubeGroupGL.position.set(currentXPos, 0, 0);
+         this.gCube.cubeGroupCSS.position.set(currentXPos, 0, 0);
+         currentXPos += CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER;
+      }
+      if(this.sCube.cubeToggle) {
+         this.sCube.cubeGroupGL.position.set(currentXPos, 0, 0);
+         this.sCube.cubeGroupCSS.position.set(currentXPos, 0, 0);
+         currentXPos += CUBE_CONFIG.WIDTH + CUBE_CONFIG.GUTTER;
+      }
+      if(this.nCube) {
+         this.nCube.cubeGroupGL.position.set(currentXPos, 0, 0);
+         this.nCube.cubeGroupCSS.position.set(currentXPos, 0, 0);
+      }
+
       targetVector.set(cubePos.x + CUBE_CONFIG.WIDTH/2, this.camera.position.y, this.camera.position.z);
       tweenPos.to(targetVector, 250);
       tweenLookAt.to(cubePos, 250);
-      // FIXME: lookAt still buggy -> find how to fix or consider first person action cam
       tweenPos.start().onComplete(() => {
          tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
             this.camera.lookAt(target);
             this.controls.update();
-         })
+         });
       });
    };
 
@@ -729,6 +745,7 @@ export class AppComponent implements AfterViewInit {
       this.gCube.updateView(this.currentViewState);
       this.sCube.updateView(this.currentViewState);
       this.nCube.updateView(this.currentViewState);
+
       this.positionCamera();
    };
 
