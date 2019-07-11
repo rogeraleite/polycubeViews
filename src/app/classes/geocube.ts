@@ -549,6 +549,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to STC
      */
     transitionSTC(): void { 
+        if(!this._cubeToggle) return;
         this.updateNodeColor('categorical');
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.boundingBox.visible = true;
@@ -603,6 +604,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to JP
      */
     transitionJP(): void {
+        if(!this._cubeToggle) return;
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         let mapPic = this.map.getCanvas().toDataURL();
         let mapElem = document.createElement('img');
@@ -664,6 +666,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to SI
      */
     transitionSI(): void { 
+        if(!this._cubeToggle) return;
         this.boundingBox.visible = false;
 
         this.slices.forEach((slice: THREE.Group, i: number) => {

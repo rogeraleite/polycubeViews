@@ -436,6 +436,7 @@ export class NetCube implements PolyCube {
 
     //TRANSITIONS
     transitionSTC(): void {
+        if(!this._cubeToggle) return;
         this.updateNodeColor('categorical');
         this.showCubeLinks();
         this.showBottomLayer();
@@ -484,6 +485,7 @@ export class NetCube implements PolyCube {
     }
 
     transitionJP(): void {
+        if(!this._cubeToggle) return;
         this.hideAllLinks();
         this.hideBottomLayer();
         this.boundingBox.visible = false;
@@ -528,6 +530,7 @@ export class NetCube implements PolyCube {
     }
 
     transitionSI(): void {
+        if(!this._cubeToggle) return;
         this.showSILinks();
         this.hideBottomLayer();
         this.boundingBox.visible = false;
