@@ -67,11 +67,12 @@ button:focus {
     bottom: 1em;
     width: 100vw;
     margin: auto;
-    z-index: 999;
+    /* z-index: 999; */
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-content: center;
+    z-index: 1;
 }
 
 .category-legend span {
@@ -137,16 +138,12 @@ button:focus {
 }
 
 .image-grid-cell {
-    width: 50%;
+    width: 15%;
     /* margin: .125em; */
 }
 
 .image-grid-image {
     max-width: 100%;
-}
-
-.list-group-item-thumbnail {
-    max-width: 50%;
 }
 
 .preview-item {
