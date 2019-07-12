@@ -485,9 +485,9 @@ export class NetCube implements PolyCube {
     }
 
     transitionJP(): void {
+        this.hideBottomLayer();
         if(!this._cubeToggle) return;
         this.hideAllLinks();
-        this.hideBottomLayer();
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
             this, this.transitionAnimationJP(slice, i);
