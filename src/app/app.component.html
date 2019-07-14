@@ -32,11 +32,13 @@
                 <div class="related">
                     <p>Related pictures:</p>
                     <div class="image-grid">
-                        <div class="image-grid-cell" *ngFor="let r of previewItem.related">
-                            <a href="javascript:void(0)" (click)="selectNode(r)">
-                                <img class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
-                                <!-- {{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }} -->
-                            </a>
+                        <div class="image-grid-cell" *ngFor="let r of previewItem.related; let i = index">
+                            <div *ngIf="i < 6">
+                                <a href="javascript:void(0)" (click)="selectNode(r)">
+                                    <img class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
+                                    <!-- {{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }} -->
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <!-- <ul class="list-group">

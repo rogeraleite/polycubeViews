@@ -638,10 +638,10 @@ export class SetCube implements PolyCube {
     }
 
     transitionJP(): void {
+        this.hideBottomLayer();
         if(!this._cubeToggle) return;
         // hide hull
         this.hideHull();
-        this.hideBottomLayer();
         //rerun scene and transition to JP
         let segs = this.dm.timeRange.length;
         this.updateSetCube(segs, true);

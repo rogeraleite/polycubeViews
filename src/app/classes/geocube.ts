@@ -604,6 +604,7 @@ export class GeoCube implements PolyCube {
      * Transitions from whatever temporal encoding to JP
      */
     transitionJP(): void {
+        this.hideBottomLayer();
         if(!this._cubeToggle) return;
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         let mapPic = this.map.getCanvas().toDataURL();
@@ -616,7 +617,6 @@ export class GeoCube implements PolyCube {
         mapElem.style.height = CUBE_CONFIG.WIDTH + 'px';
         mapElem.src = mapPic;
        
-        this.hideBottomLayer();
 
         this.slices.forEach((slice: THREE.Group, i: number) => {
             let mapClone = new THREE.CSS3DObject(mapElem.cloneNode());
