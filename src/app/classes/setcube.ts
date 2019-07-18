@@ -1043,7 +1043,7 @@ export class SetCube implements PolyCube {
                 mesh.material.opacity = 0.1;
                 mesh.material.wireframe = false;
                 mesh.material.wireframeLinewidth = 6;
-                mesh.material.vertexColors = THREE.vertexColors;
+                // mesh.material.vertexColors = THREE.vertexColors;
 
                 // mesh.visible = false;
             }
