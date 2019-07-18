@@ -547,7 +547,7 @@ export class AppComponent implements AfterViewInit {
       let duration = 1000;
       let targetVector = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
-      targetVector.set(1006, 4826, 428);
+      targetVector.set(1000, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
