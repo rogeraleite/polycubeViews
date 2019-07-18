@@ -27,11 +27,10 @@ export class DataManager {
 
         this._categories = new Map<string, string>();
         this._colors = D3.scaleOrdinal([
-            '#e6194b', '#3cb44b', '#ffe119', '#4363d8', 
-            '#f58231', '#911eb4', '#46f0f0', '#bcf60c', 
-            '#fabebe', '#008080', '#e6beff', '#9a6324',  
-            '#800000', '#aaffc3', '#808000', '#ffd8b1', 
-            '#808080'
+            '#e6194b', '#f58231', '#ffe119', '#bfef45','#3cb44b', 
+            '#808000','#42d4f4', '#4363d8', '#911eb4', '#f032e6', 
+            '#fabebe', '#ffd8b1', '#9a6324', '#800000', '#e6beff', 
+            '#aaffc3', '#469990', '#000075', '#808080','#000000', 
         ]);
     }
 
