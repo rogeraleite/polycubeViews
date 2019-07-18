@@ -1033,13 +1033,19 @@ export class SetCube implements PolyCube {
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
         this.hullGroup.children.forEach((mesh: THREE.Mesh) => {
 
-            let box = new THREE.Box3().setFromObject(mesh);
-            let size = box.getSize(new THREE.Vector3())
-
-            // console.log( mesh);
+            const box = new THREE.Box3().setFromObject(mesh);
+            const size = box.getSize(new THREE.Vector3());
 
             if (size.y > (vertOffset + 5)) {
-                mesh.visible = false;
+                // console.log( mesh);
+
+                mesh.material.color.setHex('0x2194ce');
+                mesh.material.opacity = 0.1;
+                mesh.material.wireframe = false;
+                mesh.material.wireframeLinewidth = 6;
+                mesh.material.vertexColors = THREE.vertexColors;
+
+                // mesh.visible = false;
             }
         });
     }
