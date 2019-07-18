@@ -585,13 +585,13 @@ export class AppComponent implements AfterViewInit {
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       //stop rotation
-      this.controls.enableRotate = false;
+      this.controls.enableRotate = true;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
 
-      targetVector.set(1006, 4826, 428);
+      targetVector.set(1000, 4826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
@@ -612,11 +612,29 @@ export class AppComponent implements AfterViewInit {
    }
 
    restoreCamera(position:THREE.Vector3, rotation:THREE.Euler, controlCenter:THREE.Vector3){
-      this.camera.position.set(position.x, position.y, position.z);
-      this.camera.rotation.set(rotation.x, rotation.y, rotation.z);
-  
-      this.controls.target.set(controlCenter.x, controlCenter.y, controlCenter.z);
-      this.controls.update();  
+      let targetVector = new THREE.Vector3();
+      let targetVector2 = new THREE.Vector3();
+      let tweenPos = new TWEEN.Tween(this.camera.position);
+      let tweenRot = new TWEEN.Tween(this.camera.position);
+
+      // this.camera.position.set(position.x, position.y, position.z);
+      targetVector.set(position.x, position.y, position.z);
+      tweenPos.to(targetVector, 1000);
+      tweenPos.start().onComplete(() => {
+         this.controls.target.set(controlCenter.x, controlCenter.y, controlCenter.z);
+         this.controls.update();
+      });
+
+      // this.camera.rotation.set(rotation.x, rotation.y, rotation.z);
+      targetVector2.set(rotation.x, rotation.y, rotation.z);
+      tweenRot.to(targetVector2, 1000);
+      tweenRot.start().onComplete(() => {
+         this.controls.target.set(controlCenter.x, controlCenter.y, controlCenter.z);
+         this.controls.update();
+      });
+
+      // this.controls.target.set(controlCenter.x, controlCenter.y, controlCenter.z);
+      // this.controls.update();  
   }
 
    /**
