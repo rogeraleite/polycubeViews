@@ -712,15 +712,15 @@ export class AppComponent implements AfterViewInit {
          this.nCube.cubeGroupCSS.position.set(currentXPos, 0, 0);
       }
 
-      targetVector.set(cubePos.x + CUBE_CONFIG.WIDTH/2, this.camera.position.y, this.camera.position.z);
-      tweenPos.to(targetVector, 250);
-      tweenLookAt.to(cubePos, 250);
-      tweenPos.start().onComplete(() => {
-         tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
-            this.camera.lookAt(target);
-            this.controls.update();
-         });
-      });
+      // targetVector.set(cubePos.x + CUBE_CONFIG.WIDTH/2, this.camera.position.y, this.camera.position.z);
+      // tweenPos.to(targetVector, 250);
+      // tweenLookAt.to(cubePos, 250);
+      // tweenPos.start().onComplete(() => {
+      //    tweenLookAt.start().onUpdate((target: THREE.Vector3) => {
+      //       this.camera.lookAt(target);
+      //       this.controls.update();
+      //    });
+      // });
    };
 
    closePicture(): void {
