@@ -252,6 +252,7 @@ export class AppComponent implements AfterViewInit {
          $event.preventDefault();
          let foundItem = this.getClickedItem($event);
          if(foundItem) {
+            
             this.previewItem = {
                title: `Picture #${foundItem.id}`, // foundItem.title is empty so just use ID
                id: foundItem.id,
@@ -554,6 +555,9 @@ export class AppComponent implements AfterViewInit {
          this.camera.lookAt(targetVector);
       });
 
+      this.camera.zoom = 1;
+      this.camera.updateProjectionMatrix();
+
    }
 
    /**
@@ -577,31 +581,44 @@ export class AppComponent implements AfterViewInit {
          this.controls.update();
          this.camera.lookAt(targetVector);
       });
+      this.camera.zoom = 1;
+      this.camera.updateProjectionMatrix();
+
    }
 
-   transitionJPCamera(): void{
-      //update timeline color
-      this.timelineColor(false)
+   transitionJPCamera(): void {
+      // update timeline color
+      this.timelineColor(false);
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
-      //stop rotation
-      this.controls.enableRotate = true;
+      // stop rotation
+      this.controls.enableRotate = false;
 
       let duration = 1000;
       let targetVector = new THREE.Vector3();
+      let targetVector2 = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
+      let tweenRot = new TWEEN.Tween(this.camera.position);
 
-      targetVector.set(1000, 4826, 428);
+      // targetVector.set(1000, 4826, 428);
+      targetVector.set(1000, 10826, 428);
       tweenPos.to(targetVector, duration);
       tweenPos.start().onComplete(() => {
          this.controls.update();
          this.camera.lookAt(targetVector);
+         //
+         this.camera.zoom = 0.7;
+         this.camera.updateProjectionMatrix();
+         targetVector2.set(644.2056736616696, 9000.63192337427, -5.384615481310194);
+         tweenRot.to(targetVector2, 2000);
+         tweenRot.start().onComplete(() => {
+            this.camera.lookAt(targetVector2);
+            this.controls.update();
+         });
       });
-      
-
    }
 
-   resetScene(): void{
+   resetScene(): void {
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
       this.gCube.transitionSTC();
       this.sCube.transitionSTC();
@@ -611,7 +628,7 @@ export class AppComponent implements AfterViewInit {
       this.transitionSTCCamera();
    }
 
-   restoreCamera(position:THREE.Vector3, rotation:THREE.Euler, controlCenter:THREE.Vector3){
+   restoreCamera(position:THREE.Vector3, rotation: THREE.Euler, controlCenter: THREE.Vector3) {
       let targetVector = new THREE.Vector3();
       let targetVector2 = new THREE.Vector3();
       let tweenPos = new TWEEN.Tween(this.camera.position);
