@@ -7,7 +7,8 @@ import { ElementRef } from '@angular/core';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
-import { FaceNormalsHelper, Line } from 'three';
+import { FaceNormalsHelper, Line, Vector3 } from 'three';
+import { POINT_CONVERSION_HYBRID } from 'constants';
 
 export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -83,6 +84,7 @@ export class NetCube implements PolyCube {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
         this.timeLinearScale = this.dm.getTimeLinearScale();
+        this.addNetworkDegreeToNodes();
 
         this.cubeGroupCSS.add(this.createBottomLayer());
         this.createNodes();
@@ -90,6 +92,34 @@ export class NetCube implements PolyCube {
         this.showCubeLinks_aggregated();
     }
 
+    addNetworkDegreeToNodes() {
+        let degree_out = this.linksPerNode;        
+        let in_degree_map = [];
+
+
+        this.dm.data.forEach((d: any) => {
+            in_degree_map[d.id] = 0;
+        })
+
+        this.dm.data.forEach((d: any) => {
+            for (let a = 0; a < this.linksPerNode; a++) {
+                let related_id = d.target_nodes[a];
+                in_degree_map[related_id]++;
+            }
+        })
+
+        this.dm.data.forEach((d: any) => { 
+            let degree_in = in_degree_map[d.id];
+            let degree_overall = degree_out + degree_in;
+            
+            d.network_degree_in = degree_in;
+            d.network_degree_out = degree_out;
+            d.network_degree_overall = degree_overall;
+        });
+        
+
+        console.log(this.dm.data);
+    }
 
     createBottomLayer(color?: string): void {
         let divContainer = document.createElement('div');
@@ -662,6 +692,12 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
+    resetNodesInTimeSlices(){
+        this.slices.forEach((slice: THREE.Group) => {
+            slice.children = [];
+        });
+    }
+
     getTimeSliceByDate(date: Date): THREE.Group {
         let correspondingSlice;
         this.slices.forEach((slice: THREE.Group) => {
@@ -691,14 +727,18 @@ export class NetCube implements PolyCube {
         else return null;
     }
 
-    createNodes(): void {
-        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE*2, 32, 32);
+    createNodes(): void {     
+        
+        this.resetNodesInTimeSlices();
+        console.log("a");
+        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);           
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
+            let networkDegreeFactor = this.getNetworkDegreeFactor(dataItem);
 
-            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
-
+            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) }); 
+            
             let point = new THREE.Mesh(geometry, material);
 
             let position = this.getNormalizedPositionById(dataItem.id);
@@ -710,9 +750,26 @@ export class NetCube implements PolyCube {
                 point.data = dataItem;
                 point.type = 'DATA_POINT';
 
+                point.scale.set(networkDegreeFactor,networkDegreeFactor,networkDegreeFactor);
+
                 this.getTimeSliceByDate(dataItem.date_time).add(point);
             }//end if            
         }//end for
+    }
+
+    getNetworkDegreeFactor(dataItem) {
+        console.log(dataItem);
+        let result = 1;
+        switch(this.nodeSizeEncodeFactor){
+            case 'overall_degree': result = dataItem.network_degree_overall; break;
+            case 'in_degree': result = dataItem.network_degree_in; break;
+            case 'out_degree': result = dataItem.network_degree_out; break;            
+        }
+
+        if(result<1) result = 1; 
+        else if(result>3) result = 3; 
+
+        return result;
     }
 
     createLinks(): void {
@@ -999,6 +1056,7 @@ export class NetCube implements PolyCube {
 
     changeNodeSizeEncode(encode_type){        
         this.nodeSizeEncodeFactor = encode_type;
+        this.createNodes();
         console.log(this.nodeSizeEncodeFactor);
     }
 
