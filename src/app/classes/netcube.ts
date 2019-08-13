@@ -45,6 +45,7 @@ export class NetCube implements PolyCube {
 
     private nodeSizeEncodeFactor = "overall_degree";
     private chargeFactor = 1;
+    private areSlicesSaved = false;
 
     get cubeToggle(): boolean {
         return this._cubeToggle;
@@ -117,8 +118,6 @@ export class NetCube implements PolyCube {
             d.network_degree_overall = degree_overall;
         });
         
-
-        console.log(this.dm.data);
     }
 
     createBottomLayer(color?: string): void {
@@ -709,6 +708,50 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
+    applyChargeFactor(): void {
+
+        if(!this.areSlicesSaved) this.saveSliceRecords();
+        
+        console.log(this.chargeFactor);
+
+        this.slices.forEach((s: THREE.Group,i) => {
+            s.children.forEach((c,ii)=>{
+                                
+                c.position.x =  c.original_position_x * this.chargeFactor;
+                c.position.z =  c.original_position_z * this.chargeFactor;
+
+                // if(i==1 && ii==5) console.log(c.original_position_x)
+            })
+        });
+
+        //change links
+
+        // this.links_stc_aggregated.children.forEach((link: THREE.Group) => {
+        //     console.log(link);
+        // });
+
+        // this.links_stc_aggregated.forEach((l)=>{
+        //     console.log(l);
+        // })
+        // this.links_stc_absolute.forEach((l)=>{
+            
+        // })
+        // this.links_si.forEach((l)=>{
+            
+        // })
+
+    }
+    saveSliceRecords() {
+        console.log("saving slices");
+        this.slices.forEach((s: THREE.Group) => {
+            s.children.forEach((c)=>{
+                c.original_position_x = c.position.x;
+                c.original_position_z = c.position.z;
+            })
+        });
+        this.areSlicesSaved = true;
+    }
+
     onDblClick($event: any): void {
     }
 
@@ -730,7 +773,7 @@ export class NetCube implements PolyCube {
     createNodes(): void {     
         
         this.resetNodesInTimeSlices();
-        
+
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);           
 
         for (let i = 0; i < this.dm.data.length; i++) {
@@ -1056,12 +1099,11 @@ export class NetCube implements PolyCube {
     changeNodeSizeEncode(encode_type){        
         this.nodeSizeEncodeFactor = encode_type;
         this.createNodes();
-        console.log(this.nodeSizeEncodeFactor);
     }
 
     changeChargeFactor(factor){
-        this.chargeFactor = factor;
-        console.log(this.chargeFactor);
+        this.chargeFactor = factor/25;
+        this.applyChargeFactor();
     }
 
 
