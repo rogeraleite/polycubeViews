@@ -641,7 +641,6 @@ export class NetCube implements PolyCube {
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
 
-                grandChild.scale.set(1, 1, 1);
                 grandChild.material.color.set(gray ? '#b5b5b5' : this.getCurrentColor(grandChild));
             });
         });
@@ -674,7 +673,6 @@ export class NetCube implements PolyCube {
 
         if (highlighted_source) {
             highlighted_source.material.color.setHex(0xff0000);
-            highlighted_source.scale.set(2, 2, 2);
         }
 
     }
