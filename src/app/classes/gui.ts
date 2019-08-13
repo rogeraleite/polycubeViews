@@ -140,7 +140,7 @@ export class GUI {
         // NetCube settings
         let nCubeParams = {
             node_size: ['overall_degree'],
-            charge: 10
+            charge: 25
         };
         let nCubeFolder = this.gui.addFolder('NetCube');
 
