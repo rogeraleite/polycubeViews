@@ -32,7 +32,8 @@ export class NetCube implements PolyCube {
 
     private hiddenLabels: Array<THREE.CSS3DObject>;
 
-    private links_stc: THREE.Group;
+    private links_stc_aggregated: THREE.Group;
+    private links_stc_absolute: THREE.Group;
     private links_si: THREE.Group;
     private linksPerNode = 1;
 
@@ -83,7 +84,7 @@ export class NetCube implements PolyCube {
         this.cubeGroupCSS.add(this.createBottomLayer());
         this.createNodes();
         this.createLinks();
-        this.showCubeLinks();
+        this.showCubeLinks_aggregated();
     }
 
 
@@ -163,10 +164,14 @@ export class NetCube implements PolyCube {
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
-                grandChild.position.y = time === 'aggregated' ? 0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
+                grandChild.position.y = time === 'aggregated' ? 0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;                
             });
         });
+
+        time === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute();
     }
+
+
 
     updateView(currentViewState: VIEW_STATES): void {
         if (this._cubeToggle) {
@@ -357,8 +362,12 @@ export class NetCube implements PolyCube {
     }
 
     hideOutSlicerLinks(nodes: Array<string>): void {
-        //stc links (cube)
-        this.links_stc.children.forEach((link: THREE.Group) => {
+        //stc links aggregated (cube)
+        this.links_stc_aggregated.children.forEach((link: THREE.Group) => {
+            link.visible = this.areBothSidesOfTheLinkSelected(link, nodes);
+        });
+        //stc links absolute (cube)
+        this.links_stc_absolute.children.forEach((link: THREE.Group) => {
             link.visible = this.areBothSidesOfTheLinkSelected(link, nodes);
         });
         //SI links
@@ -438,7 +447,7 @@ export class NetCube implements PolyCube {
     transitionSTC(): void {
         if(!this._cubeToggle) return;
         this.updateNodeColor('categorical');
-        this.showCubeLinks();
+        this.showCubeLinks_aggregated();
         this.showBottomLayer();
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -704,7 +713,8 @@ export class NetCube implements PolyCube {
     }
 
     createLinks(): void {
-        this.links_stc = new THREE.Group();
+        this.links_stc_aggregated = new THREE.Group();
+        this.links_stc_absolute = new THREE.Group();
         this.links_si = new THREE.Group();
 
         for (let i = 0; i < this.dm.data.length; i++) {
@@ -717,9 +727,13 @@ export class NetCube implements PolyCube {
                 let targetId = dataItem.target_nodes[a];
 
                 if (this.doesTargetNodeHasPosition(targetId)) {
-                    //STC                    
-                    let line_forSTC = this.createLineForSTC(dataItem, sourceNode_position, a);
-                    if (line_forSTC) this.links_stc.add(line_forSTC);
+                    //STC aggregated                    
+                    let line_forSTC_aggregated = this.createLineForSTC_aggregated(dataItem, sourceNode_position, a);
+                    if (line_forSTC_aggregated) this.links_stc_aggregated.add(line_forSTC_aggregated);
+
+                    //STC absolute                    
+                    let line_forSTC_absolute = this.createLineForSTC_absolute(dataItem, sourceNode_position, a);
+                    if (line_forSTC_absolute) this.links_stc_absolute.add(line_forSTC_absolute);
 
                     //SI
                     let line_forSI = this.createLineForSI(dataItem, sourceNode_position, a);
@@ -732,7 +746,8 @@ export class NetCube implements PolyCube {
             }//end for     
         }//end for
 
-        this.cubeGroupGL.add(this.links_stc);
+        this.cubeGroupGL.add(this.links_stc_aggregated);
+        this.cubeGroupGL.add(this.links_stc_absolute);
         this.cubeGroupGL.add(this.links_si);
 
     }
@@ -787,12 +802,27 @@ export class NetCube implements PolyCube {
         return -CUBE_CONFIG.HEIGHT / 2;
     }
 
-    createLineForSTC(dataItem, sourceNode_position, targetIndex) {
+    createLineForSTC_aggregated(dataItem, sourceNode_position, targetIndex) {
         let targetId = dataItem.target_nodes[targetIndex];
         if (!this.dm.dataMap[targetId]) return;
 
         let targetNode_position = this.getNormalizedPositionById(targetId);
         targetNode_position.y = this.getTimeSliceByDate(this.dm.dataMap[targetId].date_time).position.y;
+
+        let lineGeometry = this.createLineGeometry(sourceNode_position, targetNode_position);
+        let line = new THREE.Line(lineGeometry, this.getLineMaterial());
+        line.name = this.getLineName(dataItem, targetId);
+        return line;
+    }
+
+    createLineForSTC_absolute(dataItem, sourceNode_position, targetIndex) {
+        let targetId = dataItem.target_nodes[targetIndex];
+        if (!this.dm.dataMap[targetId]) return;
+
+        let targetNode_position = this.getNormalizedPositionById(targetId);
+
+        // let sliceOffsetY = this.getTimeSliceByDate(this.dm.dataMap[targetId].date_time).position.y;
+        targetNode_position.y = this.timeLinearScale(this.dm.dataMap[targetId].date_time);// - sliceOffsetY;
 
         let lineGeometry = this.createLineGeometry(sourceNode_position, targetNode_position);
         let line = new THREE.Line(lineGeometry, this.getLineMaterial());
@@ -932,22 +962,38 @@ export class NetCube implements PolyCube {
 
 
     hideAllLinks(): void {
-        this.hideCubeLinks();
+        this.hideCubeLinks_aggregated();
+        this.hideCubeLinks_absolute();
         this.hideSILinks();
     }
 
-    showCubeLinks(): void {
+    showCubeLinks_absolute(): void {        
         this.hideAllLinks();
-        this.links_stc.visible = true;
+        this.links_stc_absolute.visible = true;
+
+        console.log("ag "+this.links_stc_aggregated.visible);
+        console.log("ab "+this.links_stc_absolute.visible);
     }
 
-    hideCubeLinks(): void {
-        this.links_stc.visible = false;
+    showCubeLinks_aggregated(): void {
+        this.hideAllLinks();
+        this.links_stc_aggregated.visible = true;
+        
+        console.log("ag "+this.links_stc_aggregated.visible);
+        console.log("ab "+this.links_stc_absolute.visible);
     }
 
     showSILinks(): void {
         this.hideAllLinks();
         this.links_si.visible = true;
+    }
+
+    hideCubeLinks_aggregated(): void {
+        this.links_stc_aggregated.visible = false;
+    }
+
+    hideCubeLinks_absolute(): void {
+        this.links_stc_absolute.visible = false;
     }
 
     hideSILinks(): void {
