@@ -97,7 +97,6 @@ export class NetCube implements PolyCube {
         let degree_out = this.linksPerNode;        
         let in_degree_map = [];
 
-
         this.dm.data.forEach((d: any) => {
             in_degree_map[d.id] = 0;
         })
@@ -197,6 +196,7 @@ export class NetCube implements PolyCube {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
                 grandChild.position.y = time === 'aggregated' ? 0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;                
+                // grandChild.position.y = time === 'aggregated' ? 0 : console.log(this.timeLinearScale(grandChild.data.date_time));
             });
         });
 
@@ -742,7 +742,6 @@ export class NetCube implements PolyCube {
 
     }
     saveSliceRecords() {
-        console.log("saving slices");
         this.slices.forEach((s: THREE.Group) => {
             s.children.forEach((c)=>{
                 c.original_position_x = c.position.x;

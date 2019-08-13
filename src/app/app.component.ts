@@ -262,7 +262,10 @@ export class AppComponent implements AfterViewInit {
                description: foundItem.description,
                externalURL: foundItem.media_url,
                related: foundItem.target_nodes,
-               categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5]
+               categories: [foundItem.category_1, foundItem.category_2, foundItem.category_3, foundItem.category_4, foundItem.category_5],
+               network_degree_in: foundItem.network_degree_in,
+               network_degree_out: foundItem.network_degree_out,
+               network_degree_overall: foundItem.network_degree_overall,
             };
 
             this.openPreview();
