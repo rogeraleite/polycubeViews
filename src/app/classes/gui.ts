@@ -138,7 +138,24 @@ export class GUI {
         });
 
         // NetCube settings
+        let nCubeParams = {
+            node_size: ['overall_degree'],
+            charge: 10
+        };
         let nCubeFolder = this.gui.addFolder('NetCube');
+
+        nCubeFolder.add(nCubeParams, 'node_size', ['overall_degree','in_degree','out_degree']).onChange(() => {
+            this.nCubeConfigEmitter.emit('change', {
+                nNodeSize: nCubeParams.node_size
+            });
+        });
+
+        nCubeFolder.add(nCubeParams, 'charge').min(1).max(50).step(1).onChange(() => {
+            this.nCubeConfigEmitter.emit('change', {
+                nCharge: nCubeParams.charge
+            });
+        });
+
 
     }
     

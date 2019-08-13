@@ -471,11 +471,9 @@ export class AppComponent implements AfterViewInit {
          }
       });   
 
-      // geocube settings
+      // setcube settings
       this.gui.sCubeConfigEmitter.on('change', (change: any) => {
             if(change.sLayout) {
-               // (this.gCube as GeoCube).updateJitter(change.jitter)
-               // console.log('layout change')
                (this.sCube as SetCube).updateLayout(change.sLayout)
             }
 
@@ -490,6 +488,16 @@ export class AppComponent implements AfterViewInit {
                (this.sCube as SetCube).hideHull()
             }
          });   
+
+      // netcube settings
+      this.gui.nCubeConfigEmitter.on('change', (change: any) => {
+         if(change.nNodeSize) {
+            (this.nCube as NetCube).changeNodeSizeEncode(change.nNodeSize)
+         }
+         if(change.nCharge) {
+            (this.nCube as NetCube).changeChargeFactor(change.nCharge)
+         }
+      }); 
    
 
       // button event listeners

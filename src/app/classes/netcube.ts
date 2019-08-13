@@ -42,6 +42,9 @@ export class NetCube implements PolyCube {
 
     private _cubeToggle: boolean = true;
 
+    private nodeSizeEncodeFactor = "overall_degree";
+    private chargeFactor = 1;
+
     get cubeToggle(): boolean {
         return this._cubeToggle;
     }
@@ -689,7 +692,7 @@ export class NetCube implements PolyCube {
     }
 
     createNodes(): void {
-        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
+        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE*2, 32, 32);
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
@@ -970,17 +973,11 @@ export class NetCube implements PolyCube {
     showCubeLinks_absolute(): void {        
         this.hideAllLinks();
         this.links_stc_absolute.visible = true;
-
-        console.log("ag "+this.links_stc_aggregated.visible);
-        console.log("ab "+this.links_stc_absolute.visible);
     }
 
     showCubeLinks_aggregated(): void {
         this.hideAllLinks();
         this.links_stc_aggregated.visible = true;
-        
-        console.log("ag "+this.links_stc_aggregated.visible);
-        console.log("ab "+this.links_stc_absolute.visible);
     }
 
     showSILinks(): void {
@@ -1000,11 +997,20 @@ export class NetCube implements PolyCube {
         this.links_si.visible = false;
     }
 
+    changeNodeSizeEncode(encode_type){        
+        this.nodeSizeEncodeFactor = encode_type;
+        console.log(this.nodeSizeEncodeFactor);
+    }
+
+    changeChargeFactor(factor){
+        this.chargeFactor = factor;
+        console.log(this.chargeFactor);
+    }
+
 
     async delay(ms: number) {
         await new Promise(resolve => setTimeout(() => resolve(), ms));
     }
-
     //saving useful scripts for future usage
     parsingCushmanPositionData() {
         // let new_temp_data = [];
