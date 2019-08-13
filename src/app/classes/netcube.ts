@@ -730,7 +730,7 @@ export class NetCube implements PolyCube {
     createNodes(): void {     
         
         this.resetNodesInTimeSlices();
-        console.log("a");
+        
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);           
 
         for (let i = 0; i < this.dm.data.length; i++) {
@@ -758,7 +758,6 @@ export class NetCube implements PolyCube {
     }
 
     getNetworkDegreeFactor(dataItem) {
-        console.log(dataItem);
         let result = 1;
         switch(this.nodeSizeEncodeFactor){
             case 'overall_degree': result = dataItem.network_degree_overall; break;
