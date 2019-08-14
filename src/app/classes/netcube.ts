@@ -192,10 +192,12 @@ export class NetCube implements PolyCube {
         this.cubeGroupGL.children.forEach((child: THREE.Group) => {
             if (child.type !== 'Group') return;
 
+            console.log(child);
+
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
-                grandChild.position.y = time === 'aggregated' ? 0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;                
+                grandChild.position.y = time === 'aggregated' ? 0 : sliceOffsetY;                
                 // grandChild.position.y = time === 'aggregated' ? 0 : console.log(this.timeLinearScale(grandChild.data.date_time));
             });
         });
