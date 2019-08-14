@@ -189,23 +189,41 @@ export class NetCube implements PolyCube {
     }
 
     updateTime(time: string): void {
-        this.cubeGroupGL.children.forEach((child: THREE.Group) => {
-            if (child.type !== 'Group') return;
+        
+        let distance_between_layers = this.countDistanceBetweenLayersToFixAbsolutePositionBug()/2;
 
-            console.log(child);
+        this.cubeGroupGL.children.forEach((child: THREE.Group, i) => {
+            if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
-                grandChild.position.y = time === 'aggregated' ? 0 : sliceOffsetY;                
-                // grandChild.position.y = time === 'aggregated' ? 0 : console.log(this.timeLinearScale(grandChild.data.date_time));
+                grandChild.position.y = time === 'aggregated' ? 0 : (this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY);      
+                
             });
         });
 
         time === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute();
     }
 
+    countDistanceBetweenLayersToFixAbsolutePositionBug(){
+        let layers = [];
+        let distance_between_layers = 0;
+        let count = 0;
 
+        this.cubeGroupGL.children.forEach((child: THREE.Group, i) => {
+            if (child.type !== 'Group') return;
+
+            child.children.forEach((grandChild: any) => {
+                if (grandChild.type !== 'DATA_POINT') return;
+                    layers.push(child.position.y);
+            });
+        });
+
+        let setlayers = Array.from(new Set(layers));
+
+        return (setlayers[0] - setlayers[1]);
+    }
 
     updateView(currentViewState: VIEW_STATES): void {
         if (this._cubeToggle) {
@@ -711,8 +729,6 @@ export class NetCube implements PolyCube {
     applyChargeFactor(): void {
 
         if(!this.areSlicesSaved) this.saveSliceRecords();
-        
-        console.log(this.chargeFactor);
 
         this.slices.forEach((s: THREE.Group,i) => {
             s.children.forEach((c,ii)=>{
@@ -1020,6 +1036,7 @@ export class NetCube implements PolyCube {
             let plane = new THREE.LineSegments(edgeGeometry, material);
 
             slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            slice.index = i;
             plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI / 2, 0, 0);
             slice.add(plane);
