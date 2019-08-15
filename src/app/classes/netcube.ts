@@ -8,7 +8,7 @@ import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
 import { FaceNormalsHelper, Line, Vector3 } from 'three';
-import { POINT_CONVERSION_HYBRID } from 'constants';
+// import { POINT_CONVERSION_HYBRID } from 'constants';
 
 export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -46,6 +46,7 @@ export class NetCube implements PolyCube {
     private nodeSizeEncodeFactor = "overall_degree";
     private chargeFactor = 1;
     private areSlicesSaved = false;
+    private areLinksSaved = false;
 
     get cubeToggle(): boolean {
         return this._cubeToggle;
@@ -726,37 +727,78 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    applyChargeFactor(): void {
-
+    applyChargeFactorInNodes(): void {
         if(!this.areSlicesSaved) this.saveSliceRecords();
 
         this.slices.forEach((s: THREE.Group,i) => {
+            s.updateMatrixWorld();
             s.children.forEach((c,ii)=>{
                                 
                 c.position.x =  c.original_position_x * this.chargeFactor;
                 c.position.z =  c.original_position_z * this.chargeFactor;
 
-                // if(i==1 && ii==5) console.log(c.original_position_x)
+                var vector = new THREE.Vector3();
+                vector.setFromMatrixPosition( c.matrixWorld );
             })
         });
-
-        //change links
-
-        // this.links_stc_aggregated.children.forEach((link: THREE.Group) => {
-        //     console.log(link);
-        // });
-
-        // this.links_stc_aggregated.forEach((l)=>{
-        //     console.log(l);
-        // })
-        // this.links_stc_absolute.forEach((l)=>{
-            
-        // })
-        // this.links_si.forEach((l)=>{
-            
-        // })
-
     }
+    
+    applyChargeFactorInInternalSliceLinks(): void {
+        if(!this.areSlicesSaved) this.saveSliceRecords();
+
+        this.slices.forEach((s: THREE.Group,i) => {
+            s.updateMatrixWorld();
+            s.children.forEach((l)=>{
+                if (l.type !== 'Line') return;  
+                l = this.scaleLink(l);           
+            })
+        });
+    }
+
+    scaleLink(link){
+        let source = link.name.split("_")[0];
+        let target = link.name.split("_")[1];
+
+        let source_pos = this.getNormalizedPositionById(source);
+        let target_pos = this.getNormalizedPositionById(target);
+
+        link.geometry.vertices[0].x = source_pos.x * this.chargeFactor;
+        link.geometry.vertices[0].z = source_pos.z * this.chargeFactor;
+        link.geometry.vertices[1].x = target_pos.x * this.chargeFactor;
+        link.geometry.vertices[1].z = target_pos.z * this.chargeFactor;
+        link.geometry.verticesNeedUpdate = true;
+
+        return link;
+    }
+
+    scaleLinkNormalizing(link){
+        let source = link.name.split("_")[0];
+        let target = link.name.split("_")[1];
+
+        let source_pos = this.getNormalizedPositionWithChargeById(source);
+        let target_pos = this.getNormalizedPositionWithChargeById(target);
+
+        link.geometry.vertices[0].x = source_pos.x;
+        link.geometry.vertices[0].z = source_pos.z;
+        link.geometry.vertices[1].x = target_pos.x;
+        link.geometry.vertices[1].z = target_pos.z;
+        link.geometry.verticesNeedUpdate = true;
+
+        return link;
+    }
+    
+    applyChargeFactorInLinks() {        
+        this.links_stc_aggregated.children.forEach((l) => {
+            l = this.scaleLinkNormalizing(l);
+        })
+        this.links_stc_absolute.children.forEach((l)=>{
+            l = this.scaleLinkNormalizing(l);
+        })
+        this.links_si.children.forEach((l)=>{
+            l = this.scaleLinkNormalizing(l);                  
+        })
+    }
+
     saveSliceRecords() {
         this.slices.forEach((s: THREE.Group) => {
             s.children.forEach((c)=>{
@@ -770,6 +812,20 @@ export class NetCube implements PolyCube {
     onDblClick($event: any): void {
     }
 
+    getNormalizedPositionWithChargeById(id) {
+        let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
+        let pos_dim = this.dm.getDataPositionDimensions();
+
+        let normalized_x = null;
+        let normalized_z = null;
+        if (pos_map[id]) {
+            normalized_x = ((pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
+            normalized_z = ((pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
+        }
+
+        if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
+        else return null;
+    }
     getNormalizedPositionById(id) {
         let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions();
@@ -831,6 +887,7 @@ export class NetCube implements PolyCube {
     }
 
     createLinks(): void {
+
         this.links_stc_aggregated = new THREE.Group();
         this.links_stc_absolute = new THREE.Group();
         this.links_si = new THREE.Group();
@@ -978,6 +1035,8 @@ export class NetCube implements PolyCube {
                 targetNode_position.z + position_fix
             )
         );
+        
+        lineGeometry.verticesNeedUpdate = true;
         return lineGeometry;
     }
 
@@ -1120,7 +1179,9 @@ export class NetCube implements PolyCube {
 
     changeChargeFactor(factor){
         this.chargeFactor = factor/25;
-        this.applyChargeFactor();
+        this.applyChargeFactorInNodes();
+        this.applyChargeFactorInLinks();
+        this.applyChargeFactorInInternalSliceLinks();
     }
 
 
