@@ -144,7 +144,7 @@ export class GUI {
         };
         let nCubeFolder = this.gui.addFolder('NetCube');
 
-        nCubeFolder.add(nCubeParams, 'node_size', ['overall_degree','in_degree','out_degree','no_degree']).onChange(() => {
+        nCubeFolder.add(nCubeParams, 'node_size', ['overall_degree','in_degree','out_degree','non_degree']).onChange(() => {
             this.nCubeConfigEmitter.emit('change', {
                 nNodeSize: nCubeParams.node_size
             });

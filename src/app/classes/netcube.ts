@@ -821,7 +821,7 @@ export class NetCube implements PolyCube {
             case 'overall_degree': result = dataItem.network_degree_overall; break;
             case 'in_degree': result = dataItem.network_degree_in; break;
             case 'out_degree': result = dataItem.network_degree_out; break;     
-            case 'no_degree': result = 1; break;            
+            case 'non_degree': result = 1; break;            
         }
 
         if(result<1) result = 1; 
