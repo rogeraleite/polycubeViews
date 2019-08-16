@@ -693,7 +693,6 @@ export class NetCube implements PolyCube {
         let highlighted_source = this.cubeGroupGL.getObjectByName(id);
 
         if (highlighted_source) {
-            console.log(highlighted_source)
             highlighted_source.material.color.setHex(0xff0000);
 
             //highlight targetBy
