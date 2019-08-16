@@ -693,9 +693,35 @@ export class NetCube implements PolyCube {
         let highlighted_source = this.cubeGroupGL.getObjectByName(id);
 
         if (highlighted_source) {
+            console.log(highlighted_source)
             highlighted_source.material.color.setHex(0xff0000);
-        }
 
+            //highlight targetBy
+            highlighted_source.data.targetBy.forEach((n_id)=>{
+                let related = this.getNodesInSceneById(n_id);
+                related.material.color.setHex(0xEF9A9A);
+            })
+
+            //highlight targets            
+            for (let a = 0; a < this.linksPerNode; a++) {
+                let target_id = highlighted_source.data.target_nodes[a];
+                if(target_id){
+                    let related = this.getNodesInSceneById(target_id);
+                    related.material.color.setHex(0x000000);
+                }
+            }
+        }
+    }
+
+    getNodesInSceneById(id){
+        let _node = null;
+        this.slices.forEach((slice: THREE.Group) => {
+            slice.children.forEach((node: any) => {
+                // if (node.type !== 'DATA_POINT') return;
+                if (node.name == id) _node = node;
+            })
+        });
+        return _node;
     }
 
     getTimeSliceById(id: any): THREE.Group {
@@ -841,11 +867,40 @@ export class NetCube implements PolyCube {
         else return null;
     }
 
+    addTargetByInformationInDataItems(){
+
+        let targetBy_map = []
+        
+        //create empty map
+        for (let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            targetBy_map[dataItem.id] = [];
+        }
+
+        //fill map with relations
+        for (let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            for (let a = 0; a < this.linksPerNode; a++) {
+                let targetId = dataItem.target_nodes[a];
+                targetBy_map[targetId].push(dataItem.id);
+            }
+        }
+
+        //add targetBy information to data items
+        for (let i = 0; i < this.dm.data.length; i++) {
+            let dataItem = this.dm.data[i];
+            this.dm.data[i].targetBy = targetBy_map[dataItem.id];
+        }
+
+    }
+
     createNodes(): void {     
         
         this.resetNodesInTimeSlices();
 
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);           
+
+        this.addTargetByInformationInDataItems();
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
@@ -864,7 +919,7 @@ export class NetCube implements PolyCube {
                 point.data = dataItem;
                 point.type = 'DATA_POINT';
 
-                point.scale.set(networkDegreeFactor,networkDegreeFactor,networkDegreeFactor);
+                point.scale.set( networkDegreeFactor, networkDegreeFactor, networkDegreeFactor);
 
                 this.getTimeSliceByDate(dataItem.date_time).add(point);
             }//end if            
