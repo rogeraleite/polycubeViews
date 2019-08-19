@@ -22,7 +22,9 @@ export class TimeSliderComponent implements AfterViewInit {
     // D3 things
     xScale: D3.ScaleLinear<any, any>;
     yScale: D3.ScaleTime<any, any>;
+    yScale2: D3.ScaleTime<any, any>;
     brush: any;
+    brush2: any;
     data: DataManager;
 
     _brushMemory: Array<Date>;
@@ -39,11 +41,11 @@ export class TimeSliderComponent implements AfterViewInit {
         // console.log(this.minDate)
 
         // define margin for timeline
-        let margin = {
+        const margin = {
             top: 0, bottom: 0,
             right: 0, left: 0
         };
-        let buttonYSize = 20;
+        const buttonYSize = 20;
         this.width = this.width - (margin.left + margin.right);
         this.height = this.height - (margin.top + margin.bottom) - (2 * buttonYSize);
 
@@ -51,21 +53,30 @@ export class TimeSliderComponent implements AfterViewInit {
         // define scales
         this.xScale = D3.scaleLinear().range([0, this.width]);
         this.yScale = D3.scaleTime().domain([this.maxDate, this.minDate]).range([0, this.height]);
+        this.yScale2 = D3.scaleTime().domain([new Date(2000, 1, 1), new Date(1900, 1, 1)]).range([0, this.height]);
+
+        console.log(this.maxDate, this.minDate);
 
         // define brush
         this.brush = D3.brushY()
             .extent([[0, 0], [this.width, this.height]])
             .on('end', this.brushEnd.bind(this));
 
+        this.brush2 = D3.brushY()
+            .extent([[0, 0], [this.width, this.height]])
+            .on('end', this.brushEnd2.bind(this));
+
         this._svg = D3.select(this.timeSlider.nativeElement)
             .append('svg')
             .attr('transform', 'translate(' + 20 + ', 0 )')
             .attr('width', this.width)
             .attr('height', this.height)
-            .append('g')
-        // timeline y axis (not labels)
+            .append('g');
+
+        // timeline 1 y axis (not labels)
         this._svg.append('g')
             .attr('class', 'axis2 axis--y2')
+            // .attr('transform', 'translate(' + 50 + ', 0 )')
             .call(
                 D3.axisRight(this.yScale)
                     .ticks(D3.timeYear.every(1))
@@ -74,42 +85,55 @@ export class TimeSliderComponent implements AfterViewInit {
                         return D3.timeFormat('%Y')(d);
                     })
             )
-            .selectAll('.tick')
+            .selectAll('.tick');
 
-        //Legend
-        var defs = this._svg.append("defs");
-        var linearGradient = defs.append("linearGradient")
-            .attr("id", "linear-gradient");
+        // timeline 2
+        // this._svg.append('g')
+        //     .attr('class', 'axis2 axis--y2')
+        //     .call(
+        //         D3.axisRight(this.yScale2)
+        //             // .ticks(D3.timeYear.every(1))
+        //             .tickSize(10)
+        //             // .tickFormat((d: Date) => {
+        //             //     return D3.timeFormat('%Y')(d);
+        //             // })
+        //     )
+        //     .selectAll('.tick');
 
-        //Vertical gradient
-            linearGradient
-            .attr("x1", "0%")
-            .attr("y1", "0%")
-            .attr("x2", "0%")
-            .attr("y2", "100%");
+        // Legend
+        let defs = this._svg.append('defs');
+        let linearGradient = defs.append('linearGradient')
+            .attr('id', 'linear-gradient');
 
-        //A color scale
-        var colorScale = D3.scaleSequential(D3.interpolateViridis)
-            .domain([this.height, 0])
+        // Vertical gradient
+        linearGradient
+            .attr('x1', '0%')
+            .attr('y1', '0%')
+            .attr('x2', '0%')
+            .attr('y2', '100%');
 
-        linearGradient.selectAll("stop")
+        // A color scale
+        let colorScale = D3.scaleSequential(D3.interpolateViridis)
+            .domain([this.height, 0]);
+
+        linearGradient.selectAll('stop')
             .data([
-                {offset: "0%", color: "#fde725"},
-                {offset: "12.5%", color: "#a8db35"},
-                {offset: "25%", color: "#5cc763"},
-                {offset: "37.5%", color: "#5cc763"},
-                {offset: "50%", color: "#218f8d"},
-                {offset: "62.5%", color: "#2d6d8e"},
-                {offset: "75%", color: "#3c4f8a"},
-                {offset: "87.5%", color: "#472775"},
-                {offset: "100%", color: "#440154"}
+                {offset: '0%', color: '#fde725'},
+                {offset: '12.5%', color: '#a8db35'},
+                {offset: '25%', color: '#5cc763'},
+                {offset: '37.5%', color: '#5cc763'},
+                {offset: '50%', color: '#218f8d'},
+                {offset: '62.5%', color: '#2d6d8e'},
+                {offset: '75%', color: '#3c4f8a'},
+                {offset: '87.5%', color: '#472775'},
+                {offset: '100%', color: '#440154'}
             ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
+            .enter().append('stop')
+            .attr('offset', function(d) { return d.offset; })
+            .attr('stop-color', function(d) { return d.color; });
 
-        //legend
-        let legend = this._svg.append('g')
+        // legend
+        const legend = this._svg.append('g')
             .attr('class', 'timeLegend')
             .append('rect')
             .attr('id', 'timeLegend')
@@ -117,12 +141,12 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('width', 20 + 'px')
             .attr('height', this.height)
             .attr('transform', 'translate(' + -20 + ', 0 )')
-            .attr('fill', "url(#linear-gradient)");
-        
-        //animate button
-        let playButton = this._svg.append('g')
+            .attr('fill', 'url(#linear-gradient)');
+
+        // animate button
+        const playButton = this._svg.append('g')
             .attr('transform', 'translate(' + 0 + ',' + (this.height + buttonYSize) + ')')
-            .attr('class', 'animateButton')
+            .attr('class', 'animateButton');
 
         playButton.append('rect')
             .attr('width', this.width)
@@ -136,10 +160,10 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('transform', 'translate(8,16)')
             .on('mouseup', this.animateBasedOnPeriod.bind(this));
 
-        //reset button
-        let resetFilterButton = this._svg.append('g')
+        // reset button
+        const resetFilterButton = this._svg.append('g')
             .attr('transform', 'translate(' + 0 + ',' + (this.height) + ')')
-            .attr('class', 'resetButton')
+            .attr('class', 'resetButton');
 
         resetFilterButton.append('rect')
             .attr('width', this.width)
@@ -154,13 +178,20 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('transform', 'translate(8,16)')
             .on('mouseup', this.resetTimeFilter.bind(this));
 
-        // brush
+        // brush 1
         this._svg.append('g')
             .attr('class', 'brush')
             .attr('transform', `translate(0, ${margin.top})`)
+            // .attr('transform', 'translate(' + 50 + ', 0 )')
             .attr('fill', 'black')
             .call(this.brush);
 
+        //     // brush 2
+        // this._svg.append('g')
+        //     .attr('class', 'brush2')
+        //     .attr('transform', `translate(0, ${margin.top})`)
+        //     .attr('fill', 'black')
+        //     .call(this.brush2);
 
         this._svg.select('g.brush').select('rect.selection').attr('fill-opacity', 0.8);
     }
@@ -169,14 +200,14 @@ export class TimeSliderComponent implements AfterViewInit {
         let endDate_yPosition: any = D3.select('g.brush rect.handle--n').attr('y');
         let startDate_yPosition: any = D3.select('g.brush rect.handle--s').attr('y');
 
-        let endDate = this.yScale.invert(endDate_yPosition);
-        let startDate = this.yScale.invert(startDate_yPosition);
+        const endDate = this.yScale.invert(endDate_yPosition);
+        const startDate = this.yScale.invert(startDate_yPosition);
 
         return new Array<Date>(startDate, endDate);
     }
 
     resetTimeFilter(): void {
-        if (this.isAnimationPlaying()) this.pauseAnimation();
+        if (this.isAnimationPlaying()) { this.pauseAnimation(); }
 
         this.drawBrushBasedOnPixelsCoordinates(null);
         this.onSelect.emit([this.minDate, this.maxDate]);
@@ -192,11 +223,10 @@ export class TimeSliderComponent implements AfterViewInit {
 
     animateBasedOnPeriod() {
         if (this.hasBrushMemory()) {
-            if (!this.isAnimationPlaying()) this.animate();
-            else this.pauseAnimation();
-        }
-        else {
-            let standardPeriod = [new Date(1939, 1, 1), new Date(1941, 1, 1)];
+            if (!this.isAnimationPlaying()) { this.animate(); }
+            else { this.pauseAnimation(); }
+        } else {
+            const standardPeriod = [new Date(1939, 1, 1), new Date(1941, 1, 1)];
             this.saveAndEmitFilterSelection(standardPeriod);
             this.drawBrushBasedOnTimePeriod(standardPeriod);
             this.animateBasedOnPeriod();
@@ -204,13 +234,13 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     drawBrushBasedOnTimePeriod(timePeriod: Array<Date>) {
-        var y0 = this.yScale(timePeriod[1]);
-        var y1 = this.yScale(timePeriod[0]);
+        let y0 = this.yScale(timePeriod[1]);
+        let y1 = this.yScale(timePeriod[0]);
         this.drawBrushBasedOnPixelsCoordinates([y0, y1]);
     }
 
     drawBrushBasedOnPixelsCoordinates(pixelCoordinates: Array<number>) {
-        this._svg.select("g.brush").call(this.brush.move, pixelCoordinates);
+        this._svg.select('g.brush').call(this.brush.move, pixelCoordinates);
     }
 
     hasBrushMemory() {
@@ -230,7 +260,7 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     filterPeriodAccordingToNewBrushPositions() {
-        let timePeriod = this.getTimePeriodFromSlider();
+        const timePeriod = this.getTimePeriodFromSlider();
         this.saveAndEmitFilterSelection(timePeriod);
     }
 
@@ -240,12 +270,12 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     isBrushNull(): boolean {
-        if (D3.select('g.brush rect.handle--n').attr('y')) return true;
+        if (D3.select('g.brush rect.handle--n').attr('y')) { return true; }
         return false;
     }
 
     moveBrushPieces(step: number) {
-        if (this.isBrushInUpLimit(step)) this.pauseAnimation();
+        if (this.isBrushInUpLimit(step)) { this.pauseAnimation(); }
         else {
             // north border
             let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
@@ -266,7 +296,7 @@ export class TimeSliderComponent implements AfterViewInit {
 
     isBrushInUpLimit(step: number) {
         // north border
-        let currentY: any = D3.select('g.brush rect.handle--n').attr('y');
+        const currentY: any = D3.select('g.brush rect.handle--n').attr('y');
         return currentY < step;
     }
 
@@ -276,9 +306,9 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     addYearToDate(date: Date): Date {
-        //1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
-        if (date) return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365));
-        else this.pauseAnimation();
+        // 1 year = 1000 milliseconds in a second * 60 seconds in a minute * 60 minutes in an hour * 24 hours * 365 days
+        if (date) { return new Date(date.getTime() + (1000 * 60 * 60 * 24 * 365)); }
+        else { this.pauseAnimation(); }
 
         return null;
     }
@@ -288,14 +318,13 @@ export class TimeSliderComponent implements AfterViewInit {
     }
 
     brushEnd(): void {
-        if (this.isEventNotActive()) return;
+        if (this.isEventNotActive()) { return; }
 
         let timePeriod: Array<Date>;
         if (this.isSelectionMissing()) {
             timePeriod = this.getWholeTimePeriod();
             this.eraseLastBrush();
-        }
-        else {
+        } else {
             timePeriod = this.getTimePeriodFromSlider();
             this.saveLastBrush(timePeriod);
         }
@@ -303,12 +332,29 @@ export class TimeSliderComponent implements AfterViewInit {
         this.onSelect.emit(timePeriod);
     }
 
+    brushEnd2(): void {
+        if (this.isEventNotActive()) { return; }
+
+        let timePeriod: Array<Date>;
+        
+        // if (this.isSelectionMissing()) {
+        //     timePeriod = this.getWholeTimePeriod();
+        //     this.eraseLastBrush();
+        // }
+        // else {
+        //     timePeriod = this.getTimePeriodFromSlider();
+        //     this.saveLastBrush(timePeriod);
+        // }
+
+        // this.onSelect.emit(timePeriod);
+    }
+
     isSelectionMissing(): boolean {
-        return !D3.event.selection
+        return !D3.event.selection;
     }
 
     isEventNotActive(): boolean {
-        return !D3.event.sourceEvent
+        return !D3.event.sourceEvent;
     }
 
     saveLastBrush(timePeriod: Array<Date>): void {
