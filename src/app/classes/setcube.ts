@@ -118,7 +118,7 @@ export class SetCube implements PolyCube {
         divContainer.id = 'div_container_setcube';
         divContainer.style.width = CUBE_CONFIG.WIDTH + 'px';
         divContainer.style.height = CUBE_CONFIG.HEIGHT + 'px';
-        divContainer.style.backgroundColor = color ? color : '#d3d3d3';
+        divContainer.style.backgroundColor = color ? color : '#F4F8FB';
         document.getElementById('css-canvas').appendChild(divContainer);
 
         let divObject = new THREE.CSS3DObject(divContainer);
@@ -511,7 +511,7 @@ export class SetCube implements PolyCube {
                         grandChild.material.color.set(this.colors(grandChild.data.date_time));
                         break;
                     case 'monochrome':
-                        grandChild.material.color.set('#b5b5b5');
+                        grandChild.material.color.set('#cc1414');
                         break;
                     default:
                         grandChild.material.color.set(this.colors(grandChild.data.category_1));
@@ -741,7 +741,7 @@ export class SetCube implements PolyCube {
         switch (this.colorCoding) {
             case 'categorical': return this.colors(object.data.category_1);
             case 'temporal': return this.colors(object.data.date_time);
-            case 'monochrome': return '#b5b5b5';
+            case 'monochrome': return '#cc1414';
             default: return this.colors(object.data.category_1)
         }
     }
