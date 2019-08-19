@@ -85,11 +85,12 @@ export class GUI {
             });
         });
         
-        pCubeFolder.add(pCubeParams, 'cameraType', ['Perspective', 'Orthographic']).onChange(() => {
-            this.pCubeConfigEmitter.emit('change', {
-                cameraType: pCubeParams.cameraType
-            });
-        });
+        // pCubeFolder.add(pCubeParams, 'cameraType', ['Perspective', 'Orthographic']).onChange(() => {
+        //     this.pCubeConfigEmitter.emit('change', {
+        //         cameraType: pCubeParams.cameraType
+        //     });
+        // });
+
 
         pCubeFolder.addColor(pCubeParams, 'backgroundColor').onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
@@ -125,11 +126,11 @@ export class GUI {
 
         let sCubeFolder = this.gui.addFolder('SetCube');
 
-        sCubeFolder.add(sCubeParams, 'layout', ['circle', 'pack']).onChange(() => {
-            this.sCubeConfigEmitter.emit('change', {
-                sLayout: sCubeParams.layout
-            });
-        });
+        // sCubeFolder.add(sCubeParams, 'layout', ['circle', 'pack']).onChange(() => {
+        //     this.sCubeConfigEmitter.emit('change', {
+        //         sLayout: sCubeParams.layout
+        //     });
+        // });
 
         sCubeFolder.add(sCubeParams, 'hull').onChange(() => {
             this.sCubeConfigEmitter.emit('change', {

@@ -59,4 +59,11 @@
 ::ng-deep .brush rect.selection {
     fill: steelblue;
     fill-opacity: .125;
+    width: 40px;
+}
+
+::ng-deep .brush2 rect.selection {
+    fill: rgb(173, 180, 70);
+    fill-opacity: .125;
+    width: 40px;
 }
