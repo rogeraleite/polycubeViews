@@ -524,7 +524,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            // D3.selectAll('.time-slice-label').style('opacity', '1');
+            D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -572,7 +572,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            // D3.selectAll('.time-slice-label').style('opacity', '1');
+            D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -624,7 +624,7 @@ export class NetCube implements PolyCube {
                     slice.position.z = sourceCoords.z;
             })
             .onComplete(() => {
-                // D3.selectAll('.time-slice-label').style('opacity', '0');
+                D3.selectAll('.time-slice-label').style('opacity', '0');
             })
             .start();
     }
@@ -734,8 +734,7 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    resetNodesInTimeSlices(){
-        
+    resetNodesInTimeSlices(){        
         let save_nonNodes_slice_content = [];
         //create slices saving conditions
         this.slices.forEach((slice: THREE.Group) => {
@@ -750,13 +749,11 @@ export class NetCube implements PolyCube {
                 }
             })
         });
-        
+
         //fulfil slices with non-nodes elements
         this.slices.forEach((slice: THREE.Group,i) => {            
             slice.children = save_nonNodes_slice_content[i];
         });
-
-
     }
 
     getTimeSliceByDate(date: Date): THREE.Group {
