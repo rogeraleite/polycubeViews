@@ -524,7 +524,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            D3.selectAll('.time-slice-label').style('opacity', '1');
+            // D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -572,7 +572,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            D3.selectAll('.time-slice-label').style('opacity', '1');
+            // D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -624,7 +624,7 @@ export class NetCube implements PolyCube {
                     slice.position.z = sourceCoords.z;
             })
             .onComplete(() => {
-                D3.selectAll('.time-slice-label').style('opacity', '0');
+                // D3.selectAll('.time-slice-label').style('opacity', '0');
             })
             .start();
     }
@@ -716,7 +716,6 @@ export class NetCube implements PolyCube {
         let _node = null;
         this.slices.forEach((slice: THREE.Group) => {
             slice.children.forEach((node: any) => {
-                // if (node.type !== 'DATA_POINT') return;
                 if (node.name == id) _node = node;
             })
         });
@@ -939,7 +938,7 @@ export class NetCube implements PolyCube {
 
         if(result<1) result = 1; 
         // else if(result>3) result = 3; 
-        console.log(result)
+
         return result;
     }
 
