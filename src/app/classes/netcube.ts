@@ -851,6 +851,7 @@ export class NetCube implements PolyCube {
         if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
         else return null;
     }
+    
     getNormalizedPositionById(id) {
         let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions();
@@ -934,9 +935,11 @@ export class NetCube implements PolyCube {
             case 'non_degree': result = 1; break;            
         }
 
-        if(result<1) result = 1; 
-        else if(result>3) result = 3; 
+        result = Math.log2(result);
 
+        if(result<1) result = 1; 
+        // else if(result>3) result = 3; 
+        console.log(result)
         return result;
     }
 
