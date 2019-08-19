@@ -118,7 +118,7 @@ export class SetCube implements PolyCube {
         divContainer.id = 'div_container_setcube';
         divContainer.style.width = CUBE_CONFIG.WIDTH + 'px';
         divContainer.style.height = CUBE_CONFIG.HEIGHT + 'px';
-        divContainer.style.backgroundColor = color ? color : '#d3d3d3';
+        divContainer.style.backgroundColor = color ? color : '#F4F8FB';
         document.getElementById('css-canvas').appendChild(divContainer);
 
         let divObject = new THREE.CSS3DObject(divContainer);
