@@ -78,7 +78,7 @@ export class GUI {
             this.pCubeConfigEmitter.emit('change', {
                 nodeColor: pCubeParams.nodeColor
             });
-        });
+        }).name('Point Color');
         pCubeFolder.add(pCubeParams, 'dataSet', ['Cushman', 'Alliances', '?']).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 dataSet: pCubeParams.dataSet

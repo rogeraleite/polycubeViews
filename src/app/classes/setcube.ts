@@ -511,7 +511,7 @@ export class SetCube implements PolyCube {
                         grandChild.material.color.set(this.colors(grandChild.data.date_time));
                         break;
                     case 'monochrome':
-                        grandChild.material.color.set('#b5b5b5');
+                        grandChild.material.color.set('#cc1414');
                         break;
                     default:
                         grandChild.material.color.set(this.colors(grandChild.data.category_1));
@@ -741,7 +741,7 @@ export class SetCube implements PolyCube {
         switch (this.colorCoding) {
             case 'categorical': return this.colors(object.data.category_1);
             case 'temporal': return this.colors(object.data.date_time);
-            case 'monochrome': return '#b5b5b5';
+            case 'monochrome': return '#cc1414';
             default: return this.colors(object.data.category_1)
         }
     }

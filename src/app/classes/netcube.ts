@@ -294,7 +294,7 @@ export class NetCube implements PolyCube {
                     node.material.color.set(this.colors(node.data.date_time));
                     break;
                 case 'monochrome':
-                    node.material.color.set('#b5b5b5');
+                    node.material.color.set('#cc1414');
                     break;
                 default:
                     node.material.color.set(this.colors(node.data.category_1));
@@ -642,7 +642,7 @@ export class NetCube implements PolyCube {
         switch (this.colorCoding) {
             case 'categorical': return this.colors(object.data.category_1);
             case 'temporal': return this.colors(object.data.date_time);
-            case 'monochrome': return '#b5b5b5';
+            case 'monochrome': return '#cc1414';
             default: return this.colors(object.data.category_1)
         }
     }
