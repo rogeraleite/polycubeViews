@@ -84,7 +84,7 @@ export class NetCube implements PolyCube {
 
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
-        // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
+        
         this.timeLinearScale = this.dm.getTimeLinearScale();
         this.addNetworkDegreeToNodes();
 
@@ -524,7 +524,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            // D3.selectAll('.time-slice-label').style('opacity', '1');
+            D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -572,7 +572,7 @@ export class NetCube implements PolyCube {
 
         let label = this.cubeGroupCSS.getObjectByName(`NET_LABEL_${index}`);
         if (label) {
-            // D3.selectAll('.time-slice-label').style('opacity', '1');
+            D3.selectAll('.time-slice-label').style('opacity', '1');
             label.position.x = targetCoords.x - CUBE_CONFIG.WIDTH / 2 - 22;
             label.position.y = targetCoords.y;
             label.position.z = targetCoords.z;
@@ -624,7 +624,7 @@ export class NetCube implements PolyCube {
                     slice.position.z = sourceCoords.z;
             })
             .onComplete(() => {
-                // D3.selectAll('.time-slice-label').style('opacity', '0');
+                D3.selectAll('.time-slice-label').style('opacity', '0');
             })
             .start();
     }
@@ -734,9 +734,25 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    resetNodesInTimeSlices(){
+    resetNodesInTimeSlices(){        
+        let save_nonNodes_slice_content = [];
+        //create slices saving conditions
         this.slices.forEach((slice: THREE.Group) => {
-            slice.children = [];
+            save_nonNodes_slice_content.push([]);
+        });
+        
+        //save the non-nodes elements from the slices
+        this.slices.forEach((slice: THREE.Group,i) => {            
+            slice.children.forEach((c)=>{
+                if(c.type != "DATA_POINT"){
+                    save_nonNodes_slice_content[i].push(c);
+                }
+            })
+        });
+
+        //fulfil slices with non-nodes elements
+        this.slices.forEach((slice: THREE.Group,i) => {            
+            slice.children = save_nonNodes_slice_content[i];
         });
     }
 
@@ -928,16 +944,20 @@ export class NetCube implements PolyCube {
     getNetworkDegreeFactor(dataItem) {
         let result = 1;
         switch(this.nodeSizeEncodeFactor){
-            case 'overall_degree': result = dataItem.network_degree_overall; break;
-            case 'in_degree': result = dataItem.network_degree_in; break;
+            case 'overall_degree': result = dataItem.network_degree_overall; 
+                                   result = Math.log2(result); 
+                                   break;
+            case 'in_degree': result = dataItem.network_degree_in; 
+                              result = Math.log2(result); 
+                              break;
             case 'out_degree': result = dataItem.network_degree_out; break;     
             case 'non_degree': result = 1; break;            
         }
 
-        result = Math.log2(result);
+        
 
         if(result<1) result = 1; 
-        // else if(result>3) result = 3; 
+        else if(result>5) result = 5; 
 
         return result;
     }
