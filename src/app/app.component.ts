@@ -361,7 +361,7 @@ export class AppComponent implements AfterViewInit {
       };
 
       this.imgContainer.nativeElement.src = this.previewItem.mediaURL;
-      this.captionContainer.nativeElement.innerHTML = this.previewItem.description;
+      this.captionContainer.nativeElement.innerHTML = `${this.previewItem.description} , ${this.previewItem.date}`;
    }
 
    getNext(): void {
@@ -385,7 +385,7 @@ export class AppComponent implements AfterViewInit {
       };
 
       this.imgContainer.nativeElement.src = this.previewItem.mediaURL;
-      this.captionContainer.nativeElement.innerHTML = this.previewItem.description;
+      this.captionContainer.nativeElement.innerHTML = `${this.previewItem.description} , ${this.previewItem.date}`;
 
    }
 
@@ -776,11 +776,11 @@ export class AppComponent implements AfterViewInit {
       this.captionContainer.nativeElement.innerHTML = '';
    }
 
-   openPicture(url: string, desc: string): void {
+   openPicture(url: string, desc: string, date: string): void {
       this.modalContainer.nativeElement.style.display = 'block';
       this.imgContainer.nativeElement.style.display = 'block';
       this.imgContainer.nativeElement.src = url;
-      this.captionContainer.nativeElement.innerHTML = desc;
+      this.captionContainer.nativeElement.innerHTML = `${desc} , ${date}`;
    }
 
    /**

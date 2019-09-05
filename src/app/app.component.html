@@ -21,7 +21,7 @@
                     <span>&times;</span>
                 </button>
                 <!-- <h2 class="preview-title">{{ previewItem.title }} </h2> -->
-                <img (click)="openPicture(previewItem.mediaURL, previewItem.description)" class="preview-picture"
+                <img (click)="openPicture(previewItem.mediaURL, previewItem.description, previewItem.date)" class="preview-picture"
                     [src]="previewItem.mediaURL" (load)="imageLoaded()">
                 <div *ngFor="let cat of previewItem.categories" class="categories">
                     <span class="badge badge-secondary">{{ cat }}</span>
