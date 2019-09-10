@@ -48,6 +48,8 @@ export class NetCube implements PolyCube {
     private areSlicesSaved = false;
     private areLinksSaved = false;
 
+    private currentTimeSetting: string = 'aggregated'; // aggregated time by default 
+
     get cubeToggle(): boolean {
         return this._cubeToggle;
     }
@@ -70,6 +72,7 @@ export class NetCube implements PolyCube {
     }
 
     createObjects(): void {
+        this.timeLinearScale = this.dm.getTimeLinearScale();
         this.resetCubeGroupGL();
         this.resetCubeGroupCSS();
         this.colors = this.dm.colors;
@@ -85,7 +88,6 @@ export class NetCube implements PolyCube {
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
         
-        this.timeLinearScale = this.dm.getTimeLinearScale();
         this.addNetworkDegreeToNodes();
 
         this.cubeGroupCSS.add(this.createBottomLayer());
@@ -190,9 +192,7 @@ export class NetCube implements PolyCube {
     }
 
     updateTime(time: string): void {
-        
-        let distance_between_layers = this.countDistanceBetweenLayersToFixAbsolutePositionBug()/2;
-
+        this.currentTimeSetting = time;        
         this.cubeGroupGL.children.forEach((child: THREE.Group, i) => {
             if (child.type !== 'Group') return;
 
@@ -204,7 +204,7 @@ export class NetCube implements PolyCube {
             });
         });
 
-        time === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute();
+        this.currentTimeSetting === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute();
     }
 
     countDistanceBetweenLayersToFixAbsolutePositionBug(){
@@ -500,7 +500,7 @@ export class NetCube implements PolyCube {
     transitionSTC(): void {
         if(!this._cubeToggle) return;
         this.updateNodeColor('categorical');
-        this.showCubeLinks_aggregated();
+        this.currentTimeSetting === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute(); // get back setting
         this.showBottomLayer();
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -1000,7 +1000,6 @@ export class NetCube implements PolyCube {
         this.cubeGroupGL.add(this.links_stc_aggregated);
         this.cubeGroupGL.add(this.links_stc_absolute);
         this.cubeGroupGL.add(this.links_si);
-
     }
 
     createLineForJP(dataItem, sourceNode_position, targetIndex) {
@@ -1070,14 +1069,23 @@ export class NetCube implements PolyCube {
         let targetId = dataItem.target_nodes[targetIndex];
         if (!this.dm.dataMap[targetId]) return;
 
-        let targetNode_position = this.getNormalizedPositionById(targetId);
+        let sourcePosition: THREE.Vector3 = {
+            x: sourceNode_position.x,
+            y: this.timeLinearScale(moment(`${dataItem.date_time}`).toDate()),
+            z: sourceNode_position.z
+        };
 
-        // let sliceOffsetY = this.getTimeSliceByDate(this.dm.dataMap[targetId].date_time).position.y;
-        targetNode_position.y = this.timeLinearScale(this.dm.dataMap[targetId].date_time);// - sliceOffsetY;
+        let targetNode = this.getNormalizedPositionById(targetId);
+        let targetPosition: THREE.Vector3 = {
+            x: targetNode.x,
+            y: this.timeLinearScale(moment(`${this.dm.dataMap[targetId].date_time}`).toDate()),
+            z: targetNode.z
+        };
 
-        let lineGeometry = this.createLineGeometry(sourceNode_position, targetNode_position);
+        let lineGeometry = this.createLineGeometry(sourcePosition, targetPosition);
         let line = new THREE.Line(lineGeometry, this.getLineMaterial());
         line.name = this.getLineName(dataItem, targetId);
+
         return line;
     }
 
@@ -1171,7 +1179,7 @@ export class NetCube implements PolyCube {
             let material = new THREE.LineBasicMaterial({ color: 0xb5b5b5 });
             let plane = new THREE.LineSegments(edgeGeometry, material);
 
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH / 2);
             slice.index = i;
             plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI / 2, 0, 0);
@@ -1186,7 +1194,7 @@ export class NetCube implements PolyCube {
 
             // CSS Object
             let label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2);
+            label.position.set(-20, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH / 2);
             label.name = `NET_LABEL_${i}`;
             this.cubeGroupCSS.add(label);
         }//end for
@@ -1223,12 +1231,14 @@ export class NetCube implements PolyCube {
 
     showCubeLinks_absolute(): void {        
         this.hideAllLinks();
+        this.hideCubeLinks_aggregated();
         this.links_stc_absolute.visible = true;
     }
 
     showCubeLinks_aggregated(): void {
         this.hideAllLinks();
         this.links_stc_aggregated.visible = true;
+        this.cubeGroupGL.add(this.links_stc_aggregated);
     }
 
     showSILinks(): void {
@@ -1238,6 +1248,7 @@ export class NetCube implements PolyCube {
 
     hideCubeLinks_aggregated(): void {
         this.links_stc_aggregated.visible = false;
+        this.cubeGroupGL.remove(this.links_stc_aggregated);
     }
 
     hideCubeLinks_absolute(): void {

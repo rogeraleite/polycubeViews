@@ -114,7 +114,7 @@ export class GeoCube implements PolyCube {
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
             let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
             let plane = new THREE.LineSegments( edgeGeometry, material );
-
+            
             slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
             plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI/2, 0, 0);
@@ -193,7 +193,7 @@ export class GeoCube implements PolyCube {
         this.cubeGroupGL = new THREE.Group();
         this.cubeGroupCSS = new THREE.Group();
         this.colors = this.dm.colors;
-
+        this.timeLinearScale = this.dm.getTimeLinearScale();
         this.slices = new Array<THREE.Group>();
 
         let vertOffset = CUBE_CONFIG.WIDTH / this.dm.timeRange.length;
@@ -204,13 +204,12 @@ export class GeoCube implements PolyCube {
             // name set to year -> we can now map objects to certain layers by checking their
             // this.dm.getTimeQuantile(date) and the slices name.
             slice.name = this.dm.timeRange[i].getFullYear();
-
             let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
             let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
             let plane = new THREE.LineSegments( edgeGeometry, material );
 
-            slice.position.set(CUBE_CONFIG.WIDTH/2, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            slice.position.set(CUBE_CONFIG.WIDTH/2, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH/2);
             plane.position.set(0, 0, 0);
             plane.rotation.set(Math.PI/2, 0, 0);
             slice.add(plane);
@@ -223,7 +222,7 @@ export class GeoCube implements PolyCube {
             
             //CSS Object
             let label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i*vertOffset) - (CUBE_CONFIG.WIDTH/2), CUBE_CONFIG.WIDTH/2);
+            label.position.set(-20, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH/2);
             label.name = `GEO_LABEL_${i}`;
             // label.rotation.set(Math.PI);
             this.cubeGroupCSS.add(label);
@@ -258,7 +257,6 @@ export class GeoCube implements PolyCube {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
         this.cubeGroupCSS.add(this.createMap());
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
-        this.timeLinearScale = this.dm.getTimeLinearScale();
         let bounds = new mapboxgl.LngLatBounds();
 
         this.dm.data.forEach((d: any) => { bounds.extend(new mapboxgl.LngLat(d.longitude, d.latitude)); });
@@ -357,6 +355,8 @@ export class GeoCube implements PolyCube {
             child.children.forEach((grandChild: any) => {
                 if(grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
+                // console.log(sliceOffsetY);
+                // console.log(grandChild.data.date_time, this.timeLinearScale(grandChild.data.date_time))
                 grandChild.position.y = time === 'aggregated' ?  0 : this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY;
             });
         });
