@@ -88,6 +88,8 @@ export class SetCube implements PolyCube {
         // this.pointGroup.name = 'pointGroup'
         this.cubeGroupGL.pointGroup = this.pointGroup;
 
+        this.timeLinearScale = this.dm.getTimeLinearScale();
+
         // hull
         this.hullGroup = new THREE.Group();
         this.hullState = false;
@@ -148,7 +150,6 @@ export class SetCube implements PolyCube {
         });
 
         // this.timeLinearScale(some_date) gives us the vertical axis coordinate of the point
-        this.timeLinearScale = this.dm.getTimeLinearScale();
 
         // group by time and then category
         const groupedData = D3.nest()
@@ -185,7 +186,7 @@ export class SetCube implements PolyCube {
             const slice = new THREE.Group();
             slice.name = timeLayer.key; // we need to decide either to use full date or
             slice.add(plane);
-            slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
+            slice.position.set(CUBE_CONFIG.WIDTH / 2, initial ? this.timeLinearScale(moment(`${slice.name}`).toDate()) : -CUBE_CONFIG.WIDTH / 2, CUBE_CONFIG.WIDTH / 2); // for initial run
             // slice.position.set(CUBE_CONFIG.WIDTH / 2, - (CUBE_CONFIG.WIDTH / 2), CUBE_CONFIG.WIDTH / 2); // for updates
             this.slices.push(slice);
             this.cubeGroupGL.add(slice);
@@ -195,9 +196,9 @@ export class SetCube implements PolyCube {
             element.innerHTML = slice.name;
             element.className = 'time-slice-label';
 
-            // CSS Object
-            const label = new THREE.CSS3DObject(element);
-            label.position.set(-20, (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2), CUBE_CONFIG.WIDTH / 2);
+            //CSS Object
+            let label = new THREE.CSS3DObject(element);
+            label.position.set(-20, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH / 2);
             label.name = `SET_LABEL_${i}`;
             this.cubeGroupCSS.add(label);
 
@@ -610,7 +611,7 @@ export class SetCube implements PolyCube {
 
             const targetCoords = {
                 x: CUBE_CONFIG.WIDTH / 2,
-                y: (i * vertOffset) - (CUBE_CONFIG.HEIGHT / 2),
+                y: this.timeLinearScale(moment(`${slice.name}`).toDate()),
                 z: CUBE_CONFIG.WIDTH / 2
             };
 
@@ -830,8 +831,8 @@ export class SetCube implements PolyCube {
     // function to get circle layout, pass Sets, center x and y and radius
     getCircleLayout(group_list, x0: number = 0, y0: number = 0, r: number = 20) {
 
-        const items = [...Array.from(group_list)];
-        const circleLayout = [];
+        let items = Array.from(group_list);
+        let circleLayout = [];
 
         for (let i = 0; i < items.length; i++) {
             let x = x0 + r * Math.cos(2 * Math.PI * i / items.length);
