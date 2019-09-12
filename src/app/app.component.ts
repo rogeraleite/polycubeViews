@@ -413,8 +413,8 @@ export class AppComponent implements AfterViewInit {
 
          if(change.time) {
             this.gCube.updateTime(change.time);
-            this.sCube.updateTime(change.time);
-            this.nCube.updateTime(change.time);
+            // this.sCube.updateTime(change.time);
+            // this.nCube.updateTime(change.time);
          }
 
          if(change.numSlices) {
@@ -568,6 +568,7 @@ export class AppComponent implements AfterViewInit {
 
       this.camera.zoom = 1;
       this.camera.updateProjectionMatrix();
+
 
    }
 

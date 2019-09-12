@@ -159,13 +159,21 @@ button:focus {
     max-width: inherit;
 }
 .preview-metainfo {
-    font-style: italic;
-    font-size: 18px;
+    /* font-style: italic; */
+    font-size: 16px;
+    color: gray;
+    margin-bottom: 0px;
+}
+
+.related {
+    font-size: small;
     color: gray;
 }
+
 .preview-description {
     text-align: justify;
-    font-style: italic;
+    font-size: larger;
+    /* font-style: italic; */
 }
 
 ::ng-deep .time-slice-label {
