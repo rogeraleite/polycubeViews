@@ -3,12 +3,12 @@ import { DataManager } from './datamanager';
 import * as THREE from 'three-full';
 import { VIEW_STATES } from './viewStates';
 import { CUBE_CONFIG } from '../cube.config';
-import { ElementRef } from '@angular/core';
+import { ElementRef, Inject } from '@angular/core';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as D3 from 'd3';
 import * as moment from 'moment';
-import { FaceNormalsHelper, Line, Vector3 } from 'three';
-// import { POINT_CONVERSION_HYBRID } from 'constants';
+import { Line } from 'three';
+import { GraphPositionService } from '../services/graph.position.service';
 
 export class NetCube implements PolyCube {
     cubeGroupGL: THREE.Group;
@@ -48,6 +48,9 @@ export class NetCube implements PolyCube {
     private areSlicesSaved = false;
     private areLinksSaved = false;
 
+    // Graph Position Provider Service
+    private gps: GraphPositionService;
+
     private currentTimeSetting: string = 'aggregated'; // aggregated time by default 
 
     get cubeToggle(): boolean {
@@ -70,6 +73,8 @@ export class NetCube implements PolyCube {
         this.assembleData();
         this.render();
     }
+
+    
 
     createObjects(): void {
         this.timeLinearScale = this.dm.getTimeLinearScale();
@@ -96,7 +101,11 @@ export class NetCube implements PolyCube {
         this.showCubeLinks_aggregated();
     }
 
-    addNetworkDegreeToNodes() {
+    setGraphPositionService(gps: GraphPositionService): void {
+        this.gps = gps;
+    }
+
+    addNetworkDegreeToNodes(): void {
         let degree_out = this.linksPerNode;        
         let in_degree_map = [];
 
@@ -139,7 +148,7 @@ export class NetCube implements PolyCube {
         return divObject;
     }
 
-    resetCubeGroupCSS() {
+    resetCubeGroupCSS(): void {
         this.cubeGroupCSS = new THREE.Group();
         this.cubeGroupCSS.name = this.cube_id + '_CSS';
         this.cubeGroupCSS.position.set(this.cubeLeftBoarder, 0, 0);
@@ -207,7 +216,9 @@ export class NetCube implements PolyCube {
         this.currentTimeSetting === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute();
     }
 
-    countDistanceBetweenLayersToFixAbsolutePositionBug(){
+    // TODO: This function is not called from anywhere
+    // What is its purpose?????
+    countDistanceBetweenLayersToFixAbsolutePositionBug(): any {
         let layers = [];
         let distance_between_layers = 0;
         let count = 0;
@@ -383,7 +394,7 @@ export class NetCube implements PolyCube {
         return selected_nodes;
     }
 
-    getAllNodes() {
+    getAllNodes(): Array<any> {
         let all_nodes = new Array<any>();
         this.cubeGroupGL.children.forEach((group: THREE.Group) => {
             if (group.type == 'Group') {
@@ -508,7 +519,7 @@ export class NetCube implements PolyCube {
         });//end forEach
     }
 
-    transitionAnimationSTC(slice: THREE.Group, index: number) {
+    transitionAnimationSTC(slice: THREE.Group, index: number): void {
         let vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length;
         let sourceCoords = {
             x: slice.position.x,
@@ -556,7 +567,7 @@ export class NetCube implements PolyCube {
         });
     }
 
-    transitionAnimationJP(slice: THREE.Group, index: number) {
+    transitionAnimationJP(slice: THREE.Group, index: number): void {
         let vertOffset = CUBE_CONFIG.HEIGHT + 20;
         let sourceCoords = {
             x: slice.position.x,
@@ -712,7 +723,7 @@ export class NetCube implements PolyCube {
         }
     }
 
-    getNodesInSceneById(id){
+    getNodesInSceneById(id: string): any{
         let _node = null;
         this.slices.forEach((slice: THREE.Group) => {
             slice.children.forEach((node: any) => {
@@ -724,7 +735,7 @@ export class NetCube implements PolyCube {
 
     getTimeSliceById(id: any): THREE.Group {
         let date = this.dm.getNodeById(id).date_time;
-        let correspondingSlice;
+        let correspondingSlice: THREE.Group;
         this.slices.forEach((slice: THREE.Group) => {
             if (slice.name === this.dm.getTimeQuantile(date)) {
                 correspondingSlice = slice;
@@ -734,30 +745,30 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    resetNodesInTimeSlices(){        
-        let save_nonNodes_slice_content = [];
+    resetNodesInTimeSlices(): void {        
+        let save_nonNodes_slice_content = new Array<any>();
         //create slices saving conditions
         this.slices.forEach((slice: THREE.Group) => {
             save_nonNodes_slice_content.push([]);
         });
         
         //save the non-nodes elements from the slices
-        this.slices.forEach((slice: THREE.Group,i) => {            
-            slice.children.forEach((c)=>{
-                if(c.type != "DATA_POINT"){
+        this.slices.forEach((slice: THREE.Group,i: number) => {            
+            slice.children.forEach((c: THREE.Group)=>{
+                if(c.type != "DATA_POINT") {
                     save_nonNodes_slice_content[i].push(c);
                 }
-            })
+            });
         });
 
         //fulfil slices with non-nodes elements
-        this.slices.forEach((slice: THREE.Group,i) => {            
+        this.slices.forEach((slice: THREE.Group,i: number) => {            
             slice.children = save_nonNodes_slice_content[i];
         });
     }
 
     getTimeSliceByDate(date: Date): THREE.Group {
-        let correspondingSlice;
+        let correspondingSlice: THREE.Group;
         this.slices.forEach((slice: THREE.Group) => {
             if (slice.name === this.dm.getTimeQuantile(date)) {
                 correspondingSlice = slice;
@@ -795,7 +806,7 @@ export class NetCube implements PolyCube {
         });
     }
 
-    scaleLink(link){
+    scaleLink(link: any): any {
         let source = link.name.split("_")[0];
         let target = link.name.split("_")[1];
 
@@ -811,7 +822,7 @@ export class NetCube implements PolyCube {
         return link;
     }
 
-    scaleLinkNormalizing(link){
+    scaleLinkNormalizing(link: any): any {
         let source = link.name.split("_")[0];
         let target = link.name.split("_")[1];
 
@@ -827,7 +838,7 @@ export class NetCube implements PolyCube {
         return link;
     }
     
-    applyChargeFactorInLinks() {        
+    applyChargeFactorInLinks(): void {        
         this.links_stc_aggregated.children.forEach((l) => {
             l = this.scaleLinkNormalizing(l);
         })
@@ -839,7 +850,7 @@ export class NetCube implements PolyCube {
         })
     }
 
-    saveSliceRecords() {
+    saveSliceRecords(): void {
         this.slices.forEach((s: THREE.Group) => {
             s.children.forEach((c)=>{
                 c.original_position_x = c.position.x;
@@ -852,38 +863,37 @@ export class NetCube implements PolyCube {
     onDblClick($event: any): void {
     }
 
-    getNormalizedPositionWithChargeById(id) {
-        let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
+    getNormalizedPositionWithChargeById(id: string): any {
+        let pos_map = this.dm.getForcedDirectedPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions();
 
         let normalized_x = null;
         let normalized_z = null;
-        if (pos_map[id]) {
-            normalized_x = ((pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
-            normalized_z = ((pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
+        if (pos_map.has(`${id}`)) {
+            normalized_x = ((pos_map.get(`${id}`).x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
+            normalized_z = ((pos_map.get(`${id}`).y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
         }
 
         if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
         else return null;
     }
     
-    getNormalizedPositionById(id) {
-        let pos_map = this.dm.getForcedDirectedCushmanPositionMap();
+    getNormalizedPositionById(id: string): any {
+        let pos_map = this.dm.getForcedDirectedPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions();
-
         let normalized_x = null;
         let normalized_z = null;
-        if (pos_map[id]) {
-            normalized_x = pos_map[id].x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
-            normalized_z = pos_map[id].y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
+
+        if (pos_map.has(`${id}`)) {
+            normalized_x = pos_map.get(`${id}`).x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x);
+            normalized_z = pos_map.get(`${id}`).y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y);
         }
 
         if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
         else return null;
     }
 
-    addTargetByInformationInDataItems(){
-
+    addTargetByInformationInDataItems(): void {
         let targetBy_map = []
         
         //create empty map
@@ -897,7 +907,7 @@ export class NetCube implements PolyCube {
             let dataItem = this.dm.data[i];
             for (let a = 0; a < this.linksPerNode; a++) {
                 let targetId = dataItem.target_nodes[a];
-                targetBy_map[targetId].push(dataItem.id);
+                if(targetBy_map[targetId]) targetBy_map[targetId].push(dataItem.id);
             }
         }
 
@@ -970,9 +980,10 @@ export class NetCube implements PolyCube {
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
-            let sourceNode_position = this.getNormalizedPositionById(dataItem.id);
-            sourceNode_position.y = this.getTimeSliceByDate(dataItem.date_time).position.y;
 
+            let sourceNode_position = this.getNormalizedPositionById(`${dataItem.id}`);
+            sourceNode_position.y = this.getTimeSliceByDate(dataItem.date_time).position.y;
+            
             for (let a = 0; a < this.linksPerNode; a++) {
 
                 let targetId = dataItem.target_nodes[a];
@@ -1026,16 +1037,16 @@ export class NetCube implements PolyCube {
         return null;
     }
 
-    areSourceAndTargetInTheSameSlice(sourceId, targetId): boolean {
+    areSourceAndTargetInTheSameSlice(sourceId: string, targetId: string): boolean {
         if (this.getTimeSliceById(sourceId).name === this.getTimeSliceById(targetId).name) return true;
         return false;
     }
 
-    parsePositionForJP(coordinate) {
+    parsePositionForJP(coordinate: number): number {
         return coordinate - CUBE_CONFIG.WIDTH / 2;
     }
 
-    createLineForSI(dataItem, sourceNode_position, targetIndex) {
+    createLineForSI(dataItem: any, sourceNode_position: any, targetIndex: number) {
         let targetId = dataItem.target_nodes[targetIndex];
         let targetNode_position = this.getNormalizedPositionById(targetId);
 
@@ -1048,11 +1059,11 @@ export class NetCube implements PolyCube {
         return line;
     }
 
-    getYValueWhenFlatVis() {
+    getYValueWhenFlatVis(): number {
         return -CUBE_CONFIG.HEIGHT / 2;
     }
 
-    createLineForSTC_aggregated(dataItem, sourceNode_position, targetIndex) {
+    createLineForSTC_aggregated(dataItem: any, sourceNode_position: any, targetIndex: number): any {
         let targetId = dataItem.target_nodes[targetIndex];
         if (!this.dm.dataMap[targetId]) return;
 
@@ -1089,7 +1100,7 @@ export class NetCube implements PolyCube {
         return line;
     }
 
-    getLineName(dataItem, targetId) {
+    getLineName(dataItem: any, targetId: string) {
         return dataItem.id + "_" + targetId;
     }
 
@@ -1275,6 +1286,8 @@ export class NetCube implements PolyCube {
     async delay(ms: number) {
         await new Promise(resolve => setTimeout(() => resolve(), ms));
     }
+    // TODO: useless function?x`
+    // Should we remove
     //saving useful scripts for future usage
     parsingCushmanPositionData() {
         // let new_temp_data = [];
