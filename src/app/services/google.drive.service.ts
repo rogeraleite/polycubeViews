@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as moment from 'moment';
-import { reject } from 'q';
-/*
-  Generated class for the GoogleDrive provider.
 
-  See https://angular.io/docs/ts/latest/guide/dependency-injection.html
-  for more info on providers and Angular 2 DI.
+/*
+    Generated class for the GoogleDrive provider.
+
+    See https://angular.io/docs/ts/latest/guide/dependency-injection.html
+    for more info on providers and Angular 2 DI.
 */
+
 @Injectable()
 export class GoogleDriveProvider {
     data: any = null;
@@ -26,8 +27,10 @@ export class GoogleDriveProvider {
             this.http.get(url)
                 .subscribe((data: any) => {
                     data.forEach((item: any) => {
+                        // convert target_nodes to string 
+                        let targetNodes = `${item.target_nodes}`; // forcing to string so that a single id does not get parsed as a number just yet
                         item.date_time = moment(item.date_time).toDate();
-                        item.target_nodes = item.target_nodes.split(';').map(Number);
+                        item.target_nodes = targetNodes.split(';').map(Number);
                         item.category_1 = item.category_1 === "" ? "No Category" : item.category_1;
                         item.label = item.label.split(';').map(Number);
                         // TODO: data.date_range, data.range
