@@ -10,6 +10,27 @@
         </button>
 </div>
 
+<!-- Modal -->
+<div [ngClass]="{'show': showModal}" class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Most Influential Movies, Based on Cinematic References</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        This data shows the most influential 2000 feature films with regard to references between movies. It is an excerpt from the study of Spitz & Horvat (2014) on the long-term impact which movies had on other movies throughout film history (link). In the PolyCube system, the year of production, country of origin, movie genre, and movie references are represented from left to right.
+      </div>
+      <div class="modal-footer">
+        <button (click)="showModal=false" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="wrapper">
     <ng-sidebar-container>
         <!-- Preview Panel Side Bar -->
@@ -35,7 +56,7 @@
                         <div class="image-grid-cell" *ngFor="let r of previewItem.related; let i = index">
                             <div *ngIf="i < 6">
                                 <a href="javascript:void(0)" (click)="selectNode(r)">
-                                    <img class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
+                                    <img class="image-grid-image" [src]="getRelatedNode(r).media_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
                                     <!-- {{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }} -->
                                 </a>
                             </div>
@@ -50,11 +71,13 @@
                     </ul> -->
                 </div>
                 <br>
+                <!--
                 <div class="network-degree">
                     <p>Network degree in: {{previewItem.network_degree_in}}</p>
                     <p>Network degree out: {{previewItem.network_degree_out}}</p>
                     <p>Network degree overall: {{previewItem.network_degree_overall}}</p>
                 </div>
+                -->
                 <br>
                 <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>
             </div>
@@ -100,7 +123,7 @@
             <div class="btn-group" role="group">
                 <button type="button" class="btn" id="geo-view-button" #geobtn title="Maps">  <i class="fa fa-map-o"></i></button>
                 <button type="button" class="btn" id="set-view-button" #setbtn title="Categories "> <i class="fa fa-spinner"></i></button>
-                <button type="button" class="btn" id="net-view-button" #netbtn title="Relations"> <i class="fa fa-share-alt"></i></button>
+                <button type="button" class="btn" id="net-view-button" #netbtn title="Relations"> <i class="fa fa-connectdevelop "></i></button>
             </div>
             <div class="btn-group" role="group">
                 <button type="button" class="btn  btn-outline-secondary" id="stc-view-button" title="3D View"> <i class="fa fa-cube"></i></button>
@@ -110,7 +133,11 @@
             </div>
 
             <div class="overlay" *ngIf="dataLoaded">
-                <p>{{ formatDate(currentlySelectedDateExtent[0]) }} - {{ formatDate(currentlySelectedDateExtent[1]) }}</p>
+               <!-- <p>{{ formatDate(currentlySelectedDateExtent[0]) }} - {{ formatDate(currentlySelectedDateExtent[1]) }}</p> -->
+                <p> 
+                <a href="#" (click)="showModal=true">Vis info  | </a> 
+                <a target="_blank" href='https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0108857#s2'>Data Source </a> 
+                </p>
             </div>
         </div>
     </ng-sidebar-container>

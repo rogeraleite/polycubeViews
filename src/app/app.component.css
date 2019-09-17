@@ -197,6 +197,10 @@ button:focus {
 }
 
 /*MODAL CSS*/
+.modal.show {
+    display:block;
+  }
+  
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -325,7 +329,9 @@ button:focus {
     /* flex-direction: column; */
     /* align-items: center; */
     /* justify-content: center; */
-    font-size: 28px;
+    /* font-size: 28px; */
+    font-size: 15px;
     color: #6c757d;
     opacity: .5;
+    z-index: 99999;
 }
