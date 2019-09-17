@@ -32,7 +32,7 @@ export class GUI {
         this.stcBtn = document.getElementById('stc-view-button');
         this.jpBtn = document.getElementById('jp-view-button');
         this.siBtn = document.getElementById('si-view-button');
-       
+        
         this.gui = new DAT.GUI();
         this.createDATGUI();
     }
