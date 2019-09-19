@@ -74,7 +74,7 @@ export class NetCube implements PolyCube {
         this.render();
     }
 
-    
+
 
     createObjects(): void {
         this.timeLinearScale = this.dm.getTimeLinearScale();
@@ -92,7 +92,7 @@ export class NetCube implements PolyCube {
 
     assembleData(): void {
         this.dm.data.forEach((d: any) => { this.setMap.add(d.category_1); });
-        
+
         this.addNetworkDegreeToNodes();
 
         this.cubeGroupCSS.add(this.createBottomLayer());
@@ -109,25 +109,25 @@ export class NetCube implements PolyCube {
         this.dm.data.forEach((d: any) => {
             // initialize properties
             d.network_degree_in = 0;
-            d.network_degree_out = 0; 
+            d.network_degree_out = 0;
             d.network_degree_overall = 0;
             d.incomingNodes = new Set<number>();
         });
-        
+
         // For every node check against every other node
         this.dm.data.forEach((source: any) => {
             source.network_degree_out = source.target_nodes.length; // outgoing edges just length of target_nodes
             this.dm.data.forEach((target: any) => {
-                if(source.id === target.id) return; // return so we dont check same node against itsself
+                if (source.id === target.id) return; // return so we dont check same node against itsself
                 target.target_nodes.forEach((targetNode: any) => {
-                    if(targetNode === source.id) { // if target of target is same as source - incoming edge
+                    if (targetNode === source.id) { // if target of target is same as source - incoming edge
                         source.network_degree_in++;
                         source.incomingNodes.add(targetNode); // add to incomingNodes
                     }
                 });
             });
-        });    
-        
+        });
+
         this.dm.data.forEach((d: any) => {
             // calc total
             d.network_degree_overall = d.network_degree_in + d.network_degree_out;
@@ -204,15 +204,15 @@ export class NetCube implements PolyCube {
     }
 
     updateTime(time: string): void {
-        this.currentTimeSetting = time;        
+        this.currentTimeSetting = time;
         this.cubeGroupGL.children.forEach((child: THREE.Group, i) => {
             if (child.type !== 'Group') return;
 
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
                 let sliceOffsetY = child.position.y;
-                grandChild.position.y = time === 'aggregated' ? 0 : (this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY);      
-                
+                grandChild.position.y = time === 'aggregated' ? 0 : (this.timeLinearScale(grandChild.data.date_time) - sliceOffsetY);
+
             });
         });
 
@@ -231,7 +231,7 @@ export class NetCube implements PolyCube {
 
             child.children.forEach((grandChild: any) => {
                 if (grandChild.type !== 'DATA_POINT') return;
-                    layers.push(child.position.y);
+                layers.push(child.position.y);
             });
         });
 
@@ -512,7 +512,7 @@ export class NetCube implements PolyCube {
 
     //TRANSITIONS
     transitionSTC(): void {
-        if(!this._cubeToggle) return;
+        if (!this._cubeToggle) return;
         this.updateNodeColor('categorical');
         this.currentTimeSetting === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute(); // get back setting
         this.showBottomLayer();
@@ -562,7 +562,7 @@ export class NetCube implements PolyCube {
 
     transitionJP(): void {
         this.hideBottomLayer();
-        if(!this._cubeToggle) return;
+        if (!this._cubeToggle) return;
         this.hideAllLinks();
         this.boundingBox.visible = false;
         this.slices.forEach((slice: THREE.Group, i: number) => {
@@ -606,7 +606,7 @@ export class NetCube implements PolyCube {
     }
 
     transitionSI(): void {
-        if(!this._cubeToggle) return;
+        if (!this._cubeToggle) return;
         this.showSILinks();
         this.hideBottomLayer();
         this.boundingBox.visible = false;
@@ -710,7 +710,7 @@ export class NetCube implements PolyCube {
             highlighted_source.material.color.setHex(0xff0000);
 
             //highlight targetBy
-            highlighted_source.data.targetBy.forEach((n_id)=>{
+            highlighted_source.data.targetBy.forEach((n_id) => {
                 let related = this.getNodesInSceneById(n_id);
                 related.material.color.setHex(0xEF9A9A);
             })
@@ -718,7 +718,7 @@ export class NetCube implements PolyCube {
             //highlight targets            
             for (let a = 0; a < this.linksPerNode; a++) {
                 let target_id = highlighted_source.data.target_nodes[a];
-                if(target_id){
+                if (target_id) {
                     let related = this.getNodesInSceneById(target_id);
                     related.material.color.setHex(0x000000);
                 }
@@ -726,7 +726,7 @@ export class NetCube implements PolyCube {
         }
     }
 
-    getNodesInSceneById(id: string): any{
+    getNodesInSceneById(id: string): any {
         let _node = null;
         this.slices.forEach((slice: THREE.Group) => {
             slice.children.forEach((node: any) => {
@@ -748,24 +748,24 @@ export class NetCube implements PolyCube {
         return correspondingSlice;
     }
 
-    resetNodesInTimeSlices(): void {        
+    resetNodesInTimeSlices(): void {
         let save_nonNodes_slice_content = new Array<any>();
         //create slices saving conditions
         this.slices.forEach((slice: THREE.Group) => {
             save_nonNodes_slice_content.push([]);
         });
-        
+
         //save the non-nodes elements from the slices
-        this.slices.forEach((slice: THREE.Group,i: number) => {            
-            slice.children.forEach((c: THREE.Group)=>{
-                if(c.type != "DATA_POINT") {
+        this.slices.forEach((slice: THREE.Group, i: number) => {
+            slice.children.forEach((c: THREE.Group) => {
+                if (c.type != "DATA_POINT") {
                     save_nonNodes_slice_content[i].push(c);
                 }
             });
         });
 
         //fulfil slices with non-nodes elements
-        this.slices.forEach((slice: THREE.Group,i: number) => {            
+        this.slices.forEach((slice: THREE.Group, i: number) => {
             slice.children = save_nonNodes_slice_content[i];
         });
     }
@@ -782,29 +782,29 @@ export class NetCube implements PolyCube {
     }
 
     applyChargeFactorInNodes(): void {
-        if(!this.areSlicesSaved) this.saveSliceRecords();
+        if (!this.areSlicesSaved) this.saveSliceRecords();
 
-        this.slices.forEach((s: THREE.Group,i) => {
+        this.slices.forEach((s: THREE.Group, i) => {
             s.updateMatrixWorld();
-            s.children.forEach((c,ii)=>{
-                                
-                c.position.x =  c.original_position_x * this.chargeFactor;
-                c.position.z =  c.original_position_z * this.chargeFactor;
+            s.children.forEach((c, ii) => {
+
+                c.position.x = c.original_position_x * this.chargeFactor;
+                c.position.z = c.original_position_z * this.chargeFactor;
 
                 var vector = new THREE.Vector3();
-                vector.setFromMatrixPosition( c.matrixWorld );
+                vector.setFromMatrixPosition(c.matrixWorld);
             })
         });
     }
-    
-    applyChargeFactorInInternalSliceLinks(): void {
-        if(!this.areSlicesSaved) this.saveSliceRecords();
 
-        this.slices.forEach((s: THREE.Group,i) => {
+    applyChargeFactorInInternalSliceLinks(): void {
+        if (!this.areSlicesSaved) this.saveSliceRecords();
+
+        this.slices.forEach((s: THREE.Group, i) => {
             s.updateMatrixWorld();
-            s.children.forEach((l)=>{
-                if (l.type !== 'Line') return;  
-                l = this.scaleLink(l);           
+            s.children.forEach((l) => {
+                if (l.type !== 'Line') return;
+                l = this.scaleLink(l);
             })
         });
     }
@@ -840,22 +840,22 @@ export class NetCube implements PolyCube {
 
         return link;
     }
-    
-    applyChargeFactorInLinks(): void {        
+
+    applyChargeFactorInLinks(): void {
         this.links_stc_aggregated.children.forEach((l) => {
             l = this.scaleLinkNormalizing(l);
         })
-        this.links_stc_absolute.children.forEach((l)=>{
+        this.links_stc_absolute.children.forEach((l) => {
             l = this.scaleLinkNormalizing(l);
         })
-        this.links_si.children.forEach((l)=>{
-            l = this.scaleLinkNormalizing(l);                  
+        this.links_si.children.forEach((l) => {
+            l = this.scaleLinkNormalizing(l);
         })
     }
 
     saveSliceRecords(): void {
         this.slices.forEach((s: THREE.Group) => {
-            s.children.forEach((c)=>{
+            s.children.forEach((c) => {
                 c.original_position_x = c.position.x;
                 c.original_position_z = c.position.z;
             })
@@ -873,14 +873,14 @@ export class NetCube implements PolyCube {
         let normalized_x = null;
         let normalized_z = null;
         if (pos_map.has(`${id}`)) {
-            normalized_x = ((pos_map.get(`${id}`).x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
-            normalized_z = ((pos_map.get(`${id}`).y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y))*this.chargeFactor)+CUBE_CONFIG.WIDTH/2;
+            normalized_x = ((pos_map.get(`${id}`).x * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_x - pos_dim.min_x)) * this.chargeFactor) + CUBE_CONFIG.WIDTH / 2;
+            normalized_z = ((pos_map.get(`${id}`).y * CUBE_CONFIG.WIDTH / Math.abs(pos_dim.max_y - pos_dim.min_y)) * this.chargeFactor) + CUBE_CONFIG.WIDTH / 2;
         }
 
         if (normalized_x) return { x: normalized_x, y: null, z: normalized_z };
         else return null;
     }
-    
+
     getNormalizedPositionById(id: string): any {
         let pos_map = this.dm.getForcedDirectedPositionMap();
         let pos_dim = this.dm.getDataPositionDimensions();
@@ -898,7 +898,7 @@ export class NetCube implements PolyCube {
 
     addTargetByInformationInDataItems(): void {
         let targetBy_map = []
-        
+
         //create empty map
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
@@ -910,7 +910,7 @@ export class NetCube implements PolyCube {
             let dataItem = this.dm.data[i];
             for (let a = 0; a < this.linksPerNode; a++) {
                 let targetId = dataItem.target_nodes[a];
-                if(targetBy_map[targetId]) targetBy_map[targetId].push(dataItem.id);
+                if (targetBy_map[targetId]) targetBy_map[targetId].push(dataItem.id);
             }
         }
 
@@ -922,11 +922,11 @@ export class NetCube implements PolyCube {
 
     }
 
-    createNodes(): void {     
-        
+    createNodes(): void {
+
         this.resetNodesInTimeSlices();
 
-        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);           
+        let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
         this.addTargetByInformationInDataItems();
 
@@ -934,8 +934,8 @@ export class NetCube implements PolyCube {
             let dataItem = this.dm.data[i];
             let networkDegreeFactor = this.getNetworkDegreeFactor(dataItem);
 
-            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) }); 
-            
+            let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+
             let point = new THREE.Mesh(geometry, material);
 
             let position = this.getNormalizedPositionById(dataItem.id);
@@ -954,23 +954,31 @@ export class NetCube implements PolyCube {
         }//end for
     }
 
+    // FIXME: This function needs to be improved using d3.scaleLinear with min/max incoming node count
+    // Instead of just returning 5 if result is higher than 5 (lots of nodes have way more than 5 incoming nodes)
     getNetworkDegreeFactor(dataItem: any): number {
         let result = 1;
-        switch(this.nodeSizeEncodeFactor){
-            case 'overall_degree': result = dataItem.network_degree_overall; 
-                                   result = Math.log2(result); 
-                                   break;
-            case 'in_degree': result = dataItem.network_degree_in; 
-                              result = Math.log2(result); 
-                              break;
-            case 'out_degree': result = dataItem.network_degree_out; break;     
-            case 'non_degree': result = 1; break;            
+        switch (this.nodeSizeEncodeFactor) {
+            case 'overall_degree': 
+                result = dataItem.network_degree_overall;
+                result = Math.log2(result);
+                break;
+            case 'in_degree': 
+                result = dataItem.network_degree_in;
+                result = Math.log2(result);
+                break;
+            case 'out_degree': 
+                result = dataItem.network_degree_out; 
+                break;
+            case 'non_degree': 
+                result = 1; 
+                break;
         }
 
-        
 
-        if(result<1) result = 1; 
-        else if(result>5) result = 5; 
+
+        if (result < 1) result = 1;
+        else if (result > 5) result = 5;
 
         return result;
     }
@@ -986,7 +994,7 @@ export class NetCube implements PolyCube {
 
             let sourceNode_position = this.getNormalizedPositionById(`${dataItem.id}`);
             sourceNode_position.y = this.getTimeSliceByDate(dataItem.date_time).position.y;
-            
+
             for (let a = 0; a < this.linksPerNode; a++) {
 
                 let targetId = dataItem.target_nodes[a];
@@ -1133,7 +1141,7 @@ export class NetCube implements PolyCube {
                 targetNode_position.z + position_fix
             )
         );
-        
+
         lineGeometry.verticesNeedUpdate = true;
         return lineGeometry;
     }
@@ -1243,7 +1251,7 @@ export class NetCube implements PolyCube {
         this.hideSILinks();
     }
 
-    showCubeLinks_absolute(): void {        
+    showCubeLinks_absolute(): void {
         this.hideAllLinks();
         this.hideCubeLinks_aggregated();
         this.links_stc_absolute.visible = true;
@@ -1273,13 +1281,13 @@ export class NetCube implements PolyCube {
         this.links_si.visible = false;
     }
 
-    changeNodeSizeEncode(encode_type){        
+    changeNodeSizeEncode(encode_type) {
         this.nodeSizeEncodeFactor = encode_type;
         this.createNodes();
     }
 
-    changeChargeFactor(factor){
-        this.chargeFactor = factor/25;
+    changeChargeFactor(factor) {
+        this.chargeFactor = factor / 25;
         this.applyChargeFactorInNodes();
         this.applyChargeFactorInLinks();
         this.applyChargeFactorInInternalSliceLinks();
