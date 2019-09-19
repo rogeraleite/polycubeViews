@@ -106,29 +106,32 @@ export class NetCube implements PolyCube {
     }
 
     addNetworkDegreeToNodes(): void {
-        let degree_out = this.linksPerNode;        
-        let in_degree_map = [];
-
         this.dm.data.forEach((d: any) => {
-            in_degree_map[d.id] = 0;
-        })
-
-        this.dm.data.forEach((d: any) => {
-            for (let a = 0; a < this.linksPerNode; a++) {
-                let related_id = d.target_nodes[a];
-                in_degree_map[related_id]++;
-            }
-        })
-
-        this.dm.data.forEach((d: any) => { 
-            let degree_in = in_degree_map[d.id];
-            let degree_overall = degree_out + degree_in;
-            
-            d.network_degree_in = degree_in;
-            d.network_degree_out = degree_out;
-            d.network_degree_overall = degree_overall;
+            // initialize properties
+            d.network_degree_in = 0;
+            d.network_degree_out = 0; 
+            d.network_degree_overall = 0;
+            d.incomingNodes = new Set<number>();
         });
         
+        // For every node check against every other node
+        this.dm.data.forEach((source: any) => {
+            source.network_degree_out = source.target_nodes.length; // outgoing edges just length of target_nodes
+            this.dm.data.forEach((target: any) => {
+                if(source.id === target.id) return; // return so we dont check same node against itsself
+                target.target_nodes.forEach((targetNode: any) => {
+                    if(targetNode === source.id) { // if target of target is same as source - incoming edge
+                        source.network_degree_in++;
+                        source.incomingNodes.add(targetNode); // add to incomingNodes
+                    }
+                });
+            });
+        });    
+        
+        this.dm.data.forEach((d: any) => {
+            // calc total
+            d.network_degree_overall = d.network_degree_in + d.network_degree_out;
+        });
     }
 
     createBottomLayer(color?: string): void {
@@ -944,14 +947,14 @@ export class NetCube implements PolyCube {
                 point.data = dataItem;
                 point.type = 'DATA_POINT';
 
-                point.scale.set( networkDegreeFactor, networkDegreeFactor, networkDegreeFactor);
+                point.scale.set(networkDegreeFactor, networkDegreeFactor, networkDegreeFactor);
 
                 this.getTimeSliceByDate(dataItem.date_time).add(point);
             }//end if            
         }//end for
     }
 
-    getNetworkDegreeFactor(dataItem) {
+    getNetworkDegreeFactor(dataItem: any): number {
         let result = 1;
         switch(this.nodeSizeEncodeFactor){
             case 'overall_degree': result = dataItem.network_degree_overall; 
