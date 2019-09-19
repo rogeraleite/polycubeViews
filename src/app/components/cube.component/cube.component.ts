@@ -202,7 +202,15 @@ export class CubeComponent implements AfterViewInit {
          this.initGUI();
          this.addEventListeners();
          this.animate();
+         this.defaultSetup(); // just the default setup
       });
+   }
+
+   /**
+    * function for default cube inital setup
+    */
+   defaultSetup(): void {
+      this.nCube.updateTime('absolute');
    }
 
    /**
@@ -430,7 +438,7 @@ export class CubeComponent implements AfterViewInit {
          if(change.time) {
             this.gCube.updateTime(change.time);
             // this.sCube.updateTime(change.time);
-            // this.nCube.updateTime(change.time);
+            this.nCube.updateTime(change.time);
          }
 
          if(change.numSlices) {

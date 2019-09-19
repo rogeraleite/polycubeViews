@@ -290,6 +290,10 @@ export class GeoCube implements PolyCube {
                 point.type = 'DATA_POINT';
                 this.findTimeSlice(dataItem.date_time).add(point);
             }
+
+            // for default settings (TODO: move to a better)
+            this.updateTime('absolute');
+            this.updateJitter(5);
         });
     }
 
