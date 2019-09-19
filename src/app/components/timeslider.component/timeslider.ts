@@ -79,7 +79,7 @@ export class TimeSliderComponent implements AfterViewInit {
             // .attr('transform', 'translate(' + 50 + ', 0 )')
             .call(
                 D3.axisRight(this.yScale)
-                    .ticks(D3.timeYear.every(1))
+                    // .ticks(D3.timeYear.every(1))
                     .tickSize(10)
                     .tickFormat((d: Date) => {
                         return D3.timeFormat('%Y')(d);

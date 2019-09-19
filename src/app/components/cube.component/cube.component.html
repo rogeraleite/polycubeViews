@@ -10,6 +10,27 @@
         </button>
 </div>
 
+<!-- Modal 2 -->
+<div [ngClass]="{'show': showModal}" class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">The Charles W. Cushman-Photography Collection
+</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+This data set contains about 2000 photographs from the Charles W. Cushman collection . Cushman (1896-1972), was a well-travelled amateur photographer and U.S. citizen. The visualized selection is part of his lifework collection (aggregating 14.500 Kodachrome pictures) at Indiana University, and it shows pictures taken on the U.S. mainland between 1938 and 1955. For more information, see Mayr et al., 2019       </div>
+      <div class="modal-footer">
+        <button (click)="showModal=false" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="wrapper">
     <ng-sidebar-container>
         <!-- Preview Panel Side Bar -->
@@ -26,11 +47,11 @@
                 <div *ngFor="let cat of previewItem.categories" class="categories">
                     <span class="badge badge-secondary">{{ cat }}</span>
                 </div>
-                <p class="preview-metainfo">{{ previewItem.date }} @ {{ previewItem.location }}</p>
+                <p class="preview-metainfo">{{ previewItem.date }}, {{ previewItem.location }}</p>
                 <br>
                 <p class="preview-description">{{ previewItem.description }}</p>
                 <div class="related">
-                    <p>Related pictures:</p>
+                    <p>Related objects:</p>
                     <div class="image-grid">
                         <div class="image-grid-cell" *ngFor="let r of previewItem.related; let i = index">
                             <div *ngIf="i < 6">
@@ -56,7 +77,7 @@
                     <p>Network degree overall: {{previewItem.network_degree_overall}}</p>
                 </div>
                 <br>
-                <a [attr.href]="previewItem.externalURL" target="_blank">More information at Indiana University</a>
+                <a [attr.href]="previewItem.externalURL" target="_blank">More information on this object</a>
             </div>
         </ng-sidebar>
 
@@ -100,7 +121,7 @@
             <div class="btn-group" role="group">
                 <button type="button" class="btn" id="geo-view-button" #geobtn title="Maps">  <i class="fa fa-map-o"></i></button>
                 <button type="button" class="btn" id="set-view-button" #setbtn title="Categories "> <i class="fa fa-spinner"></i></button>
-                <button type="button" class="btn" id="net-view-button" #netbtn title="Relations"> <i class="fa fa-share-alt"></i></button>
+                <button type="button" class="btn" id="net-view-button" #netbtn title="Relations"> <i class="fa fa-connectdevelop"></i></button>
             </div>
             <div class="btn-group" role="group">
                 <button type="button" class="btn  btn-outline-secondary" id="stc-view-button" title="3D View"> <i class="fa fa-cube"></i></button>
@@ -110,7 +131,13 @@
             </div>
 
             <div class="overlay" *ngIf="dataLoaded">
-                <p>{{ formatDate(currentlySelectedDateExtent[0]) }} - {{ formatDate(currentlySelectedDateExtent[1]) }}</p>
+                <!--{{ formatDate(currentlySelectedDateExtent[0]) }} - {{ formatDate(currentlySelectedDateExtent[1]) }}</p>-->
+
+                <p> 
+                <a (click)="showModal=true">Vis info  | </a> 
+                <a target="_blank" href='https://webapp1.dlib.indiana.edu/cushman/index.jsp'>Data Source </a> 
+                </p>
+
             </div>
         </div>
     </ng-sidebar-container>
