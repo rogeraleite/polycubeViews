@@ -524,6 +524,12 @@ export class CubeComponent implements AfterViewInit {
          if(change.nCharge) {
             (this.nCube as NetCube).changeChargeFactor(change.nCharge)
          }
+         // hide and show links button
+         if(change.nLinks == false) {
+            (this.nCube as NetCube).hideAllLinks();
+         }else{
+            (this.nCube as NetCube).showCubeLinks_absolute();
+         }
       }); 
    
 

@@ -30,7 +30,7 @@ export class NetCube implements PolyCube {
     private slices: Array<THREE.Group>;
     private colors: any;
     private timeLinearScale: D3.ScaleLinear<number, number>;
-
+    private degreeScale: D3.ScaleLinear<any, any>;
     private hiddenLabels: Array<THREE.CSS3DObject>;
 
     private links_stc_aggregated: THREE.Group;
@@ -928,11 +928,16 @@ export class NetCube implements PolyCube {
 
         let geometry = new THREE.SphereGeometry(CUBE_CONFIG.NODE_SIZE, 32, 32);
 
+        // using linear scale to calculate the degree size for nodes 
+        let degreeExtent =  D3.extent(this.dm.data, (d: any) => {
+            return d.network_degree_in });
+        this.degreeScale = D3.scaleLinear().domain([degreeExtent[0],degreeExtent[1]]).range([1,6]);
         this.addTargetByInformationInDataItems();
 
         for (let i = 0; i < this.dm.data.length; i++) {
             let dataItem = this.dm.data[i];
-            let networkDegreeFactor = this.getNetworkDegreeFactor(dataItem);
+            // let networkDegreeFactor = this.getNetworkDegreeFactor(dataItem);
+            let networkDegreeFactor = this.degreeScale(dataItem.network_degree_in);
 
             let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
 
@@ -954,7 +959,7 @@ export class NetCube implements PolyCube {
         }//end for
     }
 
-    // FIXME: This function needs to be improved using d3.scaleLinear with min/max incoming node count
+    // This function needs to be improved using d3.scaleLinear with min/max incoming node count (SS: Done at at the top, no need for this function anymore) 
     // Instead of just returning 5 if result is higher than 5 (lots of nodes have way more than 5 incoming nodes)
     getNetworkDegreeFactor(dataItem: any): number {
         let result = 1;

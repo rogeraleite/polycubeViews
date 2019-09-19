@@ -15,14 +15,17 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">The Charles W. Cushman-Photography Collection
+        <h5 class="modal-title" id="exampleModalLabel">Most Influential Movies, Based on Cinematic References
 </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-This data set contains about 2000 photographs from the Charles W. Cushman collection . Cushman (1896-1972), was a well-travelled amateur photographer and U.S. citizen. The visualized selection is part of his lifework collection (aggregating 14.500 Kodachrome pictures) at Indiana University, and it shows pictures taken on the U.S. mainland between 1938 and 1955. For more information, see Mayr et al., 2019       </div>
+      <p>
+This data shows the most influential 2000 feature films with regard to references between movies. It is an excerpt from the study of Spitz & Horvat (2014) on the long-term impact which movies had on other movies throughout film history (link). In the PolyCube system, the year of production, country of origin, movie genre, and movie references are represented from left to right.  
+    </p>
+</div>
       <div class="modal-footer">
         <button (click)="showModal=false" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
@@ -55,8 +58,8 @@ This data set contains about 2000 photographs from the Charles W. Cushman collec
                     <div class="image-grid">
                         <div class="image-grid-cell" *ngFor="let r of previewItem.related; let i = index">
                             <div *ngIf="i < 6">
-                                <a href="javascript:void(0)" (click)="selectNode(r)">
-                                    <img class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description">
+                                <a  href="javascript:void(0)" (click)="selectNode(r)">
+                                     <img *ngIf="getRelatedNode(r)" class="image-grid-image" [src]="getRelatedNode(r).external_url"  data-toggle="tooltip" data-placement="bottom" [title]="getRelatedNode(r).description"> 
                                     <!-- {{ getRelatedNode(r).description === "" ? 'No description' : getRelatedNode(r).description }} -->
                                 </a>
                             </div>
@@ -135,7 +138,7 @@ This data set contains about 2000 photographs from the Charles W. Cushman collec
 
                 <p> 
                 <a (click)="showModal=true">Vis info  | </a> 
-                <a target="_blank" href='https://webapp1.dlib.indiana.edu/cushman/index.jsp'>Data Source </a> 
+                <a target="_blank" href='https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0108857#s2'>Data Source </a> 
                 </p>
 
             </div>

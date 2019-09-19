@@ -141,7 +141,8 @@ export class GUI {
         // NetCube settings
         let nCubeParams = {
             node_size: ['overall_degree'],
-            charge: 25
+            charge: 25,
+            hideLinks: false
         };
         let nCubeFolder = this.gui.addFolder('NetCube');
 
@@ -157,6 +158,11 @@ export class GUI {
             });
         });
 
+        nCubeFolder.add(nCubeParams, 'hideLinks').onChange(() => {
+            this.nCubeConfigEmitter.emit('change', {
+                nLinks: nCubeParams.hideLinks
+            });
+        });
 
     }
     
