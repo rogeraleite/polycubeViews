@@ -211,6 +211,8 @@ export class CubeComponent implements AfterViewInit {
     */
    defaultSetup(): void {
       this.nCube.updateTime('absolute');
+
+      this.updateNodeColor('temporal');
    }
 
    /**
@@ -414,6 +416,20 @@ export class CubeComponent implements AfterViewInit {
       console.log('image loaded');
    }
 
+   updateNodeColor(nodeColor){
+      this.showColorCodingLegend = nodeColor !== 'categorical' ? false : true;
+            
+      this.gCube.updateNodeColor(nodeColor);
+      this.sCube.updateNodeColor(nodeColor);
+      this.nCube.updateNodeColor(nodeColor);
+
+      //update timeline color
+      if(nodeColor == 'temporal'){ this.displayTimelineColor(true) }
+      else{ this.displayTimelineColor(false) }
+   }
+
+   
+
    /**
     * Initializes the GUI elements including button event listeners
     */
@@ -457,18 +473,7 @@ export class CubeComponent implements AfterViewInit {
          }
 
          if(change.nodeColor) {
-            this.showColorCodingLegend = change.nodeColor !== 'categorical' ? false : true;
-            
-            this.gCube.updateNodeColor(change.nodeColor);
-            this.sCube.updateNodeColor(change.nodeColor);
-            this.nCube.updateNodeColor(change.nodeColor);
-
-            //update timeline color
-            if(change.nodeColor === 'temporal'){
-               this.timelineColor(true)
-            }else{
-               this.timelineColor(false)
-            }
+            this.updateNodeColor(change.nodeColor);
          }
 
          // camera switch 
@@ -543,7 +548,6 @@ export class CubeComponent implements AfterViewInit {
          this.sCube.transitionSTC();
          this.nCube.transitionSTC();
 
-
           //rotate camera to STC
           this.transitionSTCCamera();
       });
@@ -553,20 +557,15 @@ export class CubeComponent implements AfterViewInit {
          this.sCube.transitionJP();
          this.nCube.transitionJP();
 
-
          //rotate camera to JP
          this.transitionJPCamera();
 
       });
 
       this.gui.siBtn.addEventListener('click', () => {
-         this.gCube.updateNodeColor('temporal');
-         this.nCube.updateNodeColor('temporal');
          this.gCube.transitionSI();
          this.sCube.transitionSI();
          this.nCube.transitionSI();
-         //this.sCube.updateNodeColor('temporal'); //FIXME: need to be called after SI is finished in SCUBE
-
 
          //rotate camera to SI
          this.transitionSICamera();
@@ -579,7 +578,7 @@ export class CubeComponent implements AfterViewInit {
    transitionSICamera(): void{
 
       //update timeline color as true
-      this.timelineColor(true);
+      this.displayTimelineColor(true);
 
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
@@ -608,7 +607,7 @@ export class CubeComponent implements AfterViewInit {
 
    transitionSTCCamera(): void{
       //update timeline color as false
-      this.timelineColor(false)
+      this.displayTimelineColor(false)
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       //allow rotation
@@ -630,7 +629,7 @@ export class CubeComponent implements AfterViewInit {
 
    transitionJPCamera(): void {
       // update timeline color
-      this.timelineColor(false);
+      this.displayTimelineColor(false);
       this.restoreCamera(this.camToSave.position, this.camToSave.rotation, this.camToSave.controlCenter);
 
       // stop rotation
@@ -699,8 +698,8 @@ export class CubeComponent implements AfterViewInit {
    /**
     * This function is used to update brush timeline color
     */
-   timelineColor(visible: boolean):void{
-      if(visible == true){
+   displayTimelineColor(visible: boolean):void{
+      if(visible){
          // D3.select('#timeLegend').classed('hide', false)
          D3.select('#timeLegend').style('display','block')
       } else{

@@ -513,7 +513,6 @@ export class NetCube implements PolyCube {
     //TRANSITIONS
     transitionSTC(): void {
         if (!this._cubeToggle) return;
-        this.updateNodeColor('categorical');
         this.currentTimeSetting === 'aggregated' ? this.showCubeLinks_aggregated() : this.showCubeLinks_absolute(); // get back setting
         this.showBottomLayer();
         this.boundingBox.visible = true;

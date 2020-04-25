@@ -594,8 +594,6 @@ export class SetCube implements PolyCube {
         if (!this._cubeToggle) { return; }
         this.showBottomLayer();
         this.boundingBox.visible = true;
-        // TODO:on STC, update setcube with stacked layers
-        this.updateColorCoding('categorical');
         this.updateSetCube();
 
         const vertOffset = CUBE_CONFIG.HEIGHT / this.dm.timeRange.length; // FIXME: value is aways divided by 1
@@ -731,8 +729,6 @@ export class SetCube implements PolyCube {
         // on complete tweening, update setcube with flattened layers
         tween.onComplete(() => {
             this.updateSetCube(1);
-            // update node colors to temporal
-            this.updateNodeColor('temporal');
             this.hideLabels();
         });
     }

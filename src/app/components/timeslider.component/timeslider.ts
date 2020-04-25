@@ -55,8 +55,6 @@ export class TimeSliderComponent implements AfterViewInit {
         this.yScale = D3.scaleTime().domain([this.maxDate, this.minDate]).range([0, this.height]);
         this.yScale2 = D3.scaleTime().domain([new Date(2000, 1, 1), new Date(1900, 1, 1)]).range([0, this.height]);
 
-        console.log(this.maxDate, this.minDate);
-
         // define brush
         this.brush = D3.brushY()
             .extent([[0, 0], [this.width, this.height]])
@@ -87,23 +85,10 @@ export class TimeSliderComponent implements AfterViewInit {
             )
             .selectAll('.tick');
 
-        // timeline 2
-        // this._svg.append('g')
-        //     .attr('class', 'axis2 axis--y2')
-        //     .call(
-        //         D3.axisRight(this.yScale2)
-        //             // .ticks(D3.timeYear.every(1))
-        //             .tickSize(10)
-        //             // .tickFormat((d: Date) => {
-        //             //     return D3.timeFormat('%Y')(d);
-        //             // })
-        //     )
-        //     .selectAll('.tick');
-
         // Legend
         let defs = this._svg.append('defs');
         let linearGradient = defs.append('linearGradient')
-            .attr('id', 'linear-gradient');
+                                 .attr('id', 'linear-gradient');
 
         // Vertical gradient
         linearGradient
@@ -114,30 +99,29 @@ export class TimeSliderComponent implements AfterViewInit {
 
         // A color scale
         let colorScale = D3.scaleSequential(D3.interpolateViridis)
-            .domain([this.height, 0]);
+                           .domain([this.height, 0]);
 
         linearGradient.selectAll('stop')
-            .data([
-                {offset: '0%', color: '#fde725'},
-                {offset: '12.5%', color: '#a8db35'},
-                {offset: '25%', color: '#5cc763'},
-                {offset: '37.5%', color: '#5cc763'},
-                {offset: '50%', color: '#218f8d'},
-                {offset: '62.5%', color: '#2d6d8e'},
-                {offset: '75%', color: '#3c4f8a'},
-                {offset: '87.5%', color: '#472775'},
-                {offset: '100%', color: '#440154'}
-            ])
-            .enter().append('stop')
-            .attr('offset', function(d) { return d.offset; })
-            .attr('stop-color', function(d) { return d.color; });
+                        .data([
+                            {offset: '0%', color: '#fde725'},
+                            {offset: '12.5%', color: '#a8db35'},
+                            {offset: '25%', color: '#5cc763'},
+                            {offset: '37.5%', color: '#5cc763'},
+                            {offset: '50%', color: '#218f8d'},
+                            {offset: '62.5%', color: '#2d6d8e'},
+                            {offset: '75%', color: '#3c4f8a'},
+                            {offset: '87.5%', color: '#472775'},
+                            {offset: '100%', color: '#440154'}
+                        ])
+                        .enter().append('stop')
+                        .attr('offset', function(d) { return d.offset; })
+                        .attr('stop-color', function(d) { return d.color; });
 
         // legend
         const legend = this._svg.append('g')
             .attr('class', 'timeLegend')
             .append('rect')
             .attr('id', 'timeLegend')
-            .style('display', 'none')
             .attr('width', 20 + 'px')
             .attr('height', this.height)
             .attr('transform', 'translate(' + -20 + ', 0 )')

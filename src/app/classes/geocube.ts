@@ -554,7 +554,6 @@ export class GeoCube implements PolyCube {
      */
     transitionSTC(): void { 
         if(!this._cubeToggle) return;
-        this.updateNodeColor('categorical');
         let vertOffset = CUBE_CONFIG.HEIGHT/this.dm.timeRange.length;
         this.boundingBox.visible = true;
         this.slices.forEach((slice: THREE.Group, i: number) => {
