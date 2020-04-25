@@ -143,14 +143,35 @@ export class TimeSliderComponent implements AfterViewInit {
             .attr('transform', 'translate(' + -20 + ', 0 )')
             .attr('fill', 'url(#linear-gradient)');
 
+        // Define the div for the tooltip
+        let tooltip = D3.select("body").append("div")	
+                    .attr("class", "tooltip")
+                    .style("position", "absolute")
+                    .style("z-index", "9999999")
+                    .style("visibility", "hidden");
+
         // animate button
         const playButton = this._svg.append('g')
             .attr('transform', 'translate(' + 0 + ',' + (this.height + buttonYSize) + ')')
-            .attr('class', 'animateButton');
+            .attr('class', 'animateButton')
+            .on("mouseover", (d) => {		
+                return tooltip.style("visibility", "visible");
+                })					
+            .on("mousemove", (d)=>{
+                    return tooltip.style("top", (D3.event.pageY-10)+"px")
+                                  .style("left",(D3.event.pageX+10)+"px")     
+                                  .style("border-style","solid")          
+                                  .style("border-width","thin")                                     
+                                  .style("background-color","rgba(255,255,255)");
+                })
+            .on("mouseout", ()=>{
+                    return tooltip.style("visibility", "hidden");                                
+            });
+
 
         playButton.append('rect')
             .attr('width', this.width)
-            .attr('height', buttonYSize);
+            .attr('height', buttonYSize);        
 
         playButton.append('text')
             .attr('class', 'playButton')
