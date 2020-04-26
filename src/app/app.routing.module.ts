@@ -5,9 +5,9 @@ import { CubeComponent } from './components/cube.component/cube.component';
 import { ForceDirectedComponent } from './util/forceDirectedSimulation/forceDirectedSimulation'
 
 const routes: Routes = [
-    { path: 'home', component: CubeComponent },
+    { path: '', component: CubeComponent },
     { path: 'fd', component: ForceDirectedComponent },
-    { path: '', redirectTo: '/home', pathMatch: 'full' },
+    { path: '', redirectTo: '', pathMatch: 'full' },
     { path: '**', redirectTo: '/home' },
 ];
 
