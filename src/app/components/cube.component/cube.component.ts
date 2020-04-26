@@ -174,6 +174,7 @@ export class CubeComponent implements AfterViewInit {
    initDataset(): void {
       this.loadingDataset = true;
       let _id = CUBE_CONFIG.DATA_SET.id; // Cushman dataset ID
+      let dataset_name = CUBE_CONFIG.DATA_SET.name;
       // perform request to get spreadsheet json 
       // parse it when done and pass to datamanager
       this.google.load(_id).then((success: any) => {
@@ -202,17 +203,22 @@ export class CubeComponent implements AfterViewInit {
          this.initGUI();
          this.addEventListeners();
          this.animate();
-         this.defaultSetup(); // just the default setup
+         this.defaultSetup(dataset_name); // just the default setup
       });
    }
 
    /**
     * function for default cube inital setup
     */
-   defaultSetup(): void {
+   defaultSetup(dataset_id): void {
       this.nCube.updateTime('absolute');
 
-      this.updateNodeColor('temporal');
+      if(dataset_id=="Cushman"){
+         this.updateNodeColor('temporal');
+      }
+      else{//IMDB or others
+         this.updateNodeColor('monochrome');
+      }
    }
 
    /**
