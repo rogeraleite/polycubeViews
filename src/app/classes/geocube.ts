@@ -204,9 +204,9 @@ export class GeoCube implements PolyCube {
             // name set to year -> we can now map objects to certain layers by checking their
             // this.dm.getTimeQuantile(date) and the slices name.
             slice.name = this.dm.timeRange[i].getFullYear();
-            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32 );
+            let geometry = new THREE.PlaneGeometry(CUBE_CONFIG.WIDTH, CUBE_CONFIG.HEIGHT, 32);
             let edgeGeometry = new THREE.EdgesGeometry(geometry);
-            let material = new THREE.LineBasicMaterial( {color: '#b5b5b5' } );
+            let material = new THREE.LineBasicMaterial({ color: '#b5b5b5' });
             let plane = new THREE.LineSegments( edgeGeometry, material );
 
             slice.position.set(CUBE_CONFIG.WIDTH/2, this.timeLinearScale(moment(`${slice.name}`).toDate()), CUBE_CONFIG.WIDTH/2);
@@ -277,7 +277,7 @@ export class GeoCube implements PolyCube {
             
             for (let i = 0; i < this.dm.data.length; i++) {
                 let dataItem = this.dm.data[i];
-                let material;
+                let material = CUBE_CONFIG.DATA_SET.name === "IMDB" ?  new THREE.MeshBasicMaterial({ color: "#cc1414" }) : new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
                 // check if dataset is IMDB, then use monochrome as default, else use categorical
                 // let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
                 CUBE_CONFIG.DATA_SET.name === "IMDB" ? material = new THREE.MeshBasicMaterial({ color: "#cc1414" }) : material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) })
