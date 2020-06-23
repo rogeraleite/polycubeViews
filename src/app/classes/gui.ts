@@ -47,7 +47,7 @@ export class GUI {
             },
             numSlices: 10,
             backgroundColor: '#ffffff',
-            nodeColor: 'temporal', // temporal (viridis), monochrome (gray)
+            nodeColor: 'categorical', // temporal (viridis), monochrome (gray)
             time: 'aggregated',
             nodeSize: CUBE_CONFIG.NODE_SIZE,
             dataSet: CUBE_CONFIG.DATA_SET.name,
@@ -74,7 +74,7 @@ export class GUI {
                 time: pCubeParams.time
             });
         });
-        pCubeFolder.add(pCubeParams, 'nodeColor', ['temporal', 'categorical', 'monochrome']).onChange(() => {
+        pCubeFolder.add(pCubeParams, 'nodeColor', ['categorical', 'temporal', 'monochrome']).onChange(() => {
             this.pCubeConfigEmitter.emit('change', {
                 nodeColor: pCubeParams.nodeColor
             });
