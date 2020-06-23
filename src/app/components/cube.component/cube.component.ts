@@ -430,8 +430,7 @@ export class CubeComponent implements AfterViewInit {
       this.nCube.updateNodeColor(nodeColor);
 
       //update timeline color
-      if(nodeColor == 'temporal'){ this.displayTimelineColor(true) }
-      else{ this.displayTimelineColor(false) }
+      nodeColor == 'temporal' ? this.displayTimelineColor(true) : this.displayTimelineColor(false);
    }
 
    
