@@ -214,7 +214,7 @@ export class CubeComponent implements AfterViewInit {
       this.nCube.updateTime('absolute');
 
       if(dataset_id=="Cushman"){
-         this.updateNodeColor('temporal');
+         this.updateNodeColor('categorical');
       }
       else{//IMDB or others
          this.updateNodeColor('monochrome');
