@@ -276,7 +276,10 @@ export class GeoCube implements PolyCube {
 
             for (let i = 0; i < this.dm.data.length; i++) {
                 let dataItem = this.dm.data[i];
-                let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+                let material;
+                // check if dataset is IMDB, then use monochrome as default, else use categorical
+                // let material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) });
+                CUBE_CONFIG.DATA_SET.name === "IMDB" ? material = new THREE.MeshBasicMaterial({ color: "#cc1414" }) : material = new THREE.MeshBasicMaterial({ color: this.colors(dataItem.category_1) })
 
                 let cubeCoords = this.map.project(new mapboxgl.LngLat(dataItem.longitude, dataItem.latitude));
                 let point = new THREE.Mesh(geometry, material);

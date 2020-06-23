@@ -30,7 +30,7 @@ export class GraphPositionService {
         return this._position_map;
     }
 
-    olddefaultDataSet(): void {
+    defaultDataSet(): void {
         this._position = [
             {
                 "id": "5502",
@@ -9861,7 +9861,7 @@ export class GraphPositionService {
         this.buildPositionMap();
     }
 
-    defaultDataSet(): void { //imdb
+    olddefaultDataSet(): void { //imdb
         this._position = [
             {
               "id": "408",
