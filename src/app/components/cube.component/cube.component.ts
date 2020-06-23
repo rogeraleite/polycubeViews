@@ -549,6 +549,7 @@ export class CubeComponent implements AfterViewInit {
       this.gui.netBtn.addEventListener('click', () => { this.setCubeView(VIEW_STATES.NET_CUBE); });
 
       this.gui.stcBtn.addEventListener('click', () => {
+         this.updateNodeColor('categorical');
          this.gCube.transitionSTC();
          this.sCube.transitionSTC();
          this.nCube.transitionSTC();
@@ -558,6 +559,7 @@ export class CubeComponent implements AfterViewInit {
       });
 
       this.gui.jpBtn.addEventListener('click', () => {
+         this.updateNodeColor('categorical');
          this.gCube.transitionJP();
          this.sCube.transitionJP();
          this.nCube.transitionJP();
@@ -568,6 +570,7 @@ export class CubeComponent implements AfterViewInit {
       });
 
       this.gui.siBtn.addEventListener('click', () => {
+         this.updateNodeColor('temporal');
          this.gCube.transitionSI();
          this.sCube.transitionSI();
          this.nCube.transitionSI();
