@@ -6,6 +6,7 @@ import { ForceDirectedComponent } from './util/forceDirectedSimulation/forceDire
 
 const routes: Routes = [
     { path: '', component: CubeComponent },
+    { path: 'home', component: CubeComponent },
     { path: 'fd', component: ForceDirectedComponent },
     { path: '', redirectTo: '', pathMatch: 'full' },
     { path: '**', redirectTo: '/home' },
