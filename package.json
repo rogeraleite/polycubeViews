@@ -29,7 +29,7 @@
     "mapbox-gl": "^0.53.1",
     "moment": "^2.24.0",
     "ng-sidebar": "^8.0.0",
-    "papaparse": "^4.6.3",
+    "papaparse": "^5.2.0",
     "rxjs": "~6.3.3",
     "three": "^0.102.1",
     "three-full": "^17.1.0",
